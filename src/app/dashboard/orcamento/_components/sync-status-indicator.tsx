@@ -22,17 +22,31 @@ export function SyncStatusIndicator() {
     if (!isOnline) return 'Você está offline. As alterações serão sincronizadas quando você se conectar.';
     if (isSyncing) return `Sincronizando ${pendingCount > 0 ? `${pendingCount} item(s)` : ''}...`;
     if (pendingCount > 0) return `${pendingCount} ${pendingCount === 1 ? 'item pendente' : 'itens pendentes'} para sincronizar.`;
+    if (lastSync) return `Sincronizado. Última vez: ${formatDistanceToNow(new Date(lastSync), { addSuffix: true, locale: ptBR })}`;
     return 'Conectado e sincronizado.';
   };
+
+  const getVariant = () => {
+    if (!isOnline) return 'destructive';
+    if (isSyncing || pendingCount > 0) return 'secondary';
+    return 'default';
+  }
+
+  const getStatusText = () => {
+    if (!isOnline) return 'Offline';
+    if (isSyncing) return 'Sincronizando...';
+    if (pendingCount > 0) return 'Pendente';
+    return 'Sincronizado';
+  }
 
   return (
     <TooltipProvider>
       <div className="flex items-center justify-end gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="cursor-help">
+            <div className="cursor-help inline-block">
               <Badge
-                variant={isOnline ? (isSyncing || pendingCount > 0 ? 'secondary' : 'default') : 'destructive'}
+                variant={getVariant()}
                 className="flex items-center gap-2"
               >
                 {!isOnline ? (
@@ -43,7 +57,7 @@ export function SyncStatusIndicator() {
                   <Cloud className="h-4 w-4" />
                 )}
                 <span className="hidden sm:inline">
-                  {!isOnline ? 'Offline' : isSyncing ? 'Sincronizando...' : 'Sincronizado'}
+                  {getStatusText()}
                 </span>
                 {pendingCount > 0 && !isSyncing && (
                   <span className="ml-1 h-2 w-2 rounded-full bg-yellow-400 animate-pulse"></span>
