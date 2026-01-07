@@ -30,24 +30,26 @@ export function SyncStatusIndicator() {
       <div className="flex items-center justify-end gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Badge
-              variant={isOnline ? (isSyncing || pendingCount > 0 ? 'secondary' : 'default') : 'destructive'}
-              className="flex items-center gap-2 cursor-help"
-            >
-              {!isOnline ? (
-                <CloudOff className="h-4 w-4" />
-              ) : isSyncing ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Cloud className="h-4 w-4" />
-              )}
-              <span className="hidden sm:inline">
-                {!isOnline ? 'Offline' : isSyncing ? 'Sincronizando...' : 'Sincronizado'}
-              </span>
-              {pendingCount > 0 && !isSyncing && (
-                <span className="ml-1 h-2 w-2 rounded-full bg-yellow-400 animate-pulse"></span>
-              )}
-            </Badge>
+            <div className="cursor-help">
+              <Badge
+                variant={isOnline ? (isSyncing || pendingCount > 0 ? 'secondary' : 'default') : 'destructive'}
+                className="flex items-center gap-2"
+              >
+                {!isOnline ? (
+                  <CloudOff className="h-4 w-4" />
+                ) : isSyncing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Cloud className="h-4 w-4" />
+                )}
+                <span className="hidden sm:inline">
+                  {!isOnline ? 'Offline' : isSyncing ? 'Sincronizando...' : 'Sincronizado'}
+                </span>
+                {pendingCount > 0 && !isSyncing && (
+                  <span className="ml-1 h-2 w-2 rounded-full bg-yellow-400 animate-pulse"></span>
+                )}
+              </Badge>
+            </div>
           </TooltipTrigger>
           <TooltipContent>
             <p>{getTooltipContent()}</p>
@@ -75,5 +77,3 @@ export function SyncStatusIndicator() {
     </TooltipProvider>
   );
 }
-
-    
