@@ -38,6 +38,7 @@ import {
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { type VariantProps } from 'class-variance-authority';
@@ -75,25 +76,29 @@ const AdjustmentBadge = ({ orcamento }: { orcamento: Orcamento }) => {
   const percentage = calculated !== 0 ? (diff / calculated) * 100 : 0;
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <div className="flex flex-col items-end">
-          <span className="font-bold">{formatCurrency(orcamento.totalVenda)}</span>
-          <span
-            className={cn(
-              'text-xs',
-              diff < 0 ? 'text-destructive' : 'text-green-600'
-            )}
-          >
-            {diff > 0 ? 'Acréscimo' : 'Desconto'} ({percentage.toFixed(1)}%)
-          </span>
-        </div>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>Total calculado: {formatCurrency(calculated)}</p>
-        <p>Ajuste manual: {formatCurrency(diff)}</p>
-      </TooltipContent>
-    </Tooltip>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="cursor-help">
+            <div className="flex flex-col items-end">
+              <span className="font-bold">{formatCurrency(orcamento.totalVenda)}</span>
+              <span
+                className={cn(
+                  'text-xs',
+                  diff < 0 ? 'text-destructive' : 'text-green-600'
+                )}
+              >
+                {diff > 0 ? 'Acréscimo' : 'Desconto'} ({percentage.toFixed(1)}%)
+              </span>
+            </div>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Total calculado: {formatCurrency(calculated)}</p>
+          <p>Ajuste manual: {formatCurrency(diff)}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 
