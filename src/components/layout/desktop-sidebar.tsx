@@ -87,11 +87,11 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
 
         {/* Rodapé / Sair e Toggle */}
         <div className="mt-auto border-t p-2 space-y-2 bg-background/50">
-          <Tooltip delayDuration={0}>
+          <Tooltip delayDuration={0} open={isCollapsed ? undefined : false}>
             <TooltipTrigger asChild>
               {logoutButton}
             </TooltipTrigger>
-            <TooltipContent side="right" hidden={!isCollapsed}>Sair</TooltipContent>
+            <TooltipContent side="right">Sair</TooltipContent>
           </Tooltip>
           
           <div className={cn("flex gap-2", isCollapsed ? "flex-col items-center" : "items-center")}>
