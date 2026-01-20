@@ -49,9 +49,9 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
             href={item.href}
             onClick={(e) => handleLinkClick(e, item.href)}
             className={cn(
-              'flex items-center gap-3 rounded-lg py-2 transition-all hover:text-primary outline-none',
+              'flex items-center gap-3 rounded-lg py-2 transition-all hover:text-primary outline-none w-full',
               isActive ? 'bg-muted text-primary font-medium' : 'text-muted-foreground',
-              isCollapsed ? 'h-9 w-9 justify-center p-0' : 'px-3'
+              isCollapsed ? 'h-9 w-9 justify-center p-0' : 'px-3 justify-start'
             )}
           >
             <item.icon className="h-5 w-5 shrink-0" />

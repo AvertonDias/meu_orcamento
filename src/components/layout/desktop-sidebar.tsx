@@ -71,11 +71,12 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
                 className="rounded-sm"
               />
             </div>
-            {!isCollapsed && (
-              <span className="font-semibold truncate animate-in fade-in duration-500">
-                Meu orçamento
-              </span>
-            )}
+            <span className={cn(
+              "font-semibold truncate animate-in fade-in duration-500",
+              isCollapsed && "sr-only"
+            )}>
+              Meu orçamento
+            </span>
           </Link>
         </div>
 
