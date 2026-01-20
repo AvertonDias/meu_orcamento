@@ -46,7 +46,7 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
       )}
     >
       <LogOut className="h-5 w-5 shrink-0" />
-      {!isCollapsed && <span className="truncate">Sair</span>}
+      <span className={cn("truncate", isCollapsed && "sr-only")}>Sair</span>
     </Button>
   );
 
@@ -88,9 +88,7 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
         <div className="mt-auto border-t p-2 space-y-2 bg-background/50">
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
-              <div className={cn("w-full", isCollapsed && "flex justify-center")}>
-                {logoutButton}
-              </div>
+              {logoutButton}
             </TooltipTrigger>
             <TooltipContent side="right" hidden={!isCollapsed}>Sair</TooltipContent>
           </Tooltip>
