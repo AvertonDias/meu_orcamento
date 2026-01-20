@@ -571,6 +571,22 @@ export function BudgetEditDialog({
               </div>
             </div>
 
+            <div className="grid sm:grid-cols-2 gap-4 pt-4">
+               <div className="space-y-2">
+                    <Label htmlFor="validade-dias">Validade (em dias)</Label>
+                    <Input
+                        id="validade-dias"
+                        value={editingBudget.validadeDias}
+                        onChange={(e) =>
+                            setEditingBudget({
+                                ...editingBudget,
+                                validadeDias: maskInteger(e.target.value),
+                            })
+                        }
+                    />
+                </div>
+            </div>
+
             <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label>Observações (visível para o cliente)</Label>
@@ -612,5 +628,3 @@ export function BudgetEditDialog({
     </>
   );
 }
-
-    

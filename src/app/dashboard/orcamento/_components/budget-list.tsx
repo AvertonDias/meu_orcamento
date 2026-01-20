@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -53,7 +54,6 @@ interface BudgetListProps {
   ) => Promise<void>;
   onDelete: (budgetId: string) => void;
   onEdit: (budget: Orcamento) => void;
-  onEditValidity: (budget: Orcamento) => void;
   onViewDetails: (budget: Orcamento) => void;
   clienteFiltrado: ClienteData | null;
   onGeneratePDF: (budget: Orcamento, type: 'client' | 'internal') => void;
@@ -111,7 +111,6 @@ export function BudgetList({
   onUpdateStatus,
   onDelete,
   onEdit,
-  onEditValidity,
   onViewDetails,
   clienteFiltrado,
   onGeneratePDF,
@@ -268,22 +267,10 @@ export function BudgetList({
                  </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger disabled={o.status === 'Aceito'}>
-                    <Pencil className="mr-2 h-4 w-4" />
-                    <span>Editar</span>
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuPortal>
-                    <DropdownMenuSubContent>
-                      <DropdownMenuItem onClick={() => onEdit(o)}>
-                        Orçamento Completo
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onEditValidity(o)}>
-                        Alterar Validade
-                      </DropdownMenuItem>
-                    </DropdownMenuSubContent>
-                  </DropdownMenuPortal>
-                </DropdownMenuSub>
+                <DropdownMenuItem onClick={() => onEdit(o)} disabled={o.status === 'Aceito'}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  <span>Editar</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => sendWhatsApp(o)}>
                   <MessageCircle className="mr-2 h-4 w-4" /> Enviar WhatsApp
                 </DropdownMenuItem>

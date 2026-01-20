@@ -118,8 +118,6 @@ export default function OrcamentoPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingBudget, setEditingBudget] =
     useState<Orcamento | null>(null);
-  const [editingValidityBudget, setEditingValidityBudget] =
-    useState<Orcamento | null>(null);
   const [viewingBudget, setViewingBudget] = useState<Orcamento | null>(null);
   const [statusFilter, setStatusFilter] = useState('todos');
 
@@ -285,11 +283,6 @@ export default function OrcamentoPage() {
     toast({ title: 'Orçamento atualizado com sucesso' });
   };
 
-  const handleUpdateValidity = async (budgetId: string, newValidity: string) => {
-    if (!user) return;
-    await updateOrcamento(budgetId, { validadeDias: newValidity });
-  };
-
   const handleUpdateStatus = async (
     budgetId: string,
     status: 'Pendente' | 'Aceito' | 'Recusado'
@@ -412,7 +405,6 @@ export default function OrcamentoPage() {
         empresa={empresa || null}
         onGeneratePDF={handleGerarPDF}
         onEdit={handleEditBudget}
-        onEditValidity={setEditingValidityBudget}
         onDelete={deleteOrcamento}
         onUpdateStatus={handleUpdateStatus}
         clienteFiltrado={clienteFiltrado}
@@ -438,15 +430,6 @@ export default function OrcamentoPage() {
           budget={editingBudget}
           materiais={materiais}
           onUpdateBudget={handleUpdateBudget}
-        />
-      )}
-
-      {editingValidityBudget && (
-        <EditValidityDialog
-          isOpen={!!editingValidityBudget}
-          onOpenChange={(open) => !open && setEditingValidityBudget(null)}
-          budget={editingValidityBudget}
-          onSave={handleUpdateValidity}
         />
       )}
 
