@@ -304,7 +304,7 @@ export default function ConversoesPage() {
             Conversor de Bobina para Calha
           </CardTitle>
           <CardDescription>
-            Calcule o rendimento em metros de uma bobina e adicione o material diretamente ao estoque com o custo por metro correto.
+            O cálculo de rendimento é feito pela fórmula: Peso / (Largura × Espessura × Densidade). Isso permite obter o custo por metro e adicionar o material ao estoque com precisão.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
