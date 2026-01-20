@@ -632,8 +632,8 @@ export function BudgetEditDialog({
                                         if (['Vencido', 'Recusado'].includes(editingBudget.status) && date >= today) {
                                             updatedBudget.status = 'Pendente';
                                             toast({
-                                                title: 'Status atualizado para Pendente',
-                                                description: 'A data de validade foi estendida para o futuro.',
+                                                title: "Orçamento Reativado",
+                                                description: "O status voltou a ser 'Pendente', pois a validade foi estendida.",
                                             });
                                         }
 
