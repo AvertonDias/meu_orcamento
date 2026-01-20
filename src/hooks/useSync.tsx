@@ -228,8 +228,8 @@ export function useSync() {
   
         const idsToDelete: string[] = [];
         localIds.forEach(localId => {
-          if (!remoteIds.has(localId)) {
-            idsToDelete.push(localId);
+          if (!remoteIds.has(localId as string)) {
+            idsToDelete.push(localId as string);
           }
         });
   
@@ -267,7 +267,7 @@ export function useSync() {
     await performPush(true);
     await pullFromFirestore();
     toast({ title: 'Sincronização concluída!' });
-  }, [performPush, pullFromFirestore, toast]);
+  }, [isSyncingGlobally, toast, performPush, pullFromFirestore]);
 
 
   useEffect(() => {

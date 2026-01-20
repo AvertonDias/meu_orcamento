@@ -1,6 +1,7 @@
 
 'use client';
 
+import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function OfflinePage() {
@@ -9,7 +10,7 @@ export default function OfflinePage() {
       <Card className="w-full max-w-md text-center">
         <CardHeader className="items-center">
            <div className="bg-white rounded-lg p-2 mb-4">
-            <img
+            <Image
               src="/ico_v2.jpg"
               alt="Logo do App"
               width={80}
