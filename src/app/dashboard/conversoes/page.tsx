@@ -28,7 +28,9 @@ import {
   DollarSign,
   PackagePlus,
   Loader2,
-  Clock
+  Clock,
+  Droplets,
+  Container,
 } from 'lucide-react';
 import {
   formatNumber,
@@ -72,7 +74,7 @@ const DENSIDADES: Record<string, number> = {
 const CONVERSION_FACTORS = {
   length: { m: 1, km: 0.001, cm: 100, mm: 1000, in: 39.3701, ft: 3.28084 },
   mass: { kg: 1, t: 0.001, g: 1000 },
-  volume: { L: 1, ml: 1000 },
+  volume: { L: 1, ml: 1000, m3: 0.001, gal: 0.264172, floz: 33.814 },
   time: { s: 1, min: 1/60, h: 1/3600, day: 1/86400 }
 };
 
@@ -100,6 +102,9 @@ const UNIT_LABELS: Record<ConvType, Record<string, string>> = {
   volume: {
     L: 'Litro (L)',
     ml: 'Mililitro (ml)',
+    m3: 'Metro Cúbico (m³)',
+    gal: 'Galão Americano (gal)',
+    floz: 'Onça Líquida (fl-oz)',
   },
   time: {
     s: 'Segundo (s)',
@@ -464,3 +469,5 @@ export default function ConversoesPage() {
     </div>
   );
 }
+
+    
