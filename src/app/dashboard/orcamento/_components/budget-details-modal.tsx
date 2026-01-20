@@ -146,26 +146,24 @@ export function BudgetDetailsModal({
                   ))}
                 </TableBody>
                 <TableFooter>
-                  {totalEditado && (
-                    <>
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-right">
-                          Subtotal
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(subtotal)}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-right">
-                          {ajuste > 0 ? 'Acréscimo' : 'Desconto'}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(ajuste)}
-                        </TableCell>
-                      </TableRow>
-                    </>
-                  )}
+                  {totalEditado && [
+                    <TableRow key="subtotal">
+                      <TableCell colSpan={3} className="text-right">
+                        Subtotal
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(subtotal)}
+                      </TableCell>
+                    </TableRow>,
+                    <TableRow key="ajuste">
+                      <TableCell colSpan={3} className="text-right">
+                        {ajuste > 0 ? 'Acréscimo' : 'Desconto'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(ajuste)}
+                      </TableCell>
+                    </TableRow>,
+                  ]}
                   <TableRow className="text-lg bg-muted/50">
                     <TableCell colSpan={3} className="text-right font-bold">
                       TOTAL

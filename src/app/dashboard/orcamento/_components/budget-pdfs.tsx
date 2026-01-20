@@ -153,22 +153,20 @@ const BudgetPDFLayout = ({
         </tbody>
 
         <tfoot>
-          {totalEditado && (
-            <>
-              <tr>
-                <td colSpan={3} className="p-2 text-right">Subtotal</td>
-                <td className="p-2 text-right">{formatCurrency(subtotal)}</td>
-              </tr>
-              <tr>
-                <td colSpan={3} className="p-2 text-right">
-                  {ajuste < 0 ? 'Desconto' : 'Acréscimo'}
-                </td>
-                <td className="p-2 text-right">
-                  {formatCurrency(ajuste)}
-                </td>
-              </tr>
-            </>
-          )}
+          {totalEditado && [
+            <tr key="subtotal-pdf">
+              <td colSpan={3} className="p-2 text-right">Subtotal</td>
+              <td className="p-2 text-right">{formatCurrency(subtotal)}</td>
+            </tr>,
+            <tr key="ajuste-pdf">
+              <td colSpan={3} className="p-2 text-right">
+                {ajuste < 0 ? 'Desconto' : 'Acréscimo'}
+              </td>
+              <td className="p-2 text-right">
+                {formatCurrency(ajuste)}
+              </td>
+            </tr>
+          ]}
           <tr className="bg-gray-200 font-bold">
             <td colSpan={3} className="p-2 text-right">TOTAL</td>
             <td className="p-2 text-right">
