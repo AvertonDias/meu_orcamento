@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initializeApp, cert, getApps, getApp, deleteApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getMessaging } from 'firebase-admin/messaging';
-import { addDays, differenceInHours, isPast, parseISO, endOfDay } from 'date-fns';
+import { addDays, differenceInHours, isPast, parseISO } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import type { Orcamento, EmpresaData } from '@/lib/types';
 
@@ -63,8 +63,7 @@ export async function GET(request: NextRequest) {
       if (!validade) continue;
 
       const dataCriacao = parseISO(orcamento.dataCriacao);
-      // A data de validade agora considera o final do dia
-      const dataValidade = endOfDay(addDays(dataCriacao, validade));
+      const dataValidade = addDays(dataCriacao, validade);
 
       // Se já venceu, atualiza o status e pula
       if (isPast(dataValidade)) {
