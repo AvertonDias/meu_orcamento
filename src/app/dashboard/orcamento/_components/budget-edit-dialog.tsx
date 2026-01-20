@@ -340,7 +340,17 @@ export function BudgetEditDialog({
           }}
         >
           <DialogHeader className="p-6 pb-0">
-            <DialogTitle>Editar Orçamento Nº {editingBudget.numeroOrcamento}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              Editar Orçamento Nº {editingBudget.numeroOrcamento}
+              <Badge variant={
+                editingBudget.status === 'Aceito' ? 'default'
+                : editingBudget.status === 'Recusado' ? 'destructive'
+                : editingBudget.status === 'Vencido' ? 'warning'
+                : 'secondary'
+              }>
+                {editingBudget.status}
+              </Badge>
+            </DialogTitle>
             <DialogDescription>
               Ajuste as informações do cliente, itens e valores do orçamento.
             </DialogDescription>
@@ -611,10 +621,23 @@ export function BudgetEditDialog({
                                             return;
                                         }
                                         const newDias = differenceInDays(date, dataCriacao);
-                                        setEditingBudget({
+                                        const updatedBudget = {
                                             ...editingBudget,
                                             validadeDias: String(newDias)
-                                        });
+                                        };
+
+                                        const today = new Date();
+                                        today.setHours(0, 0, 0, 0);
+
+                                        if (['Vencido', 'Recusado'].includes(editingBudget.status) && date >= today) {
+                                            updatedBudget.status = 'Pendente';
+                                            toast({
+                                                title: 'Status atualizado para Pendente',
+                                                description: 'A data de validade foi estendida para o futuro.',
+                                            });
+                                        }
+
+                                        setEditingBudget(updatedBudget);
                                     }
                                 }}
                                 disabled={(date) => date < new Date(parseISO(editingBudget.dataCriacao).toDateString())}
