@@ -267,7 +267,7 @@ export function BudgetList({
                  </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                <DropdownMenuItem onClick={() => onEdit(o)} disabled={o.status !== 'Pendente'}>
+                <DropdownMenuItem onClick={() => onEdit(o)} disabled={o.status === 'Aceito'}>
                   <Pencil className="mr-2 h-4 w-4" /> Editar
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => sendWhatsApp(o)}>

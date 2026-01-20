@@ -81,7 +81,7 @@ export function BudgetDetailsModal({
             </DialogTitle>
           </div>
 
-          {budget.status === 'Pendente' && (
+          {budget.status !== 'Aceito' && (
             <Button
               variant="ghost"
               size="icon"
