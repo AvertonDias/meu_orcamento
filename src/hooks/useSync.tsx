@@ -77,8 +77,8 @@ export function useSync() {
     let errorCount = 0;
 
     for (const collectionName of collections) {
-        const pending = await (dexieDB as any)[collectionName].where({ syncStatus: 'pending', userId: user.uid }).count();
-        const error = await (dexieDB as any)[collectionName].where({ syncStatus: 'error', userId: user.uid }).count();
+        const pending = await (dexieDB as any)[collectionName].where({ userId: user.uid, syncStatus: 'pending' }).count();
+        const error = await (dexieDB as any)[collectionName].where({ userId: user.uid, syncStatus: 'error' }).count();
         pendingCount += pending;
         errorCount += error;
     }
@@ -167,18 +167,23 @@ export function useSync() {
   }, [orcamentosSalvos, user, toast, router]);
 
 
-  const pushToFirestore = useCallback(async () => {
+  const performPush = useCallback(async (includeErrors: boolean) => {
     if (!user || !isOnline || isSyncingGlobally) return;
 
     setIsSyncing(true);
     try {
       const collections: SyncableCollection[] = ['empresa', 'clientes', 'materiais', 'orcamentos'];
       for (const collectionName of collections) {
-        const items = await (dexieDB as any)[collectionName]
-          .where({ syncStatus: 'pending', userId: user.uid })
-          .or('syncStatus').equals('error') // Tenta sincronizar itens com erro também
-          .toArray();
-        for (const item of items) {
+        
+        const userItems = await (dexieDB as any)[collectionName].where('userId').equals(user.uid).toArray();
+        
+        let itemsToSync = userItems.filter((i: any) => i.syncStatus === 'pending');
+        if (includeErrors) {
+          const errorItems = userItems.filter((i: any) => i.syncStatus === 'error');
+          itemsToSync = [...itemsToSync, ...errorItems];
+        }
+
+        for (const item of itemsToSync) {
           try {
             await syncFunctions[collectionName](item.data);
             await (dexieDB as any)[collectionName].update(item.id, { syncStatus: 'synced', syncError: null });
@@ -204,6 +209,7 @@ export function useSync() {
       setIsSyncing(false);
     }
   }, [user, isOnline, setLastSync]);
+
 
   const pullFromFirestore = useCallback(async () => {
     if (!user || !isOnline || isSyncingGlobally) return;
@@ -242,7 +248,6 @@ export function useSync() {
           await localTable.bulkPut(firestoreItems);
         }
       }
-      // Apenas marca como concluído e atualiza o tempo em caso de sucesso
       initialPullDone.current = true;
       setLastSync(new Date().toISOString());
     } catch (error) {
@@ -259,10 +264,10 @@ export function useSync() {
       return;
     }
     toast({ title: 'Iniciando sincronização manual...' });
-    await pushToFirestore();
+    await performPush(true);
     await pullFromFirestore();
     toast({ title: 'Sincronização concluída!' });
-  }, [pushToFirestore, pullFromFirestore, toast]);
+  }, [performPush, pullFromFirestore, toast]);
 
 
   useEffect(() => {
@@ -273,11 +278,10 @@ export function useSync() {
 
   useEffect(() => {
     const count = syncState?.pendingCount ?? 0;
-    const errorCount = syncState?.errorCount ?? 0;
-    if ((count > 0 || errorCount > 0) && isOnline && !isSyncingGlobally) {
-      pushToFirestore();
+    if (count > 0 && isOnline && !isSyncingGlobally) {
+      performPush(false);
     }
-  }, [syncState, isOnline, pushToFirestore]);
+  }, [syncState, isOnline, performPush]);
 
   return {
     isOnline,
