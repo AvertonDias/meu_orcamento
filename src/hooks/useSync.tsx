@@ -6,7 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { collection, getDocs, where, query } from 'firebase/firestore';
 
-import { db as dexieDB } from '@/lib/dexie';
+import { db as dexieDB, type SyncableCollection } from '@/lib/dexie';
 import { db as firestoreDB, auth } from '@/lib/firebase';
 import { useToast } from './use-toast';
 import { useLocalStorage } from './useLocalStorage';
@@ -22,8 +22,6 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-
-type SyncableCollection = 'clientes' | 'materiais' | 'orcamentos' | 'empresa';
 
 const syncFunctions: Record<SyncableCollection, (data: any) => Promise<void>> = {
   clientes: syncClienteToFirestore,
@@ -72,17 +70,26 @@ export function useSync() {
     };
   }, []);
 
-  const pendingItems = useLiveQuery(async () => {
-    if (!user) return { count: 0 };
-    const [clientes, materiais, orcamentos, empresa, deletions] = await Promise.all([
-      dexieDB.clientes.where({ syncStatus: 'pending', userId: user.uid }).count(),
-      dexieDB.materiais.where({ syncStatus: 'pending', userId: user.uid }).count(),
-      dexieDB.orcamentos.where({ syncStatus: 'pending', userId: user.uid }).count(),
-      dexieDB.empresa.where({ syncStatus: 'pending', userId: user.uid }).count(),
-      dexieDB.deletions.where('userId').equals(user.uid).count(),
-    ]);
-    return { count: clientes + materiais + orcamentos + empresa + deletions };
+  const syncState = useLiveQuery(async () => {
+    if (!user) return { pendingCount: 0, errorCount: 0 };
+
+    const collections: SyncableCollection[] = ['clientes', 'materiais', 'orcamentos', 'empresa'];
+    let pendingCount = 0;
+    let errorCount = 0;
+
+    for (const collectionName of collections) {
+        const pending = await (dexieDB as any)[collectionName].where({ syncStatus: 'pending', userId: user.uid }).count();
+        const error = await (dexieDB as any)[collectionName].where({ syncStatus: 'error', userId: user.uid }).count();
+        pendingCount += pending;
+        errorCount += error;
+    }
+
+    const deletions = await dexieDB.deletions.where('userId').equals(user.uid).count();
+    pendingCount += deletions; // Deletions are always considered pending until processed
+
+    return { pendingCount, errorCount };
   }, [user]);
+
 
   useEffect(() => {
     const updateOnlineStatus = () => setIsOnline(navigator.onLine);
@@ -170,6 +177,7 @@ export function useSync() {
       for (const collectionName of collections) {
         const items = await (dexieDB as any)[collectionName]
           .where({ syncStatus: 'pending', userId: user.uid })
+          .or('syncStatus').equals('error') // Tenta sincronizar itens com erro também
           .toArray();
         for (const item of items) {
           try {
@@ -249,16 +257,18 @@ export function useSync() {
   }, [isOnline, user, pullFromFirestore]);
 
   useEffect(() => {
-    const count = pendingItems?.count ?? 0;
-    if (count > 0 && isOnline && !isSyncingGlobally) {
+    const count = syncState?.pendingCount ?? 0;
+    const errorCount = syncState?.errorCount ?? 0;
+    if ((count > 0 || errorCount > 0) && isOnline && !isSyncingGlobally) {
       pushToFirestore();
     }
-  }, [pendingItems, isOnline, pushToFirestore]);
+  }, [syncState, isOnline, pushToFirestore]);
 
   return {
     isOnline,
     isSyncing: isSyncingState,
-    pendingCount: pendingItems?.count ?? 0,
+    pendingCount: syncState?.pendingCount ?? 0,
+    errorCount: syncState?.errorCount ?? 0,
     lastSync,
     forceSync,
   };

@@ -6,7 +6,8 @@ export interface DexieWrapper<T> {
   id: string; // chave primária (mesmo ID do Firestore)
   userId: string;
   data: T;
-  syncStatus: 'pending' | 'synced';
+  syncStatus: 'pending' | 'synced' | 'error';
+  syncError?: string | null;
 }
 
 // Registro de exclusões para sincronização offline
@@ -16,6 +17,8 @@ export interface DeletionEntity {
   collection: 'clientes' | 'materiais' | 'orcamentos';
   deletedAt: Date;
 }
+
+export type SyncableCollection = 'clientes' | 'materiais' | 'orcamentos' | 'empresa';
 
 class MeuOrcamentoDB extends Dexie {
   clientes!: EntityTable<DexieWrapper<ClienteData>, 'id'>;

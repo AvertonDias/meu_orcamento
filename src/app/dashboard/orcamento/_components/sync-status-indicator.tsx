@@ -11,14 +11,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Cloud, CloudOff, Loader2, RefreshCcw } from 'lucide-react';
+import { Cloud, CloudOff, Loader2, RefreshCcw, AlertCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export function SyncStatusIndicator() {
-  const { isOnline, isSyncing, pendingCount, lastSync, forceSync } = useSync();
+  const { isOnline, isSyncing, pendingCount, errorCount, lastSync, forceSync } = useSync();
 
   const getTooltipContent = () => {
+    if (errorCount > 0) return `${errorCount} item(s) com erro de sincronização. Tente forçar a sincronização.`;
     if (!isOnline) return 'Você está offline. As alterações serão sincronizadas quando você se conectar.';
     if (isSyncing) return `Sincronizando ${pendingCount > 0 ? `${pendingCount} item(s)` : ''}...`;
     if (pendingCount > 0) return `${pendingCount} ${pendingCount === 1 ? 'item pendente' : 'itens pendentes'} para sincronizar.`;
@@ -27,12 +28,13 @@ export function SyncStatusIndicator() {
   };
 
   const getVariant = () => {
-    if (!isOnline) return 'destructive';
+    if (errorCount > 0 || !isOnline) return 'destructive';
     if (isSyncing || pendingCount > 0) return 'secondary';
     return 'default';
   }
 
   const getStatusText = () => {
+    if (errorCount > 0) return 'Erro';
     if (!isOnline) return 'Offline';
     if (isSyncing) return 'Sincronizando...';
     if (pendingCount > 0) return 'Pendente';
@@ -49,7 +51,9 @@ export function SyncStatusIndicator() {
                 variant={getVariant()}
                 className="flex items-center gap-2"
               >
-                {!isOnline ? (
+                {errorCount > 0 ? (
+                  <AlertCircle className="h-4 w-4" />
+                ) : !isOnline ? (
                   <CloudOff className="h-4 w-4" />
                 ) : isSyncing ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -59,7 +63,7 @@ export function SyncStatusIndicator() {
                 <span className="hidden sm:inline">
                   {getStatusText()}
                 </span>
-                {pendingCount > 0 && !isSyncing && (
+                {(pendingCount > 0 && !isSyncing) && (
                   <span className="ml-1 h-2 w-2 rounded-full bg-yellow-400 animate-pulse"></span>
                 )}
               </Badge>
