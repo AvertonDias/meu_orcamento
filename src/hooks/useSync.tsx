@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -208,7 +207,7 @@ export function useSync() {
 
   const pullFromFirestore = useCallback(async () => {
     if (!user || !isOnline || isSyncingGlobally) return;
-
+  
     setIsSyncing(true);
     try {
       const collections: SyncableCollection[] = ['clientes', 'materiais', 'orcamentos', 'empresa'];
@@ -216,7 +215,28 @@ export function useSync() {
         const localTable = (dexieDB as any)[coll];
         const q = query(collection(firestoreDB, coll), where('userId', '==', user.uid));
         const snapshot = await getDocs(q);
-
+  
+        // Get all remote IDs for the current user
+        const remoteIds = new Set(snapshot.docs.map(doc => doc.id));
+  
+        // Get all local IDs for the current user
+        const localItems = await localTable.where('userId').equals(user.uid).toArray();
+        const localIds = new Set(localItems.map((item: any) => item.id));
+  
+        // Find local items that are no longer on the server
+        const idsToDelete: string[] = [];
+        localIds.forEach(localId => {
+          if (!remoteIds.has(localId)) {
+            idsToDelete.push(localId);
+          }
+        });
+  
+        // Delete orphaned local items
+        if (idsToDelete.length > 0) {
+          await localTable.bulkDelete(idsToDelete);
+        }
+  
+        // Update or add items from Firestore to Dexie
         if (!snapshot.empty) {
           const firestoreItems = snapshot.docs.map(doc => ({
             id: doc.id,
