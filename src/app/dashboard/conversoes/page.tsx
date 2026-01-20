@@ -27,7 +27,8 @@ import {
   ArrowRightLeft,
   DollarSign,
   PackagePlus,
-  Loader2
+  Loader2,
+  Clock
 } from 'lucide-react';
 import {
   formatNumber,
@@ -69,39 +70,43 @@ const DENSIDADES: Record<string, number> = {
 };
 
 const CONVERSION_FACTORS = {
-  length: { m: 1, cm: 100, mm: 1000, in: 39.3701, ft: 3.28084, yd: 1.09361 },
-  mass: { kg: 1, g: 1000, mg: 1000000, lb: 2.20462, oz: 35.274 },
-  volume: { L: 1, ml: 1000, gal: 0.264172, 'fl-oz': 33.814 }
+  length: { m: 1, km: 0.001, cm: 100, mm: 1000, in: 39.3701, ft: 3.28084 },
+  mass: { kg: 1, t: 0.001, g: 1000 },
+  volume: { L: 1, ml: 1000 },
+  time: { s: 1, min: 1/60, h: 1/3600, day: 1/86400 }
 };
 
 type ConvType = keyof typeof CONVERSION_FACTORS;
 type LengthUnit = keyof typeof CONVERSION_FACTORS.length;
 type MassUnit = keyof typeof CONVERSION_FACTORS.mass;
 type VolumeUnit = keyof typeof CONVERSION_FACTORS.volume;
-type Unit = LengthUnit | MassUnit | VolumeUnit;
+type TimeUnit = keyof typeof CONVERSION_FACTORS.time;
+type Unit = LengthUnit | MassUnit | VolumeUnit | TimeUnit;
 
 const UNIT_LABELS: Record<ConvType, Record<string, string>> = {
   length: {
     m: 'Metro (m)',
+    km: 'Quilômetro (km)',
     cm: 'Centímetro (cm)',
     mm: 'Milímetro (mm)',
     in: 'Polegada (in)',
     ft: 'Pé (ft)',
-    yd: 'Jarda (yd)'
   },
   mass: {
     kg: 'Quilograma (kg)',
+    t: 'Tonelada (t)',
     g: 'Grama (g)',
-    mg: 'Miligrama (mg)',
-    lb: 'Libra (lb)',
-    oz: 'Onça (oz)'
   },
   volume: {
     L: 'Litro (L)',
     ml: 'Mililitro (ml)',
-    gal: 'Galão (gal)',
-    'fl-oz': 'Onça Líquida (fl oz)'
-  }
+  },
+  time: {
+    s: 'Segundo (s)',
+    min: 'Minuto (min)',
+    h: 'Hora (h)',
+    day: 'Dia (day)',
+  },
 };
 
 type PriceInputMode = 'kg' | 'total';
@@ -402,6 +407,7 @@ export default function ConversoesPage() {
                         <SelectItem value="length">Comprimento</SelectItem>
                         <SelectItem value="mass">Massa/Peso</SelectItem>
                         <SelectItem value="volume">Volume</SelectItem>
+                        <SelectItem value="time">Tempo</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -409,7 +415,7 @@ export default function ConversoesPage() {
                 <div className="space-y-2">
                     <Label>De:</Label>
                     <div className="flex gap-2">
-                        <Input placeholder='0' value={unitValue} onChange={e => setUnitValue(maskDecimal(e.target.value))} />
+                        <Input placeholder='0,00' value={unitValue} onChange={e => setUnitValue(maskDecimal(e.target.value))} />
                          <Select value={fromUnit} onValueChange={(v) => setFromUnit(v as Unit)}>
                             <SelectTrigger><SelectValue/></SelectTrigger>
                             <SelectContent>
