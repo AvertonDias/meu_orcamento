@@ -60,14 +60,14 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
           </Link>
         );
 
-        if (!isCollapsed) return <div key={item.href}>{linkElement}</div>;
-
         return (
           <Tooltip key={item.href} delayDuration={0}>
             <TooltipTrigger asChild>
-              <div className="w-full flex justify-center">{linkElement}</div>
+              <div className={cn("w-full", isCollapsed && "flex justify-center")}>
+                {linkElement}
+              </div>
             </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={10}>
+            <TooltipContent side="right" sideOffset={10} hidden={!isCollapsed}>
               {item.label}
             </TooltipContent>
           </Tooltip>
