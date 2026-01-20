@@ -36,7 +36,6 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
     }
   };
 
-  // Botão de logout isolado para facilitar a renderização condicional
   const logoutButton = (
     <Button 
       onClick={handleLogout} 
@@ -87,17 +86,14 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
 
         {/* Rodapé / Sair e Toggle */}
         <div className="mt-auto border-t p-2 space-y-2 bg-background/50">
-          {/* Só renderiza Tooltip se estiver colapsado para evitar loop de Ref */}
-          {isCollapsed ? (
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <div className="w-full flex justify-center">{logoutButton}</div>
-              </TooltipTrigger>
-              <TooltipContent side="right">Sair</TooltipContent>
-            </Tooltip>
-          ) : (
-            logoutButton
-          )}
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <div className={cn("w-full", isCollapsed && "flex justify-center")}>
+                {logoutButton}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right" hidden={!isCollapsed}>Sair</TooltipContent>
+          </Tooltip>
           
           <div className={cn("flex gap-2", isCollapsed ? "flex-col items-center" : "items-center")}>
             <Button

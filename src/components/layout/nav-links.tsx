@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -45,7 +44,6 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
       {navItems.map((item) => {
         const isActive = pathname === item.href;
         
-        // Link limpo (Next.js 14 não precisa de <a> dentro)
         const linkElement = (
           <Link
             href={item.href}
@@ -62,16 +60,14 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
           </Link>
         );
 
-        // Se aberto, renderiza direto (Evita conflitos de Ref no Radix)
-        if (!isCollapsed) return <div key={item.href}>{linkElement}</div>;
-
-        // Se fechado, usa o Tooltip com a DIV de proteção
         return (
           <Tooltip key={item.href} delayDuration={0}>
             <TooltipTrigger asChild>
-              <div className="w-full flex justify-center">{linkElement}</div>
+              <div className={cn("w-full", isCollapsed && "flex justify-center")}>
+                {linkElement}
+              </div>
             </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={10}>
+            <TooltipContent side="right" sideOffset={10} hidden={!isCollapsed}>
               {item.label}
             </TooltipContent>
           </Tooltip>
