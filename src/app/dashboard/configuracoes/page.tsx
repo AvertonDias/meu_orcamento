@@ -20,6 +20,12 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from '@/components/ui/alert';
+
+import {
   Building,
   Save,
   CheckCircle,
@@ -34,6 +40,7 @@ import {
   Loader2,
   MessageSquare,
   RotateCcw,
+  Info,
 } from 'lucide-react';
 
 import { useToast } from '@/hooks/use-toast';
@@ -94,6 +101,11 @@ export default function ConfiguracoesPage() {
   );
 
   const isLoadingData = loadingAuth || empresaDexie === undefined;
+
+  const isNewUser = useMemo(() => {
+    if (isLoadingData || !empresa) return false;
+    return !empresa.nome || !empresa.endereco || !empresa.telefones.some(t => t.numero.trim());
+  }, [isLoadingData, empresa]);
 
   /* =======================
      CARREGAMENTO INICIAL
@@ -389,6 +401,16 @@ export default function ConfiguracoesPage() {
         <Settings size={24} />
         Configurações
       </h1>
+
+      {isNewUser && (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertTitle>Primeiros Passos</AlertTitle>
+          <AlertDescription>
+            Bem-vindo(a) ao Meu Orçamento! Para começar, preencha as informações da sua empresa abaixo. Nome, endereço e pelo menos um telefone são essenciais para criar orçamentos.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Dados da Empresa */}

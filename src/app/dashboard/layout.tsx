@@ -2,8 +2,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { onIdTokenChanged } from 'firebase/auth';
+import { useRouter, usePathname } from 'next/navigation';
+import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 
 import { Loader2 } from 'lucide-react';
@@ -28,14 +28,23 @@ import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { DirtyStateProvider, useDirtyState } from '@/contexts/dirty-state-context';
 import { useToast } from '@/hooks/use-toast';
 
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '@/lib/dexie';
+
 
 function MainLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { toast } = useToast();
   
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
+  const [user, loadingAuth] = useAuthState(auth);
+  const empresaDexie = useLiveQuery(
+    () => (user ? db.empresa.get(user.uid) : undefined),
+    [user]
+  );
+  
   const { requestPermission } = usePermissionDialog();
   const { isDirty, setIsDirty } = useDirtyState();
   
@@ -154,41 +163,41 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
 
 
   /* =====================================================
-     AUTH
+     AUTH & REDIRECTION
   ====================================================== */
   useEffect(() => {
-    // onIdTokenChanged é mais rápido para obter o usuário do cache local
-    const unsubscribe = onIdTokenChanged(auth, async (user) => {
-      if (!user) {
-        // Apenas redireciona se a verificação inicial terminou e não há usuário
-        if (!isCheckingAuth) {
-           router.push('/login');
-        } else {
-           // Se for a primeira verificação e não houver usuário,
-           // encerra o loading e deixa o usuário na tela de login (que será a próxima renderização)
-           setIsCheckingAuth(false);
-           router.push('/login');
-        }
-        return;
-      }
-      
-      // Se houver um usuário, podemos parar de verificar a autenticação
-      if (isCheckingAuth) {
-        setIsCheckingAuth(false);
-        // Solicita permissões e token FCM após a primeira autenticação bem-sucedida
-        await requestAppPermissions();
-        // await requestForToken(); // Temporariamente desativado para evitar erro 401
-      }
-    });
+    if (loadingAuth) return; // Wait for auth to settle
 
-    return () => unsubscribe();
-  }, [router, isCheckingAuth]);
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    // This check must wait for Dexie to be ready
+    if (empresaDexie !== undefined) {
+      // Run one-time setups only after user is confirmed and dexie is ready
+      requestAppPermissions();
+      // requestForToken();
+
+      const isCompanyConfigured = empresaDexie?.data?.nome && empresaDexie?.data?.endereco && empresaDexie?.data?.telefones?.some(t => t.numero.trim());
+      const isConfigPage = pathname === '/dashboard/configuracoes';
+
+      if (!isCompanyConfigured && !isConfigPage) {
+        router.push('/dashboard/configuracoes');
+        toast({
+          title: 'Bem-vindo(a)!',
+          description: 'Por favor, complete as informações da sua empresa para começar.',
+          duration: 9000,
+        });
+      }
+    }
+  }, [user, loadingAuth, router, empresaDexie, pathname, toast]);
 
 
   /* =====================================================
      LOADING
   ====================================================== */
-  if (isCheckingAuth) {
+  if (loadingAuth || (user && empresaDexie === undefined)) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
