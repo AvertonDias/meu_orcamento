@@ -72,7 +72,7 @@ const DENSIDADES: Record<string, number> = {
 
 const CONVERSION_FACTORS = {
   length: { m: 1, km: 0.001, cm: 100, mm: 1000, in: 39.3701, ft: 3.28084, jd: 1.09361 },
-  mass: { kg: 1, t: 0.001, g: 1000 },
+  mass: { kg: 1, t: 0.001, g: 1000, lb: 2.20462, oz: 35.274 },
   volume: { L: 1, ml: 1000, m3: 0.001, gal: 0.264172, floz: 33.814 },
   time: { s: 1, min: 1/60, h: 1/3600, day: 1/86400 }
 };
@@ -98,6 +98,8 @@ const UNIT_LABELS: Record<ConvType, Record<string, string>> = {
     kg: 'Quilograma (kg)',
     t: 'Tonelada (t)',
     g: 'Grama (g)',
+    lb: 'Libra (lb)',
+    oz: 'Onça (oz)',
   },
   volume: {
     L: 'Litro (L)',
@@ -469,5 +471,3 @@ export default function ConversoesPage() {
     </div>
   );
 }
-
-    
