@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
@@ -303,7 +304,7 @@ export default function ConversoesPage() {
             Conversor de Bobina para Calha
           </CardTitle>
           <CardDescription>
-            O cálculo de rendimento usa a fórmula: Peso / (Largura × Espessura × Densidade). Usamos os valores: Aço Galvanizado (7850 kg/m³) e Alumínio (2700 kg/m³).
+            O cálculo de rendimento usa a fórmula: Peso / (Largura × Espessura × Densidade). As densidades usadas são: Aço Galvanizado (7850 kg/m³) e Alumínio (2700 kg/m³).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -457,4 +458,3 @@ export default function ConversoesPage() {
     </div>
   );
 }
-    
