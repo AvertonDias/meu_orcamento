@@ -612,7 +612,9 @@ export function BudgetEditDialog({
                                 onSelect={(date) => {
                                     if (date && editingBudget) {
                                         const dataCriacao = parseISO(editingBudget.dataCriacao);
-                                        if (date < new Date(dataCriacao.toDateString())) {
+                                        const dataCriacaoStartOfDay = new Date(dataCriacao.toDateString());
+
+                                        if (date < dataCriacaoStartOfDay) {
                                             toast({
                                                 title: "Data inválida",
                                                 description: "A data de validade não pode ser anterior à data de criação.",
@@ -620,7 +622,7 @@ export function BudgetEditDialog({
                                             });
                                             return;
                                         }
-                                        const newDias = differenceInDays(date, dataCriacao);
+                                        const newDias = differenceInDays(date, dataCriacaoStartOfDay);
                                         const updatedBudget = {
                                             ...editingBudget,
                                             validadeDias: String(newDias)
