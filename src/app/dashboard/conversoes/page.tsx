@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
@@ -469,5 +468,3 @@ export default function ConversoesPage() {
     </div>
   );
 }
-
-    
