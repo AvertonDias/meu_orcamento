@@ -216,14 +216,10 @@ export function useSync() {
         const q = query(collection(firestoreDB, coll), where('userId', '==', user.uid));
         const snapshot = await getDocs(q);
   
-        // Get all remote IDs for the current user
         const remoteIds = new Set(snapshot.docs.map(doc => doc.id));
-  
-        // Get all local IDs for the current user
         const localItems = await localTable.where('userId').equals(user.uid).toArray();
         const localIds = new Set(localItems.map((item: any) => item.id));
   
-        // Find local items that are no longer on the server
         const idsToDelete: string[] = [];
         localIds.forEach(localId => {
           if (!remoteIds.has(localId)) {
@@ -231,12 +227,10 @@ export function useSync() {
           }
         });
   
-        // Delete orphaned local items
         if (idsToDelete.length > 0) {
           await localTable.bulkDelete(idsToDelete);
         }
   
-        // Update or add items from Firestore to Dexie
         if (!snapshot.empty) {
           const firestoreItems = snapshot.docs.map(doc => ({
             id: doc.id,
@@ -248,12 +242,13 @@ export function useSync() {
           await localTable.bulkPut(firestoreItems);
         }
       }
+      // Apenas marca como concluído e atualiza o tempo em caso de sucesso
+      initialPullDone.current = true;
       setLastSync(new Date().toISOString());
     } catch (error) {
       console.error("Erro ao puxar dados do Firestore:", error);
       toast({ title: 'Erro ao buscar dados da nuvem.', variant: 'destructive' });
     } finally {
-      initialPullDone.current = true;
       setIsSyncing(false);
     }
   }, [user, isOnline, setLastSync, toast]);
