@@ -612,7 +612,7 @@ export function BudgetEditDialog({
                                 onSelect={(date) => {
                                     if (date && editingBudget) {
                                         const dataCriacao = parseISO(editingBudget.dataCriacao);
-                                        const dataCriacaoStartOfDay = new Date(dataCriacao.toDateString());
+                                        const dataCriacaoStartOfDay = new Date(dataCriacao.getFullYear(), dataCriacao.getMonth(), dataCriacao.getDate());
 
                                         if (date < dataCriacaoStartOfDay) {
                                             toast({
@@ -642,7 +642,11 @@ export function BudgetEditDialog({
                                         setEditingBudget(updatedBudget);
                                     }
                                 }}
-                                disabled={(date) => date < new Date(parseISO(editingBudget.dataCriacao).toDateString())}
+                                disabled={(date) => {
+                                    const dataCriacao = parseISO(editingBudget.dataCriacao);
+                                    const dataCriacaoStartOfDay = new Date(dataCriacao.getFullYear(), dataCriacao.getMonth(), dataCriacao.getDate());
+                                    return date < dataCriacaoStartOfDay;
+                                }}
                                 initialFocus
                                 locale={ptBR}
                             />
