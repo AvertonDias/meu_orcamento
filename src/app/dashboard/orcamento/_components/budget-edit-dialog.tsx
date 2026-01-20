@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -44,6 +43,7 @@ import {
   Unlock,
   ChevronsUpDown,
   Check,
+  CalendarIcon,
 } from 'lucide-react';
 import {
   formatCurrency,
@@ -74,6 +74,9 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import ClientForm, { type ClientFormValues } from '@/app/dashboard/clientes/_components/client-form';
 import { clienteToFormValues } from '@/app/dashboard/clientes/_components/client-form';
+import { format, parseISO, addDays, differenceInDays } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Calendar } from '@/components/ui/calendar';
 
 
 /* ===========================
@@ -572,20 +575,57 @@ export function BudgetEditDialog({
             </div>
 
             <div className="grid sm:grid-cols-2 gap-4 pt-4">
-               <div className="space-y-2">
-                    <Label htmlFor="validade-dias">Validade (em dias)</Label>
-                    <Input
-                        id="validade-dias"
-                        value={editingBudget.validadeDias}
-                        onChange={(e) =>
-                            setEditingBudget({
-                                ...editingBudget,
-                                validadeDias: maskInteger(e.target.value),
-                            })
-                        }
-                    />
+                <div className="space-y-2">
+                    <Label htmlFor="validade-data">Data de Validade</Label>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                id="validade-data"
+                                variant={"outline"}
+                                className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !editingBudget.validadeDias && "text-muted-foreground"
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {editingBudget.validadeDias ? (
+                                    format(addDays(parseISO(editingBudget.dataCriacao), Number(editingBudget.validadeDias)), "PPP", { locale: ptBR })
+                                ) : (
+                                    <span>Escolha uma data</span>
+                                )}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                            <Calendar
+                                mode="single"
+                                selected={addDays(parseISO(editingBudget.dataCriacao), Number(editingBudget.validadeDias))}
+                                onSelect={(date) => {
+                                    if (date && editingBudget) {
+                                        const dataCriacao = parseISO(editingBudget.dataCriacao);
+                                        if (date < new Date(dataCriacao.toDateString())) {
+                                            toast({
+                                                title: "Data inválida",
+                                                description: "A data de validade não pode ser anterior à data de criação.",
+                                                variant: "destructive"
+                                            });
+                                            return;
+                                        }
+                                        const newDias = differenceInDays(date, dataCriacao);
+                                        setEditingBudget({
+                                            ...editingBudget,
+                                            validadeDias: String(newDias)
+                                        });
+                                    }
+                                }}
+                                disabled={(date) => date < new Date(parseISO(editingBudget.dataCriacao).toDateString())}
+                                initialFocus
+                                locale={ptBR}
+                            />
+                        </PopoverContent>
+                    </Popover>
                 </div>
             </div>
+
 
             <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
