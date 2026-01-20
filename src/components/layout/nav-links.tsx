@@ -60,7 +60,7 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
         );
 
         return (
-          <Tooltip key={item.href} delayDuration={0} open={isCollapsed ? undefined : false}>
+          <Tooltip key={item.href} delayDuration={0}>
             <TooltipTrigger asChild>
               {linkElement}
             </TooltipTrigger>

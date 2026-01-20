@@ -87,7 +87,7 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
 
         {/* Rodapé / Sair e Toggle */}
         <div className="mt-auto border-t p-2 space-y-2 bg-background/50">
-          <Tooltip delayDuration={0} open={isCollapsed ? undefined : false}>
+          <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               {logoutButton}
             </TooltipTrigger>
