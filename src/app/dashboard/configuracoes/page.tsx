@@ -95,12 +95,14 @@ export default function ConfiguracoesPage() {
 
   const { isDirty, setIsDirty } = useDirtyState();
 
-  const empresaDexie = useLiveQuery(
-    () => (user ? db.empresa.get(user.uid) : undefined),
+  const empresaDexieArr = useLiveQuery(
+    () => (user ? db.empresa.where('id').equals(user.uid).toArray() : []),
     [user]
   );
+  const empresaDexie = empresaDexieArr?.[0];
 
-  const isLoadingData = loadingAuth || empresaDexie === undefined;
+  const isLoadingData = loadingAuth || empresaDexieArr === undefined;
+
 
   const isNewUser = useMemo(() => {
     if (isLoadingData || !empresa) return false;
