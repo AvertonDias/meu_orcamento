@@ -68,30 +68,31 @@ export function BudgetDetailsModal({
           if (Capacitor.isNativePlatform()) e.preventDefault();
         }}
       >
-        <DialogHeader className="p-6 pb-4 flex flex-row items-start justify-between">
-          <div className="space-y-2">
-            <DialogTitle className="text-2xl flex items-center gap-3">
-              Orçamento Nº {budget.numeroOrcamento}
-              <Badge
-                variant={getStatusVariant(budget.status)}
-                className="text-base"
-              >
-                {budget.status}
-              </Badge>
-            </DialogTitle>
-          </div>
+        <DialogHeader className="p-6 pb-4">
+          <DialogTitle className="text-2xl flex items-center gap-3 pr-20">
+            Orçamento Nº {budget.numeroOrcamento}
+            <Badge
+              variant={getStatusVariant(budget.status)}
+              className="text-base"
+            >
+              {budget.status}
+            </Badge>
+          </DialogTitle>
+        </DialogHeader>
 
-          {budget.status !== 'Aceito' && (
+        {budget.status !== 'Aceito' && (
+          <div className="absolute top-4 right-14 z-10">
             <Button
-              variant="ghost"
+              variant="default"
               size="icon"
               onClick={handleEditClick}
               aria-label="Editar orçamento"
+              className="bg-accent hover:bg-accent/90"
             >
               <Pencil className="h-5 w-5" />
             </Button>
-          )}
-        </DialogHeader>
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto px-6 space-y-4">
           {/* Informações Gerais */}
