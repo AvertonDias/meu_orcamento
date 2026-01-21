@@ -65,11 +65,13 @@ export function MobileNavbar() {
   return (
     <header className="sticky top-0 z-20 flex h-14 items-center gap-4 border-b bg-muted/90 px-4 backdrop-blur-sm lg:h-[60px] lg:px-6 md:hidden">
       <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-        <SheetTrigger asChild>
+        <SheetTrigger>
+          <span tabIndex={0}>
           <Button variant="outline" size="icon" className="shrink-0">
             <Menu className="h-5 w-5" />
             <span className="sr-only">Abrir menu de navegação</span>
           </Button>
+          </span>
         </SheetTrigger>
         <SheetContent side="left" className="flex flex-col p-4">
           <div className="flex h-14 items-center border-b px-2 mb-4">

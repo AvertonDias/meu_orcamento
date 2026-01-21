@@ -63,7 +63,7 @@ const normalizeEmail = (value: string) =>
   value.trim().toLowerCase();
 
 /* -------------------------------------------------------------------------- */
-/* COMPONENT                                                                   */
+/* COMPONENTE                                                                   */
 /* -------------------------------------------------------------------------- */
 
 export function ContactImportModals({
@@ -197,7 +197,7 @@ export function ContactImportModals({
           </div>
 
           <DialogFooter>
-            <DialogClose asChild>
+            <DialogClose>
               <Button onClick={handleConfirm}>
                 Confirmar importação
               </Button>

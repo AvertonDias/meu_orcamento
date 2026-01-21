@@ -313,7 +313,7 @@ export function EditItemModal({
           </div>
 
           <DialogFooter>
-            <DialogClose asChild>
+            <DialogClose>
               <Button variant="outline" type="button">
                 Cancelar
               </Button>

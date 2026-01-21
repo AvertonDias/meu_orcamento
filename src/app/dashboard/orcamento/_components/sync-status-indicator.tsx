@@ -45,7 +45,7 @@ export function SyncStatusIndicator() {
     <TooltipProvider>
       <div className="flex items-center justify-end gap-2">
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger>
             <div className="cursor-help inline-block">
               <Badge
                 variant={getVariant()}
@@ -75,7 +75,8 @@ export function SyncStatusIndicator() {
         </Tooltip>
         
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger>
+            <span tabIndex={0}>
             <Button
               variant="ghost"
               size="icon"
@@ -86,6 +87,7 @@ export function SyncStatusIndicator() {
               <RefreshCcw className="h-4 w-4" />
               <span className="sr-only">Sincronizar manualmente</span>
             </Button>
+            </span>
           </TooltipTrigger>
           <TooltipContent>
             <p>Forçar Sincronização</p>

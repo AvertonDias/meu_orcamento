@@ -140,16 +140,18 @@ function ClientList({
 
               <div className="flex items-center gap-2 pr-2 h-full py-3">
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Ações do cliente"
-                      className="h-8 w-8"
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <MoreVertical className="h-5 w-5" />
-                    </Button>
+                  <DropdownMenuTrigger>
+                    <span tabIndex={0}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Ações do cliente"
+                        className="h-8 w-8"
+                        onClick={e => e.stopPropagation()}
+                      >
+                        <MoreVertical className="h-5 w-5" />
+                      </Button>
+                    </span>
                   </DropdownMenuTrigger>
 
                   <DropdownMenuContent

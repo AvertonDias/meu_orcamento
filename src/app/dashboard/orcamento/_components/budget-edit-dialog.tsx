@@ -426,11 +426,13 @@ export function BudgetEditDialog({
               ) : (
                 <div className="space-y-2">
                   <Popover open={isMaterialPopoverOpen} onOpenChange={setIsMaterialPopoverOpen}>
-                    <PopoverTrigger asChild>
+                    <PopoverTrigger>
+                      <span tabIndex={0}>
                       <Button variant="outline" role="combobox" aria-expanded={isMaterialPopoverOpen} className="w-full justify-between">
                         {selectedMaterial?.descricao || "Selecione um item..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
+                      </span>
                     </PopoverTrigger>
                     <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                       <Command>
@@ -588,22 +590,24 @@ export function BudgetEditDialog({
                 <div className="space-y-2">
                     <Label htmlFor="validade-data">Data de Validade</Label>
                     <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                id="validade-data"
-                                variant={"outline"}
-                                className={cn(
-                                    "w-full justify-start text-left font-normal",
-                                    !editingBudget.validadeDias && "text-muted-foreground"
-                                )}
-                            >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {editingBudget.validadeDias ? (
-                                    format(addDays(parseISO(editingBudget.dataCriacao), Number(editingBudget.validadeDias)), "PPP", { locale: ptBR })
-                                ) : (
-                                    <span>Escolha uma data</span>
-                                )}
-                            </Button>
+                        <PopoverTrigger>
+                          <span tabIndex={0}>
+                              <Button
+                                  id="validade-data"
+                                  variant={"outline"}
+                                  className={cn(
+                                      "w-full justify-start text-left font-normal",
+                                      !editingBudget.validadeDias && "text-muted-foreground"
+                                  )}
+                              >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {editingBudget.validadeDias ? (
+                                      format(addDays(parseISO(editingBudget.dataCriacao), Number(editingBudget.validadeDias)), "PPP", { locale: ptBR })
+                                  ) : (
+                                      <span>Escolha uma data</span>
+                                  )}
+                              </Button>
+                            </span>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
                             <Calendar
@@ -670,7 +674,7 @@ export function BudgetEditDialog({
           </div>
 
           <DialogFooter className="p-6 pt-4 border-t flex-col sm:flex-row sm:space-x-2 w-full">
-            <DialogClose asChild>
+            <DialogClose>
               <Button variant="outline" className="w-full">Cancelar</Button>
             </DialogClose>
             <Button onClick={handleUpdateBudget} disabled={isSubmitting} className="w-full">

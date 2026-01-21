@@ -78,7 +78,7 @@ const AdjustmentBadge = ({ orcamento }: { orcamento: Orcamento }) => {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
+        <TooltipTrigger>
           <div className="cursor-help">
             <div className="flex flex-col items-end">
               <span className="font-bold">{formatCurrency(orcamento.totalVenda)}</span>
@@ -261,10 +261,12 @@ export function BudgetList({
             className="hover:border-primary/50 transition-colors relative"
           >
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger>
+                <span tabIndex={0}>
                  <Button variant="ghost" size="icon" aria-label="Ações do orçamento" className="absolute top-2 right-2 h-8 w-8" onClick={(e) => e.stopPropagation()}>
                     <MoreVertical className="h-5 w-5" />
                  </Button>
+                </span>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                 <DropdownMenuItem onClick={() => onEdit(o)} disabled={o.status === 'Aceito'}>
