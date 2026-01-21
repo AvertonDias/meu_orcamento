@@ -140,7 +140,7 @@ export function BudgetList({
     const cleanPhone = `55${phone.replace(/\D/g, '')}`;
 
     // Mensagem Padrão
-    let defaultText = 'Olá *{cliente.nome}*!\n\nSegue seu orçamento {orcamento.numero}:\n\n{orcamento.detalhes}\n\n*TOTAL:* {orcamento.total}\n\nQualquer dúvida, estou à disposição!\n\n*{empresa.nome}*';
+    const defaultText = 'Olá *{Nome do Cliente}*!\n\nSegue seu orçamento {Nº do Orçamento}:\n\n{Detalhes do Orçamento}\n\n*TOTAL:* {Valor Total}\n\nQualquer dúvida, estou à disposição!\n\n*{Nome da Empresa}*';
     
     // Usa a mensagem customizada se existir, senão a padrão
     let text = empresa?.whatsappMessage || defaultText;
@@ -151,11 +151,11 @@ export function BudgetList({
     ).join('\n');
 
     // Substitui as variáveis
-    text = text.replace(/{cliente.nome}/g, orcamento.cliente.nome);
-    text = text.replace(/{orcamento.numero}/g, orcamento.numeroOrcamento);
-    text = text.replace(/{orcamento.total}/g, formatCurrency(orcamento.totalVenda));
-    text = text.replace(/{orcamento.detalhes}/g, detalhes);
-    text = text.replace(/{empresa.nome}/g, empresa?.nome || 'Nossa Empresa');
+    text = text.replace(/{Nome do Cliente}/g, orcamento.cliente.nome);
+    text = text.replace(/{Nº do Orçamento}/g, orcamento.numeroOrcamento);
+    text = text.replace(/{Valor Total}/g, formatCurrency(orcamento.totalVenda));
+    text = text.replace(/{Detalhes do Orçamento}/g, detalhes);
+    text = text.replace(/{Nome da Empresa}/g, empresa?.nome || 'Nossa Empresa');
 
 
     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`, '_blank');

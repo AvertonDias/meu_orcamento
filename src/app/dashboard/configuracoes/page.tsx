@@ -77,7 +77,7 @@ const initialEmpresaState: Omit<EmpresaData, 'id' | 'userId'> = {
   cnpj: '',
   logo: '',
   whatsappMessage:
-    'Olá *{cliente.nome}*!\n\nSegue seu orçamento {orcamento.numero}:\n\n{orcamento.detalhes}\n\n*TOTAL:* {orcamento.total}\n\nQualquer dúvida, estou à disposição!\n\n*{empresa.nome}*',
+    'Olá *{Nome do Cliente}*!\n\nSegue seu orçamento {Nº do Orçamento}:\n\n{Detalhes do Orçamento}\n\n*TOTAL:* {Valor Total}\n\nQualquer dúvida, estou à disposição!\n\n*{Nome da Empresa}*',
 };
 
 /* =======================
@@ -596,17 +596,17 @@ export default function ConfiguracoesPage() {
                         value={empresa.whatsappMessage || ''}
                         onChange={handleChange}
                         rows={8}
-                        placeholder="Olá {cliente.nome}! Segue seu orçamento..."
+                        placeholder="Olá {Nome do Cliente}! Segue seu orçamento..."
                     />
                  </div>
                  <div>
                     <p className="text-sm text-muted-foreground">Tags disponíveis (clique para adicionar):</p>
                     <div className="flex flex-wrap gap-2 mt-2">
-                        <Badge variant="secondary" onClick={() => handleAddTagToMessage('{cliente.nome}')} className="cursor-pointer">Nome do Cliente</Badge>
-                        <Badge variant="secondary" onClick={() => handleAddTagToMessage('{orcamento.numero}')} className="cursor-pointer">Nº do Orçamento</Badge>
-                        <Badge variant="secondary" onClick={() => handleAddTagToMessage('{orcamento.detalhes}')} className="cursor-pointer">Detalhes do Orçamento</Badge>
-                        <Badge variant="secondary" onClick={() => handleAddTagToMessage('{orcamento.total}')} className="cursor-pointer">Valor Total</Badge>
-                        <Badge variant="secondary" onClick={() => handleAddTagToMessage('{empresa.nome}')} className="cursor-pointer">Nome da Empresa</Badge>
+                        <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Nome do Cliente}')} className="cursor-pointer">Nome do Cliente</Badge>
+                        <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Nº do Orçamento}')} className="cursor-pointer">Nº do Orçamento</Badge>
+                        <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Detalhes do Orçamento}')} className="cursor-pointer">Detalhes do Orçamento</Badge>
+                        <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Valor Total}')} className="cursor-pointer">Valor Total</Badge>
+                        <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Nome da Empresa}')} className="cursor-pointer">Nome da Empresa</Badge>
                     </div>
                  </div>
             </CardContent>
