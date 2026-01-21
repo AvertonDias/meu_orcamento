@@ -72,7 +72,7 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
               />
             </div>
             <span className={cn(
-              "font-semibold truncate animate-in fade-in duration-500",
+              "font-semibold truncate",
               isCollapsed && "sr-only"
             )}>
               Meu orçamento
@@ -88,7 +88,7 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
         {/* Rodapé / Sair e Toggle */}
         <div className="mt-auto border-t p-2 space-y-2 bg-background/50">
           <Tooltip delayDuration={0}>
-            <TooltipTrigger asChild>
+            <TooltipTrigger>
               <span className={cn("w-full", isCollapsed && "flex justify-center")}>
                 {logoutButton}
               </span>
