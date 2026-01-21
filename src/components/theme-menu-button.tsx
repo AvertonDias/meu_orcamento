@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -17,8 +16,7 @@ import { ThemePicker } from "./theme-picker";
 export function ThemeMenuButton() {
   return (
     <Popover>
-      <PopoverTrigger>
-        <span tabIndex={0}>
+      <PopoverTrigger asChild>
         <Button
           variant="outline"
           size="icon"
@@ -27,7 +25,6 @@ export function ThemeMenuButton() {
           <Paintbrush className="h-5 w-5" />
           <span className="sr-only">Personalizar Tema</span>
         </Button>
-        </span>
       </PopoverTrigger>
       <PopoverContent className="w-60" align="end">
         <div className="grid gap-6">
