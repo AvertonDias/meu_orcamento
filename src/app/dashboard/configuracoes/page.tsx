@@ -533,39 +533,52 @@ export default function ConfiguracoesPage() {
               <RadioGroup
                 value={String(principalIndex)}
                 onValueChange={index => handlePrincipalTelefoneChange(Number(index))}
+                className="space-y-4"
               >
                 {empresa.telefones.map((tel, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <RadioGroupItem value={String(index)} id={`tel-principal-${index}`} />
-                    <Label htmlFor={`tel-principal-${index}`} className="font-normal cursor-pointer">
-                      Marcar como principal
-                    </Label>
-                    <Input
-                      placeholder="Nome (Ex: Vendas)"
-                      value={tel.nome}
-                      onChange={e =>
-                        handleTelefoneChange(index, 'nome', e.target.value)
-                      }
-                      className="max-w-[150px]"
-                    />
-                    <Input
-                      placeholder="(DD) XXXXX-XXXX"
-                      value={tel.numero}
-                      onChange={e =>
-                        handleTelefoneChange(index, 'numero', e.target.value)
-                      }
-                      required
-                      className="flex-1"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeTelefone(index)}
-                      disabled={empresa.telefones.length <= 1}
-                    >
-                      <Trash2 size={16} className="text-destructive" />
-                    </Button>
+                  <div key={index} className="space-y-2 rounded-md border p-3 bg-muted/20 relative">
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value={String(index)} id={`tel-principal-${index}`} />
+                      <Label htmlFor={`tel-principal-${index}`} className="font-normal cursor-pointer">
+                        Telefone Principal
+                      </Label>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                      <div className="space-y-1">
+                         <Label htmlFor={`tel-nome-${index}`} className="text-xs text-muted-foreground">Nome (Ex: Vendas)</Label>
+                         <Input
+                           id={`tel-nome-${index}`}
+                           placeholder="Vendas"
+                           value={tel.nome}
+                           onChange={e =>
+                             handleTelefoneChange(index, 'nome', e.target.value)
+                           }
+                         />
+                      </div>
+                       <div className="space-y-1">
+                         <Label htmlFor={`tel-numero-${index}`} className="text-xs text-muted-foreground">Número de Telefone*</Label>
+                         <Input
+                           id={`tel-numero-${index}`}
+                           placeholder="(DD) XXXXX-XXXX"
+                           value={tel.numero}
+                           onChange={e =>
+                             handleTelefoneChange(index, 'numero', e.target.value)
+                           }
+                           required
+                         />
+                       </div>
+                    </div>
+                     <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeTelefone(index)}
+                        disabled={empresa.telefones.length <= 1}
+                        className="absolute top-2 right-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
                   </div>
                 ))}
               </RadioGroup>
