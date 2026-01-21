@@ -45,9 +45,6 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
     () => (user ? db.empresa.where('id').equals(user.uid).toArray() : []),
     [user]
   );
-
-  const empresaDexie = empresaDataArr?.[0];
-  const dexieIsLoading = empresaDataArr === undefined;
   
   const { requestPermission } = usePermissionDialog();
   const { isDirty, setIsDirty } = useDirtyState();
@@ -171,15 +168,18 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
      AUTH & REDIRECTION
   ====================================================== */
   useEffect(() => {
-    // Aguarda a autenticação e o carregamento inicial dos dados do Dexie.
-    if (loadingAuth || (user && dexieIsLoading)) {
+    // 1. Aguardar a autenticação e o carregamento inicial dos dados do Dexie.
+    if (loadingAuth || !user) {
+      if (!loadingAuth && !user) router.push('/login');
       return;
     }
 
-    if (!user) {
-      router.push('/login');
+    // 2. Se a query do Dexie ainda não retornou nada (está undefined), espere.
+    if (empresaDataArr === undefined) {
       return;
     }
+
+    // A partir daqui, empresaDataArr é ou um array vazio [] ou um array com dados [{...}]
 
     // Executa configurações de primeira execução (como pedir permissões) apenas uma vez.
     if (!oneTimeSetupDone.current) {
@@ -188,15 +188,16 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
       oneTimeSetupDone.current = true;
     }
     
-    // A verificação robusta para garantir que a empresa está configurada.
+    // 3. Verificação robusta para garantir que a empresa está configurada.
+    const empresaDexie = empresaDataArr?.[0];
     const hasName = !!(empresaDexie?.data?.nome && empresaDexie.data.nome.trim().length > 0);
     const hasAddress = !!(empresaDexie?.data?.endereco && empresaDexie.data.endereco.trim().length > 0);
-    const hasPhone = !!(empresaDexie?.data?.telefones && empresaDexie.data.telefones.some(t => t.numero && t.numero.trim().length > 0));
+    const hasPhone = !!(empresaDexie?.data?.telefones && Array.isArray(empresaDexie.data.telefones) && empresaDexie.data.telefones.some(t => t.numero && t.numero.trim().length > 0));
     const isCompanyConfigured = hasName && hasAddress && hasPhone;
     
     const isConfigPage = pathname === '/dashboard/configuracoes';
 
-    // Se a empresa não estiver configurada e não estivermos na página de configuração, redireciona.
+    // 4. Se a empresa não estiver configurada e não estivermos na página de configuração, redireciona.
     if (!isCompanyConfigured && !isConfigPage) {
       router.push('/dashboard/configuracoes');
       toast({
@@ -206,14 +207,14 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
       });
     }
 
-  }, [user, loadingAuth, dexieIsLoading, router, empresaDexie, pathname, toast]);
+  }, [user, loadingAuth, empresaDataArr, router, pathname, toast]);
 
 
   /* =====================================================
      LOADING
   ====================================================== */
   // Mostra um spinner de carregamento durante a autenticação ou o fetch inicial de dados do Dexie.
-  if (loadingAuth || (user && dexieIsLoading)) {
+  if (loadingAuth || (user && empresaDataArr === undefined)) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
