@@ -77,7 +77,7 @@ const initialEmpresaState: Omit<EmpresaData, 'id' | 'userId'> = {
   cnpj: '',
   logo: '',
   whatsappMessage:
-    'Olá *{Nome do Cliente}*!\n\nSegue seu orçamento {Nº do Orçamento}:\n\n{Detalhes do Orçamento}\n\n*TOTAL:* {Valor Total}\n\nQualquer dúvida, estou à disposição!\n\n*{Nome da Empresa}*',
+    'Olá {Nome do Cliente}!\n\nSegue seu orçamento {Nº do Orçamento}:\n\n{Detalhes do Orçamento}\n\nTOTAL: {Valor Total}\n\nQualquer dúvida, estou à disposição!\n\n{Nome da Empresa}',
 };
 
 /* =======================
@@ -99,10 +99,13 @@ export default function ConfiguracoesPage() {
     () => (user ? db.empresa.where('id').equals(user.uid).toArray() : []),
     [user]
   );
-  const empresaDexie = empresaDexieArr?.[0];
 
   const isLoadingData = loadingAuth || empresaDexieArr === undefined;
-
+  
+  const empresaDexie = useMemo(() => {
+      if (isLoadingData || !empresaDexieArr) return undefined;
+      return empresaDexieArr[0];
+  }, [isLoadingData, empresaDexieArr]);
 
   const isNewUser = useMemo(() => {
     if (isLoadingData || !empresa) return false;
@@ -122,16 +125,19 @@ export default function ConfiguracoesPage() {
         ...initialEmpresaState,
         ...empresaDexie.data,
       };
-    } else {
+    } else if(user) {
       loadedData = {
         ...initialEmpresaState,
-        id: user?.uid,
-        userId: user?.uid,
+        id: user.uid,
+        userId: user.uid,
       };
     }
-    setEmpresa(loadedData as EmpresaData);
-    setInitialData(JSON.stringify(loadedData));
-    setIsDirty(false);
+    
+    if (loadedData) {
+      setEmpresa(loadedData as EmpresaData);
+      setInitialData(JSON.stringify(loadedData));
+      setIsDirty(false);
+    }
   }, [empresaDexie, user, isLoadingData, setIsDirty]);
   
   
