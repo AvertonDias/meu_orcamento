@@ -62,7 +62,9 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
         return (
           <Tooltip key={item.href} delayDuration={0}>
             <TooltipTrigger asChild>
-              {linkElement}
+              <span className={cn("w-full", isCollapsed && "flex justify-center")}>
+                {linkElement}
+              </span>
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={10}>
               {item.label}

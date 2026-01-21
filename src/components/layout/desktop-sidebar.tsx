@@ -89,7 +89,9 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
         <div className="mt-auto border-t p-2 space-y-2 bg-background/50">
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
-              {logoutButton}
+              <span className={cn("w-full", isCollapsed && "flex justify-center")}>
+                {logoutButton}
+              </span>
             </TooltipTrigger>
             <TooltipContent side="right">Sair</TooltipContent>
           </Tooltip>
