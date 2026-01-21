@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -87,7 +86,6 @@ export function BudgetDetailsModal({
               size="icon"
               onClick={handleEditClick}
               aria-label="Editar orçamento"
-              className="bg-accent hover:bg-accent/90"
             >
               <Pencil className="h-5 w-5" />
             </Button>
