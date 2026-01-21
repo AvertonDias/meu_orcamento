@@ -172,13 +172,15 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
   ====================================================== */
   useEffect(() => {
     // Aguarda a autenticação e o carregamento inicial dos dados do Dexie.
-    if (loadingAuth || (user && dexieIsLoading)) return;
+    if (loadingAuth || (user && dexieIsLoading)) {
+      return;
+    }
 
     if (!user) {
       router.push('/login');
       return;
     }
-    
+
     // Executa configurações de primeira execução (como pedir permissões) apenas uma vez.
     if (!oneTimeSetupDone.current) {
       requestAppPermissions();
@@ -186,9 +188,12 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
       oneTimeSetupDone.current = true;
     }
     
-    // Agora que o carregamento está completo, podemos verificar com segurança a configuração da empresa.
-    const isCompanyConfigured = !!(empresaDexie?.data?.nome && empresaDexie.data.nome.trim().length > 0);
-      
+    // A verificação robusta para garantir que a empresa está configurada.
+    const hasName = !!(empresaDexie?.data?.nome && empresaDexie.data.nome.trim().length > 0);
+    const hasAddress = !!(empresaDexie?.data?.endereco && empresaDexie.data.endereco.trim().length > 0);
+    const hasPhone = !!(empresaDexie?.data?.telefones && empresaDexie.data.telefones.some(t => t.numero && t.numero.trim().length > 0));
+    const isCompanyConfigured = hasName && hasAddress && hasPhone;
+    
     const isConfigPage = pathname === '/dashboard/configuracoes';
 
     // Se a empresa não estiver configurada e não estivermos na página de configuração, redireciona.
