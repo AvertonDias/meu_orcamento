@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -11,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { ThemeMenuButton } from '@/components/theme-menu-button';
 import { NavLinks, navItems } from '@/components/layout/nav-links';
 import { Menu, LogOut } from 'lucide-react';
@@ -65,15 +64,17 @@ export function MobileNavbar() {
   return (
     <header className="sticky top-0 z-20 flex h-14 items-center gap-4 border-b bg-muted/90 px-4 backdrop-blur-sm lg:h-[60px] lg:px-6 md:hidden">
       <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-        <SheetTrigger>
-          <span tabIndex={0}>
+        <SheetTrigger asChild>
           <Button variant="outline" size="icon" className="shrink-0">
             <Menu className="h-5 w-5" />
             <span className="sr-only">Abrir menu de navegação</span>
           </Button>
-          </span>
         </SheetTrigger>
         <SheetContent side="left" className="flex flex-col p-4">
+          <SheetHeader>
+            <SheetTitle className="sr-only">Menu Principal</SheetTitle>
+            <SheetDescription className="sr-only">Navegue pelas seções do aplicativo.</SheetDescription>
+          </SheetHeader>
           <div className="flex h-14 items-center border-b px-2 mb-4">
             <Link href="/dashboard/orcamento" className="flex items-center gap-2 font-semibold" onClick={() => setIsMobileMenuOpen(false)}>
               <div className="bg-white rounded-md p-1">
