@@ -191,8 +191,8 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
     const isCompanyConfigured = 
       empresaDexie?.data?.nome && 
       empresaDexie?.data?.endereco && 
-      Array.isArray(empresaDexie.data.telefones) && 
-      empresaDexie.data.telefones.some(t => t?.numero?.trim());
+      Array.isArray(empresaDexie.data.telefones) &&
+      empresaDexie.data.telefones.length > 0;
       
     const isConfigPage = pathname === '/dashboard/configuracoes';
 
