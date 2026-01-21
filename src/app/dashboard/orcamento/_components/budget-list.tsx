@@ -6,13 +6,12 @@ import type { Orcamento, EmpresaData, ClienteData, Telefone } from '@/lib/types'
 import {
   Card, CardContent
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Badge, badgeVariants } from '@/components/ui/badge';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription,
-  AlertDialogFooter, AlertDialogHeader,
-  AlertDialogTitle
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
 } from '@/components/ui/alert-dialog';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -78,7 +77,7 @@ const AdjustmentBadge = ({ orcamento }: { orcamento: Orcamento }) => {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
           <div className="cursor-help">
             <div className="flex flex-col items-end">
               <span className="font-bold">{formatCurrency(orcamento.totalVenda)}</span>
@@ -261,14 +260,17 @@ export function BudgetList({
             className="hover:border-primary/50 transition-colors relative"
           >
             <DropdownMenu>
-              <DropdownMenuTrigger>
-                <span tabIndex={0}>
-                 <Button variant="ghost" size="icon" aria-label="Ações do orçamento" className="absolute top-2 right-2 h-8 w-8" onClick={(e) => e.stopPropagation()}>
-                    <MoreVertical className="h-5 w-5" />
-                 </Button>
-                </span>
+              <DropdownMenuTrigger
+                className={cn(
+                  buttonVariants({ variant: 'ghost', size: 'icon' }),
+                  'absolute top-2 right-2 h-8 w-8'
+                )}
+                onClick={e => e.stopPropagation()}
+                aria-label="Ações do orçamento"
+              >
+                <MoreVertical className="h-5 w-5" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuContent side="left" onClick={(e) => e.stopPropagation()}>
                 <DropdownMenuItem onClick={() => onEdit(o)} disabled={o.status === 'Aceito'}>
                   <Pencil className="mr-2 h-4 w-4" />
                   <span>Editar</span>
