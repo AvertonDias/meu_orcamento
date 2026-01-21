@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
@@ -40,13 +40,19 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const [user, loadingAuth] = useAuthState(auth);
-  const empresaDexie = useLiveQuery(
-    () => (user ? db.empresa.get(user.uid) : undefined),
+  
+  // Use a query that returns an array to distinguish "loading" from "not found"
+  const empresaDataArr = useLiveQuery(
+    () => (user ? db.empresa.where('id').equals(user.uid).toArray() : []),
     [user]
   );
+
+  const empresaDexie = empresaDataArr?.[0];
+  const dexieIsLoading = empresaDataArr === undefined;
   
   const { requestPermission } = usePermissionDialog();
   const { isDirty, setIsDirty } = useDirtyState();
+  const oneTimeSetupDone = useRef(false);
   
   // Inicializa sincronização offline/online
   useSync();
@@ -166,38 +172,44 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
      AUTH & REDIRECTION
   ====================================================== */
   useEffect(() => {
-    if (loadingAuth) return; // Wait for auth to settle
+    // Aguarda a autenticação e o carregamento inicial dos dados do Dexie.
+    if (loadingAuth || (user && dexieIsLoading)) return;
 
     if (!user) {
       router.push('/login');
       return;
     }
-
-    // This check must wait for Dexie to be ready
-    if (empresaDexie !== undefined) {
-      // Run one-time setups only after user is confirmed and dexie is ready
+    
+    // Executa configurações de primeira execução (como pedir permissões) apenas uma vez.
+    if (!oneTimeSetupDone.current) {
       requestAppPermissions();
-      // requestForToken();
-
-      const isCompanyConfigured = empresaDexie?.data?.nome && empresaDexie?.data?.endereco && empresaDexie?.data?.telefones?.some(t => t.numero.trim());
-      const isConfigPage = pathname === '/dashboard/configuracoes';
-
-      if (!isCompanyConfigured && !isConfigPage) {
-        router.push('/dashboard/configuracoes');
-        toast({
-          title: 'Bem-vindo(a)!',
-          description: 'Por favor, complete as informações da sua empresa para começar.',
-          duration: 9000,
-        });
-      }
+      // requestForToken(); // Habilitar se o FCM estiver totalmente configurado
+      oneTimeSetupDone.current = true;
     }
-  }, [user, loadingAuth, router, empresaDexie, pathname, toast]);
+    
+    // Agora que o carregamento está completo, podemos verificar com segurança a configuração da empresa.
+    // `empresaDexie` será undefined para um novo usuário, ou um objeto para um existente.
+    const isCompanyConfigured = empresaDexie?.data?.nome && empresaDexie?.data?.endereco && empresaDexie?.data?.telefones?.some(t => t.numero.trim());
+    const isConfigPage = pathname === '/dashboard/configuracoes';
+
+    // Se a empresa não estiver configurada e não estivermos na página de configuração, redireciona.
+    if (!isCompanyConfigured && !isConfigPage) {
+      router.push('/dashboard/configuracoes');
+      toast({
+        title: 'Bem-vindo(a)!',
+        description: 'Por favor, complete as informações da sua empresa para começar.',
+        duration: 9000,
+      });
+    }
+
+  }, [user, loadingAuth, dexieIsLoading, router, empresaDexie, pathname, toast]);
 
 
   /* =====================================================
      LOADING
   ====================================================== */
-  if (loadingAuth || (user && empresaDexie === undefined)) {
+  // Mostra um spinner de carregamento durante a autenticação ou o fetch inicial de dados do Dexie.
+  if (loadingAuth || (user && dexieIsLoading)) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
