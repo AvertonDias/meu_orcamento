@@ -188,11 +188,14 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
     }
     
     // Agora que o carregamento está completo, podemos verificar com segurança a configuração da empresa.
-    const isCompanyConfigured = 
-      empresaDexie?.data?.nome && 
-      empresaDexie?.data?.endereco && 
-      Array.isArray(empresaDexie.data.telefones) &&
-      empresaDexie.data.telefones.length > 0;
+    const isCompanyConfigured = (() => {
+      if (!empresaDexie?.data) return false;
+      const data = empresaDexie.data;
+      const hasName = typeof data.nome === 'string' && data.nome.trim().length > 0;
+      const hasAddress = typeof data.endereco === 'string' && data.endereco.trim().length > 0;
+      const hasPhone = Array.isArray(data.telefones) && data.telefones.length > 0 && data.telefones.some(tel => typeof tel.numero === 'string' && tel.numero.trim().length > 0);
+      return hasName && hasAddress && hasPhone;
+    })();
       
     const isConfigPage = pathname === '/dashboard/configuracoes';
 
