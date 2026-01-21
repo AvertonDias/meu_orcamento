@@ -260,15 +260,16 @@ export function BudgetList({
             className="hover:border-primary/50 transition-colors relative"
           >
             <DropdownMenu>
-              <DropdownMenuTrigger
-                className={cn(
-                  buttonVariants({ variant: 'ghost', size: 'icon' }),
-                  'absolute top-2 right-2 h-8 w-8'
-                )}
-                onClick={e => e.stopPropagation()}
-                aria-label="Ações do orçamento"
-              >
-                <MoreVertical className="h-5 w-5" />
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2 h-8 w-8"
+                  onClick={e => e.stopPropagation()}
+                  aria-label="Ações do orçamento"
+                >
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="left" onClick={(e) => e.stopPropagation()}>
                 <DropdownMenuItem onClick={() => onEdit(o)} disabled={o.status === 'Aceito'}>
