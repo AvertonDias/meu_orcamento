@@ -188,8 +188,12 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
     }
     
     // Agora que o carregamento está completo, podemos verificar com segurança a configuração da empresa.
-    // `empresaDexie` será undefined para um novo usuário, ou um objeto para um existente.
-    const isCompanyConfigured = empresaDexie?.data?.nome && empresaDexie?.data?.endereco && empresaDexie?.data?.telefones?.some(t => t.numero.trim());
+    const isCompanyConfigured = 
+      empresaDexie?.data?.nome && 
+      empresaDexie?.data?.endereco && 
+      Array.isArray(empresaDexie.data.telefones) && 
+      empresaDexie.data.telefones.some(t => t?.numero?.trim());
+      
     const isConfigPage = pathname === '/dashboard/configuracoes';
 
     // Se a empresa não estiver configurada e não estivermos na página de configuração, redireciona.

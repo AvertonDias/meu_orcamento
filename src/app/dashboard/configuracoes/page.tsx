@@ -119,25 +119,30 @@ export default function ConfiguracoesPage() {
   useEffect(() => {
     if (isLoadingData) return;
 
-    let loadedData;
-    if (empresaDexie) {
+    let loadedData: EmpresaData;
+    if (empresaDexie?.data) {
+      const dataFromDb = empresaDexie.data;
       loadedData = {
         ...initialEmpresaState,
-        ...empresaDexie.data,
+        ...dataFromDb,
+        // Garante que `telefones` seja um array não vazio, caso contrário, usa o padrão.
+        telefones: (Array.isArray(dataFromDb.telefones) && dataFromDb.telefones.length > 0)
+          ? dataFromDb.telefones
+          : initialEmpresaState.telefones,
       };
-    } else if(user) {
+    } else if (user) {
       loadedData = {
         ...initialEmpresaState,
         id: user.uid,
         userId: user.uid,
       };
+    } else {
+      return; // Sem usuário, não carrega nada.
     }
     
-    if (loadedData) {
-      setEmpresa(loadedData as EmpresaData);
-      setInitialData(JSON.stringify(loadedData));
-      setIsDirty(false);
-    }
+    setEmpresa(loadedData);
+    setInitialData(JSON.stringify(loadedData));
+    setIsDirty(false);
   }, [empresaDexie, user, isLoadingData, setIsDirty]);
   
   
