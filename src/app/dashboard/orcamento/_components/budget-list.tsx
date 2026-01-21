@@ -153,8 +153,8 @@ export function BudgetList({
     // Substitui as variáveis
     text = text.replace(/{Nome do Cliente}/g, orcamento.cliente.nome);
     text = text.replace(/{Nº do Orçamento}/g, orcamento.numeroOrcamento);
-    text = text.replace(/{Valor Total}/g, formatCurrency(orcamento.totalVenda));
     text = text.replace(/{Detalhes do Orçamento}/g, detalhes);
+    text = text.replace(/{Valor Total}/g, formatCurrency(orcamento.totalVenda));
     text = text.replace(/{Nome da Empresa}/g, empresa?.nome || 'Nossa Empresa');
 
 
@@ -271,7 +271,7 @@ export function BudgetList({
                   <MoreVertical className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent side="left" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuContent align="end" side="bottom" onClick={(e) => e.stopPropagation()}>
                 <DropdownMenuItem onClick={() => onEdit(o)} disabled={o.status === 'Aceito'}>
                   <Pencil className="mr-2 h-4 w-4" />
                   <span>Editar</span>

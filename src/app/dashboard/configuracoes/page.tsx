@@ -114,7 +114,7 @@ export default function ConfiguracoesPage() {
   ======================= */
 
   useEffect(() => {
-    if (!user || isLoadingData) return;
+    if (isLoadingData) return;
 
     let loadedData;
     if (empresaDexie) {
@@ -125,11 +125,11 @@ export default function ConfiguracoesPage() {
     } else {
       loadedData = {
         ...initialEmpresaState,
-        id: user.uid,
-        userId: user.uid,
+        id: user?.uid,
+        userId: user?.uid,
       };
     }
-    setEmpresa(loadedData);
+    setEmpresa(loadedData as EmpresaData);
     setInitialData(JSON.stringify(loadedData));
     setIsDirty(false);
   }, [empresaDexie, user, isLoadingData, setIsDirty]);
