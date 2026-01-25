@@ -3,8 +3,6 @@ import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { 
   initializeFirestore, 
-  CACHE_SIZE_UNLIMITED, 
-  persistentLocalCache, 
   type Firestore
 } from "firebase/firestore";
 import { getMessaging, type Messaging } from 'firebase/messaging';
@@ -20,17 +18,7 @@ const firebaseConfig = {
 
 const app: FirebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
-
-let db: Firestore;
-try {
-   db = initializeFirestore(app, {
-    localCache: persistentLocalCache({ cacheSizeBytes: CACHE_SIZE_UNLIMITED })
-  });
-} catch(e) {
-  console.error("Error initializing Firestore with persistence, falling back.", e);
-  db = initializeFirestore(app, {});
-}
-
+const db: Firestore = initializeFirestore(app, {});
 
 let messaging: Messaging | null = null;
 if (typeof window !== 'undefined' && 'Notification' in window) {
