@@ -1,3 +1,4 @@
+import '@/lib/firebase'; // Garante a inicialização do Firebase no início
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
