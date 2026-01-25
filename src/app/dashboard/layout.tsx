@@ -40,6 +40,8 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
 
   const [user, loadingAuth] = useAuthState(auth);
   
+  const [profileStatus, setProfileStatus] = useState<'loading' | 'incomplete' | 'complete'>('loading');
+
   // Use a query that returns an array to distinguish "loading" from "not found"
   const empresaDataArr = useLiveQuery(
     () => (user ? db.empresa.where('id').equals(user.uid).toArray() : []),
@@ -165,22 +167,27 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
 
 
   /* =====================================================
-     AUTH & REDIRECTION
+     AUTH & PROFILE STATUS
   ====================================================== */
   useEffect(() => {
-    // 1. Aguardar a autenticação e o carregamento inicial dos dados do Dexie.
-    if (loadingAuth || !user) {
-      if (!loadingAuth && !user) router.push('/login');
+    // 1. Aguarda a autenticação
+    if (loadingAuth) {
+      setProfileStatus('loading');
+      return;
+    }
+    if (!user) {
+      router.push('/login');
       return;
     }
 
-    // 2. Se a query do Dexie ainda não retornou nada (está undefined), espere.
+    // 2. Aguarda a query do Dexie retornar (não ser undefined)
     if (empresaDataArr === undefined) {
+      setProfileStatus('loading');
       return;
     }
 
-    // A partir daqui, empresaDataArr é ou um array vazio [] ou um array com dados [{...}]
-
+    // A partir daqui, temos uma resposta (vazia ou com dados)
+    
     // Executa configurações de primeira execução (como pedir permissões) apenas uma vez.
     if (!oneTimeSetupDone.current) {
       requestAppPermissions();
@@ -188,17 +195,29 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
       oneTimeSetupDone.current = true;
     }
     
-    // 3. Verificação robusta para garantir que a empresa está configurada.
-    const empresaDexie = empresaDataArr?.[0];
-    const hasName = !!(empresaDexie?.data?.nome && empresaDexie.data.nome.trim().length > 0);
-    const hasAddress = !!(empresaDexie?.data?.endereco && empresaDexie.data.endereco.trim().length > 0);
-    const hasPhone = !!(empresaDexie?.data?.telefones && Array.isArray(empresaDexie.data.telefones) && empresaDexie.data.telefones.some(t => t.numero && t.numero.trim().length > 0));
-    const isCompanyConfigured = hasName && hasAddress && hasPhone;
+    // 3. Determina o status do perfil com base nos dados carregados
+    const empresaDexie = empresaDataArr[0];
+    const isCompanyConfigured =
+      !!empresaDexie?.data?.nome?.trim() &&
+      !!empresaDexie?.data?.endereco?.trim() &&
+      !!(empresaDexie?.data?.telefones && Array.isArray(empresaDexie.data.telefones) && empresaDexie.data.telefones.some(t => t.numero?.trim()));
+
+    setProfileStatus(isCompanyConfigured ? 'complete' : 'incomplete');
     
+  }, [user, loadingAuth, empresaDataArr, router]);
+  
+  
+  /* =====================================================
+    REDIRECTION LOGIC
+  ====================================================== */
+  useEffect(() => {
+    if (profileStatus === 'loading') {
+      return; // Não faz nada enquanto carrega
+    }
+
     const isConfigPage = pathname === '/dashboard/configuracoes';
 
-    // 4. Se a empresa não estiver configurada e não estivermos na página de configuração, redireciona.
-    if (!isCompanyConfigured && !isConfigPage) {
+    if (profileStatus === 'incomplete' && !isConfigPage) {
       router.push('/dashboard/configuracoes');
       toast({
         title: 'Bem-vindo(a)!',
@@ -206,15 +225,13 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
         duration: 9000,
       });
     }
-
-  }, [user, loadingAuth, empresaDataArr, router, pathname, toast]);
+  }, [profileStatus, pathname, router, toast]);
 
 
   /* =====================================================
      LOADING
   ====================================================== */
-  // Mostra um spinner de carregamento durante a autenticação ou o fetch inicial de dados do Dexie.
-  if (loadingAuth || (user && empresaDataArr === undefined)) {
+  if (loadingAuth || profileStatus === 'loading') {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
