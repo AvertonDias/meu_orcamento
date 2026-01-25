@@ -1,4 +1,4 @@
-
+/** @type {import('next').NextConfig} */
 import withPWAInit from '@ducanh2912/next-pwa';
 
 const withPWA = withPWAInit({
@@ -6,14 +6,10 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === 'development',
   register: true,
   skipWaiting: true,
-  fallbacks: {
-    document: '/_offline',
-  },
 });
 
-/** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Your Next.js config options here
+  // Suas outras configurações do Next.js podem vir aqui
 };
 
 export default withPWA(nextConfig);
