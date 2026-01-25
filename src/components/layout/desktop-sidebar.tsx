@@ -62,15 +62,7 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
           isCollapsed && "justify-center px-0"
         )}>
           <Link href="/dashboard/orcamento" className="flex items-center gap-2">
-            <div className="bg-white rounded-md p-1 shrink-0">
-              <Image 
-                src="/ico_v2.jpg" 
-                alt="Logo" 
-                width={24} 
-                height={24} 
-                className="rounded-sm"
-              />
-            </div>
+            /home/user/studio/public/ico_v2.jpg
             <span className={cn(
               "font-semibold truncate",
               isCollapsed && "sr-only"
