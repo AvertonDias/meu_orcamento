@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -101,25 +101,14 @@ export default function RegisterPage() {
     setIsGoogleLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      toast({
-        title: "Login com Google bem-sucedido!",
-        description: "Redirecionando para o painel.",
-      });
-      router.push('/dashboard/orcamento');
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
-        let errorMessage = "Não foi possível fazer login com o Google.";
-       if (error.code === 'auth/popup-closed-by-user') {
-        errorMessage = 'O pop-up de login foi fechado antes da conclusão.';
-      } else if (error.code === 'auth/account-exists-with-different-credential') {
-        errorMessage = 'Já existe uma conta com este e-mail. Tente fazer login com outro método.';
-      }
+      console.error("Erro ao iniciar o cadastro com Google:", error);
       toast({
-        title: "Erro no Login com Google",
-        description: errorMessage,
+        title: "Erro no Cadastro com Google",
+        description: "Não foi possível iniciar o processo de cadastro. Tente novamente.",
         variant: "destructive",
       });
-    } finally {
       setIsGoogleLoading(false);
     }
   };

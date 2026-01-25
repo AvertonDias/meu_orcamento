@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { UnifiedThemeProvider } from '@/contexts/unified-theme-provider';
 import PwaRegistry from './pwa-registry';
 import { PermissionDialogProvider } from '@/hooks/use-permission-dialog';
+import FirebaseAuthHandler from '@/components/firebase-auth-handler';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -48,6 +49,7 @@ export default function RootLayout({
       <body className={`${inter.variable} font-body antialiased`}>
         <UnifiedThemeProvider>
           <PermissionDialogProvider>
+            <FirebaseAuthHandler />
             <PwaRegistry />
             {children}
             <Toaster />
