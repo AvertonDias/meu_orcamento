@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -101,22 +101,14 @@ export default function RegisterPage() {
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      toast({
-        title: "Cadastro com Google bem-sucedido!",
-        description: "Redirecionando para o painel.",
-      });
-      router.push('/dashboard/orcamento');
+      // Usa o fluxo de redirecionamento, mais robusto que o popup.
+      await signInWithRedirect(auth, provider);
+      // O navegador irá redirecionar, e o FirebaseAuthHandler cuidará do resultado.
     } catch (error: any) {
-      // Don't show an error if the user closes the popup.
-      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-        return; // The finally block will handle the loading state.
-      }
-
-      console.error("Erro ao cadastrar com Google (popup):", error);
+      console.error("Erro ao iniciar cadastro com Google:", error);
       let errorMessage = "Não foi possível cadastrar com o Google.";
       if (error.code === 'auth/unauthorized-domain') {
-          errorMessage = `O domínio '${'window.location.hostname'}' não está autorizado para autenticação. Por favor, adicione-o na lista de 'Domínios autorizados' do seu projeto no Firebase.`;
+          errorMessage = `O domínio '${window.location.hostname}' não está autorizado. Adicione-o na lista de 'Domínios autorizados' no console do Firebase.`;
       }
       
       toast({
@@ -125,7 +117,6 @@ export default function RegisterPage() {
         variant: "destructive",
         duration: 9000,
       });
-    } finally {
       setIsGoogleLoading(false);
     }
   };
