@@ -93,16 +93,15 @@ export default function LoginPage() {
       });
       router.push('/dashboard/orcamento');
     } catch (error: any) {
+      // Don't show an error if the user closes the popup.
+      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+        return; // The finally block will handle the loading state.
+      }
+
       console.error("Erro ao fazer login com Google (popup):", error);
       let errorMessage = "Não foi possível fazer login com o Google.";
       if (error.code === 'auth/unauthorized-domain') {
-          errorMessage = `O domínio '${window.location.hostname}' não está autorizado para autenticação. Por favor, adicione-o na lista de 'Domínios autorizados' do seu projeto no Firebase.`;
-      } else if (error.code === 'auth/popup-closed-by-user') {
-          errorMessage = 'O popup de login foi fechado. Por favor, tente novamente.';
-      } else if (error.code === 'auth/cancelled-popup-request') {
-          // Não faz nada, o usuário cancelou
-          setIsGoogleLoading(false);
-          return;
+          errorMessage = `O domínio '${'window.location.hostname'}' não está autorizado para autenticação. Por favor, adicione-o na lista de 'Domínios autorizados' do seu projeto no Firebase.`;
       }
       
       toast({
