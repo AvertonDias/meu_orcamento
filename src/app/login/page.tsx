@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -86,21 +86,49 @@ export default function LoginPage() {
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      // Usa o fluxo de redirecionamento, mais robusto que o popup.
-      await signInWithRedirect(auth, provider);
-      // O navegador irá redirecionar, e o FirebaseAuthHandler cuidará do resultado
-    } catch (error: any) {
-      console.error("Erro ao iniciar login com Google:", error);
-      let errorMessage = "Não foi possível iniciar o login com o Google.";
-       if (error.code === 'auth/unauthorized-domain') {
-          errorMessage = `O domínio '${window.location.hostname}' não está autorizado. Adicione-o na lista de 'Domínios autorizados' no console do Firebase.`;
-      }
+      await signInWithPopup(auth, provider);
       toast({
-        title: "Erro no Login com Google",
-        description: errorMessage,
-        variant: "destructive",
-        duration: 9000,
+        title: "Login com Google bem-sucedido!",
+        description: "Redirecionando para o painel...",
       });
+      router.push('/dashboard/orcamento');
+    } catch (error: any) {
+      console.error("Erro ao fazer login com Google (popup):", error);
+      let title = "Erro no Login com Google";
+      let description = "Não foi possível completar o login com o Google.";
+
+      switch (error.code) {
+        case 'auth/popup-closed-by-user':
+        case 'auth/cancelled-popup-request':
+           title = '';
+           description = '';
+           break;
+        case 'auth/popup-blocked':
+          title = "Popup bloqueado";
+          description = "Por favor, habilite os popups para este site no seu navegador e tente novamente.";
+          break;
+        case 'auth/unauthorized-domain':
+          title = "Domínio não autorizado";
+          description = `O domínio do aplicativo não está autorizado. Adicione-o no Console do Firebase em: Authentication > Configurações > Domínios autorizados. O domínio é: ${window.location.hostname}`;
+          break;
+        case 'auth/account-exists-with-different-credential':
+          title = "Conta já existe";
+          description = "Uma conta já existe com o mesmo e-mail mas com credenciais diferentes. Tente fazer login com o provedor associado a este e-mail.";
+          break;
+        default:
+          description = error.message || 'Ocorreu um erro desconhecido.';
+          break;
+      }
+      
+      if (title && description) {
+        toast({
+          title,
+          description,
+          variant: "destructive",
+          duration: 9000,
+        });
+      }
+    } finally {
       setIsGoogleLoading(false);
     }
   };
