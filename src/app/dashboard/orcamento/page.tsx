@@ -71,42 +71,45 @@ export default function OrcamentoPage() {
   // DADOS OFFLINE (DEXIE)
   // =========================
   const materiais = useLiveQuery(
-    () =>
-      user
-        ? db.materiais
+    () => {
+      if (!user?.uid) return;
+      return db.materiais
             .where('userId')
             .equals(user.uid)
-            .sortBy('data.descricao')
-        : [],
-    [user]
+            .sortBy('data.descricao');
+    },
+    [user?.uid]
   )?.map(m => m.data);
 
   const clientes = useLiveQuery(
-    () =>
-      user
-        ? db.clientes
-            .where('userId')
-            .equals(user.uid)
-            .sortBy('data.nome')
-        : [],
-    [user]
+    () => {
+      if (!user?.uid) return;
+      return db.clientes
+        .where('userId')
+        .equals(user.uid)
+        .sortBy('data.nome');
+    },
+    [user?.uid]
   )?.map(c => c.data);
 
   const orcamentosSalvos = useLiveQuery(
-    () =>
-      user
-        ? db.orcamentos
-            .where('userId')
-            .equals(user.uid)
-            .sortBy('data.dataCriacao')
-            .then(list => list.reverse())
-        : [],
-    [user]
+    () => {
+      if (!user?.uid) return;
+      return db.orcamentos
+        .where('userId')
+        .equals(user.uid)
+        .sortBy('data.dataCriacao')
+        .then(list => list.reverse());
+    },
+    [user?.uid]
   )?.map(o => o.data);
 
   const empresa = useLiveQuery(
-    () => (user ? db.empresa.get(user.uid) : undefined),
-    [user]
+    () => {
+      if (!user?.uid) return;
+      return db.empresa.get(user.uid);
+    },
+    [user?.uid]
   )?.data;
 
   // =========================
