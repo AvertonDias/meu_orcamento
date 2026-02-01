@@ -46,7 +46,7 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
       )}
     >
       <LogOut className="h-5 w-5 shrink-0" />
-      {!isCollapsed && <span className="truncate">Sair</span>}
+      <span className={cn("truncate", isCollapsed && "sr-only")}>Sair</span>
     </Button>
   );
 
@@ -71,11 +71,9 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
                 className="rounded-sm"
               />
             </div>
-            {!isCollapsed && (
-              <span className="font-semibold truncate animate-in fade-in duration-500">
-                Meu orçamento
-              </span>
-            )}
+            <span className={cn("font-semibold truncate", isCollapsed && "sr-only")}>
+              Meu orçamento
+            </span>
           </Link>
         </div>
 
@@ -88,11 +86,9 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
         <div className="mt-auto border-t p-2 space-y-2 bg-background/50">
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
-              <div className={cn("w-full", isCollapsed && "flex justify-center")}>
-                {logoutButton}
-              </div>
+              {logoutButton}
             </TooltipTrigger>
-            <TooltipContent side="right" hidden={!isCollapsed}>Sair</TooltipContent>
+            <TooltipContent side="right">Sair</TooltipContent>
           </Tooltip>
           
           <div className={cn("flex gap-2", isCollapsed ? "flex-col items-center" : "items-center")}>
