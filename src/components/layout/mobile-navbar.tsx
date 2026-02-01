@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -77,7 +78,7 @@ export function MobileNavbar() {
           </SheetHeader>
           <div className="flex h-14 items-center border-b px-2 mb-4">
             <Link href="/dashboard/orcamento" className="flex items-center gap-2 font-semibold" onClick={() => setIsMobileMenuOpen(false)}>
-              <div className="bg-white rounded-md p-1">
+              <div className="rounded-md p-1">
                 <Image
                     src="/ico_v2.jpg"
                     alt="Logo do App"

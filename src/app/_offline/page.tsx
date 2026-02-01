@@ -9,7 +9,7 @@ export default function OfflinePage() {
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md text-center">
         <CardHeader className="items-center">
-           <div className="bg-white rounded-lg p-2 mb-4">
+           <div className="rounded-lg p-2 mb-4">
             <Image
               src="/ico_v2.jpg"
               alt="Logo do App"

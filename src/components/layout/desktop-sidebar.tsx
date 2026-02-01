@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -62,7 +63,7 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
           isCollapsed && "justify-center px-0"
         )}>
           <Link href="/dashboard/orcamento" className="flex items-center gap-2">
-            <div className="bg-white rounded-md p-1 shrink-0">
+            <div className="rounded-md p-1 shrink-0">
                 <Image
                     src="/ico_v2.jpg"
                     alt="Logo"
