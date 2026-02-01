@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -84,23 +84,34 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
+    const provider = new GoogleAuthProvider();
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
+      toast({
+        title: "Login com Google bem-sucedido!",
+        description: "Redirecionando para o painel.",
+      });
+      router.push('/dashboard/orcamento');
     } catch (error: any) {
-      console.error("Erro ao iniciar o login com Google:", error);
-      
-      let errorMessage = "Não foi possível iniciar o processo de login. Tente novamente.";
-      if(error.code === 'auth/unauthorized-domain') {
-        errorMessage = `O domínio ${window.location.hostname} não está autorizado. Adicione este domínio na lista de 'Domínios autorizados' nas configurações de Autenticação do seu projeto no Firebase.`
+      console.error("Erro ao fazer login com Google (popup):", error);
+      let errorMessage = "Não foi possível fazer login com o Google.";
+      if (error.code === 'auth/unauthorized-domain') {
+          errorMessage = `O domínio '${window.location.hostname}' não está autorizado para autenticação. Por favor, adicione-o na lista de 'Domínios autorizados' do seu projeto no Firebase.`;
+      } else if (error.code === 'auth/popup-closed-by-user') {
+          errorMessage = 'O popup de login foi fechado. Por favor, tente novamente.';
+      } else if (error.code === 'auth/cancelled-popup-request') {
+          // Não faz nada, o usuário cancelou
+          setIsGoogleLoading(false);
+          return;
       }
-
+      
       toast({
         title: "Erro no Login com Google",
         description: errorMessage,
         variant: "destructive",
         duration: 9000,
       });
+    } finally {
       setIsGoogleLoading(false);
     }
   };
