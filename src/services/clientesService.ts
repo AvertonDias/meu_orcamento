@@ -14,10 +14,10 @@ export const addCliente = async (userId: string, cliente: Omit<ClienteData, 'id'
     ...cliente,
     id: newId,
     userId,
-    // Garante que campos opcionais sejam strings vazias se não forem fornecidos
-    cpfCnpj: cliente.cpfCnpj || '',
-    email: cliente.email || '',
-    endereco: cliente.endereco || ''
+    // Garante que campos opcionais sejam strings vazias, e não undefined
+    cpfCnpj: cliente.cpfCnpj ?? '',
+    email: cliente.email ?? '',
+    endereco: cliente.endereco ?? '',
   };
 
   await dexieDB.clientes.put({
