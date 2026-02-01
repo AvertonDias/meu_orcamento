@@ -104,10 +104,17 @@ export default function RegisterPage() {
       await signInWithRedirect(auth, provider);
     } catch (error: any) {
       console.error("Erro ao iniciar o cadastro com Google:", error);
+      
+      let errorMessage = "Não foi possível iniciar o processo de cadastro. Tente novamente.";
+      if(error.code === 'auth/unauthorized-domain') {
+        errorMessage = `O domínio ${window.location.hostname} não está autorizado. Adicione este domínio na lista de 'Domínios autorizados' nas configurações de Autenticação do seu projeto no Firebase.`
+      }
+
       toast({
         title: "Erro no Cadastro com Google",
-        description: "Não foi possível iniciar o processo de cadastro. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
+        duration: 9000,
       });
       setIsGoogleLoading(false);
     }
