@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 
@@ -19,34 +19,16 @@ import { DesktopSidebar } from '@/components/layout/desktop-sidebar';
 import { MobileNavbar } from '@/components/layout/mobile-navbar';
 
 import { usePermissionDialog, PermissionDialogProvider } from '@/hooks/use-permission-dialog';
-import { requestForToken } from '@/lib/fcm';
 import { useSync } from '@/hooks/useSync';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
-
 import { DirtyStateProvider, useDirtyState } from '@/contexts/dirty-state-context';
 import { useToast } from '@/hooks/use-toast';
 
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/lib/dexie';
-
-
 function MainLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const pathname = usePathname();
   const { toast } = useToast();
   
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
   const [user, loadingAuth] = useAuthState(auth);
-  
-  const [profileStatus, setProfileStatus] = useState<'loading' | 'incomplete' | 'complete'>('loading');
-
-  // Use a query that returns an array to distinguish "loading" from "not found"
-  const empresaDataArr = useLiveQuery(
-    () => (user ? db.empresa.where('id').equals(user.uid).toArray() : []),
-    [user]
-  );
   
   const { requestPermission } = usePermissionDialog();
   const { isDirty, setIsDirty } = useDirtyState();
@@ -167,12 +149,10 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
 
 
   /* =====================================================
-     AUTH & PROFILE STATUS
+     AUTH & SETUP
   ====================================================== */
   useEffect(() => {
-    // 1. Aguarda a autenticação
     if (loadingAuth) {
-      setProfileStatus('loading');
       return;
     }
     if (!user) {
@@ -180,58 +160,17 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // 2. Aguarda a query do Dexie retornar (não ser undefined)
-    if (empresaDataArr === undefined) {
-      setProfileStatus('loading');
-      return;
-    }
-
-    // A partir daqui, temos uma resposta (vazia ou com dados)
-    
-    // Executa configurações de primeira execução (como pedir permissões) apenas uma vez.
     if (!oneTimeSetupDone.current) {
       requestAppPermissions();
       // requestForToken(); // Habilitar se o FCM estiver totalmente configurado
       oneTimeSetupDone.current = true;
     }
-    
-    // 3. Determina o status do perfil com base nos dados carregados
-    const empresaDexie = empresaDataArr[0];
-    const isCompanyConfigured =
-      !!empresaDexie?.data?.nome?.trim() &&
-      !!empresaDexie?.data?.endereco?.trim() &&
-      !!(empresaDexie?.data?.telefones && Array.isArray(empresaDexie.data.telefones) && empresaDexie.data.telefones.some(t => t.numero?.trim()));
-
-    setProfileStatus(isCompanyConfigured ? 'complete' : 'incomplete');
-    
-  }, [user, loadingAuth, empresaDataArr, router]);
-  
-  
-  /* =====================================================
-    REDIRECTION LOGIC
-  ====================================================== */
-  useEffect(() => {
-    if (profileStatus === 'loading') {
-      return; // Não faz nada enquanto carrega
-    }
-
-    const isConfigPage = pathname === '/dashboard/configuracoes';
-
-    if (profileStatus === 'incomplete' && !isConfigPage) {
-      router.push('/dashboard/configuracoes');
-      toast({
-        title: 'Bem-vindo(a)!',
-        description: 'Por favor, complete as informações da sua empresa para começar.',
-        duration: 9000,
-      });
-    }
-  }, [profileStatus, pathname, router, toast]);
-
+  }, [user, loadingAuth, router]);
 
   /* =====================================================
      LOADING
   ====================================================== */
-  if (loadingAuth || profileStatus === 'loading') {
+  if (loadingAuth || !user) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
