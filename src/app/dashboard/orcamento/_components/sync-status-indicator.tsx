@@ -23,6 +23,7 @@ export function SyncStatusIndicator() {
   }, []);
 
   const getTooltipContent = () => {
+    if (!isClient) return 'Carregando...';
     if (errorCount > 0) return `${errorCount} item(s) com erro de sincronização. Tente forçar a sincronização.`;
     if (!isOnline) return 'Você está offline. As alterações serão sincronizadas quando você se conectar.';
     if (isSyncing) return `Sincronizando ${pendingCount > 0 ? `${pendingCount} item(s)` : ''}...`;
@@ -32,12 +33,14 @@ export function SyncStatusIndicator() {
   };
 
   const getVariant = () => {
+    if (!isClient) return 'secondary';
     if (errorCount > 0 || !isOnline) return 'destructive';
     if (isSyncing || pendingCount > 0) return 'secondary';
     return 'default';
   }
 
   const getStatusText = () => {
+    if (!isClient) return 'Carregando...';
     if (errorCount > 0) return 'Erro';
     if (!isOnline) return 'Offline';
     if (isSyncing) return 'Sincronizando...';
@@ -45,41 +48,28 @@ export function SyncStatusIndicator() {
     return 'Sincronizado';
   }
 
-  if (!isClient) {
-    return (
-      <div className="flex items-center justify-end gap-2">
-        <Badge variant="secondary" className="flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span className="hidden sm:inline">Carregando...</span>
-        </Badge>
-        <div className="h-7 w-7" />
-      </div>
-    );
+  const icon = () => {
+    if (!isClient || isSyncing) return <Loader2 className="h-4 w-4 animate-spin" />;
+    if (errorCount > 0) return <AlertCircle className="h-4 w-4" />;
+    if (!isOnline) return <CloudOff className="h-4 w-4" />;
+    return <Cloud className="h-4 w-4" />;
   }
 
   return (
     <TooltipProvider>
       <div className="flex items-center justify-end gap-2">
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <div className="cursor-help inline-block">
               <Badge
                 variant={getVariant()}
                 className="flex items-center gap-2"
               >
-                {errorCount > 0 ? (
-                  <AlertCircle className="h-4 w-4" />
-                ) : !isOnline ? (
-                  <CloudOff className="h-4 w-4" />
-                ) : isSyncing ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Cloud className="h-4 w-4" />
-                )}
+                {icon()}
                 <span className="hidden sm:inline">
                   {getStatusText()}
                 </span>
-                {(pendingCount > 0 && !isSyncing) && (
+                {(isClient && pendingCount > 0 && !isSyncing) && (
                   <span className="ml-1 h-2 w-2 rounded-full bg-yellow-400 animate-pulse"></span>
                 )}
               </Badge>
@@ -91,19 +81,17 @@ export function SyncStatusIndicator() {
         </Tooltip>
         
         <Tooltip>
-          <TooltipTrigger>
-            <span tabIndex={0}>
+          <TooltipTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
               onClick={forceSync}
-              disabled={isSyncing || !isOnline}
+              disabled={!isClient || isSyncing || !isOnline}
               className="h-7 w-7"
             >
               <RefreshCcw className="h-4 w-4" />
               <span className="sr-only">Sincronizar manualmente</span>
             </Button>
-            </span>
           </TooltipTrigger>
           <TooltipContent>
             <p>Forçar Sincronização</p>
