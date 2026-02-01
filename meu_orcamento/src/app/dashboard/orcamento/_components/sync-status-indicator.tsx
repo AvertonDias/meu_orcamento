@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSync } from '@/hooks/useSync';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,11 @@ import { ptBR } from 'date-fns/locale';
 
 export function SyncStatusIndicator() {
   const { isOnline, isSyncing, pendingCount, lastSync, forceSync } = useSync();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const getTooltipContent = () => {
     if (!isOnline) return 'Você está offline. As alterações serão sincronizadas quando você se conectar.';
@@ -36,6 +41,18 @@ export function SyncStatusIndicator() {
     if (isSyncing) return 'Sincronizando...';
     if (pendingCount > 0) return 'Pendente';
     return 'Sincronizado';
+  }
+
+  if (!isClient) {
+    return (
+      <div className="flex items-center justify-end gap-2">
+        <Badge variant="secondary" className="flex items-center gap-2">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span className="hidden sm:inline">Carregando...</span>
+        </Badge>
+        <div className="h-7 w-7" />
+      </div>
+    );
   }
 
   return (
