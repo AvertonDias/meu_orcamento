@@ -53,12 +53,6 @@ export function formatNumber(
     return "0";
   }
 
-  // Se for para formatar com 0 casas decimais, trunca e converte para string
-  if (decimalPlaces === 0) {
-    return Math.trunc(value).toString();
-  }
-
-  // Usa Intl.NumberFormat para outros casos
   return new Intl.NumberFormat("pt-BR", {
     minimumFractionDigits: decimalPlaces,
     maximumFractionDigits: decimalPlaces,
@@ -134,17 +128,22 @@ export const maskCurrency = (value: string): string => {
 export const maskDecimal = (value: string): string => {
   if (!value) return '';
 
-  let v = value.replace(/[^\d]/g, ''); // Remove tudo que não é dígito
+  let v = value.replace(/\D/g, ''); // Remove tudo que não é dígito
   v = v.replace(/^0+/, ''); // Remove zeros à esquerda
 
-  if (v.length === 0) return '0,00';
-  if (v.length === 1) return `0,0${v}`;
-  if (v.length === 2) return `0,${v}`;
+  if (v.length === 0) return ''; // Retorna vazio se não houver dígitos
+
+  // Adiciona zeros à esquerda se necessário para formar os centavos
+  if (v.length < 3) {
+    v = v.padStart(3, '0');
+  }
   
   const integerPart = v.slice(0, -2);
   const decimalPart = v.slice(-2);
   
-  return `${integerPart},${decimalPart}`.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+  return `${formattedIntegerPart},${decimalPart}`;
 };
 
 export const maskDecimalWithAutoComma = (value: string): string => {
