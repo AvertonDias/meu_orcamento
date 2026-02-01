@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, getAdditionalUserInfo } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -89,12 +89,22 @@ export default function LoginPage() {
       prompt: 'select_account'
     });
     try {
-      await signInWithPopup(auth, provider);
-      toast({
-        title: "Login com Google bem-sucedido!",
-        description: "Redirecionando para o painel...",
-      });
-      router.push('/dashboard/orcamento');
+      const result = await signInWithPopup(auth, provider);
+      const additionalInfo = getAdditionalUserInfo(result);
+      
+      if (additionalInfo?.isNewUser) {
+        toast({
+            title: "Login com Google bem-sucedido!",
+            description: "Bem-vindo! Vamos configurar os dados da sua empresa.",
+        });
+        router.push('/dashboard/configuracoes');
+      } else {
+        toast({
+            title: "Login com Google bem-sucedido!",
+            description: "Redirecionando para o painel...",
+        });
+        router.push('/dashboard/orcamento');
+      }
     } catch (error: any) {
       console.error("Erro ao fazer login com Google (popup):", error);
       let title = "Erro no Login com Google";
@@ -103,6 +113,7 @@ export default function LoginPage() {
       switch (error.code) {
         case 'auth/popup-closed-by-user':
         case 'auth/cancelled-popup-request':
+           // No toast notification for user-cancelled popups
            title = '';
            description = '';
            break;
@@ -142,7 +153,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="flex justify-center items-center flex-col gap-2 mb-4">
-            <div className="bg-card rounded-lg p-2">
+            <div className="rounded-lg p-2">
               <Image
                 src="/ico_v2.jpg"
                 alt="Logo do App"

@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, getAdditionalUserInfo } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,9 +68,9 @@ export default function RegisterPage() {
       await createUserWithEmailAndPassword(auth, email, password);
       toast({
         title: "Conta criada com sucesso!",
-        description: "Você será redirecionado para a página de orçamentos.",
+        description: "Agora, vamos configurar os dados da sua empresa.",
       });
-      router.push('/dashboard/orcamento');
+      router.push('/dashboard/configuracoes');
     } catch (error: any) {
       let errorMessage = "Ocorreu um erro desconhecido.";
       switch (error.code) {
@@ -104,12 +104,22 @@ export default function RegisterPage() {
       prompt: 'select_account'
     });
     try {
-      await signInWithPopup(auth, provider);
-      toast({
-        title: "Cadastro com Google bem-sucedido!",
-        description: "Redirecionando para o painel...",
-      });
-      router.push('/dashboard/orcamento');
+      const result = await signInWithPopup(auth, provider);
+      const additionalInfo = getAdditionalUserInfo(result);
+
+      if (additionalInfo?.isNewUser) {
+        toast({
+            title: "Cadastro com Google bem-sucedido!",
+            description: "Agora, vamos configurar os dados da sua empresa.",
+        });
+        router.push('/dashboard/configuracoes');
+      } else {
+        toast({
+            title: "Login com Google bem-sucedido!",
+            description: "Redirecionando para o painel...",
+          });
+        router.push('/dashboard/orcamento');
+      }
     } catch (error: any) {
       console.error("Erro ao cadastrar com Google (popup):", error);
       let title = "Erro no Cadastro com Google";
@@ -118,6 +128,7 @@ export default function RegisterPage() {
       switch (error.code) {
         case 'auth/popup-closed-by-user':
         case 'auth/cancelled-popup-request':
+           // No toast notification for user-cancelled popups
            title = '';
            description = '';
            break;
@@ -157,7 +168,7 @@ export default function RegisterPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="flex justify-center items-center flex-col gap-2 mb-4">
-            <div className="bg-card rounded-lg p-2">
+            <div className="rounded-lg p-2">
               <Image
                 src="/ico_v2.jpg"
                 alt="Logo do App"
