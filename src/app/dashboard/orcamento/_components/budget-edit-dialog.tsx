@@ -344,7 +344,8 @@ export function BudgetEditDialog({
             <DialogTitle className="flex items-center gap-2">
               Editar Orçamento Nº {editingBudget.numeroOrcamento}
               <Badge variant={
-                editingBudget.status === 'Aceito' || editingBudget.status === 'Concluído' ? 'default'
+                editingBudget.status === 'Aceito' ? 'success'
+                : editingBudget.status === 'Concluído' ? 'default'
                 : editingBudget.status === 'Recusado' ? 'destructive'
                 : editingBudget.status === 'Vencido' ? 'warning'
                 : 'secondary'

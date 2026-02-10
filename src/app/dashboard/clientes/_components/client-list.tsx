@@ -57,6 +57,7 @@ const getStatusBadgeVariant = (
 ): VariantProps<typeof badgeVariants>['variant'] => {
   switch (status) {
     case 'Aceito':
+      return 'success';
     case 'Concluído':
       return 'default';
     case 'Recusado':

@@ -129,7 +129,8 @@ export function BudgetList({
   const getStatusVariant = (
     status: Orcamento['status']
   ): VariantProps<typeof badgeVariants>['variant'] => {
-    if (status === 'Aceito' || status === 'Concluído') return 'default';
+    if (status === 'Aceito') return 'success';
+    if (status === 'Concluído') return 'default';
     if (status === 'Recusado') return 'destructive';
     if (status === 'Vencido') return 'warning';
     return 'secondary';
