@@ -61,12 +61,13 @@ export interface Orcamento {
   itens: OrcamentoItem[];
   totalVenda: number;
   dataCriacao: string; // ISO Date String
-  status: 'Pendente' | 'Aceito' | 'Recusado' | 'Vencido';
+  status: 'Pendente' | 'Aceito' | 'Recusado' | 'Vencido' | 'Concluído';
   validadeDias: string;
   observacoes?: string;
   observacoesInternas?: string; // Novo campo para anotações internas
   dataAceite: string | null; // ISO Date String
   dataRecusa: string | null; // ISO Date String
+  dataConclusao: string | null;
   notificacaoVencimentoEnviada?: boolean;
 }
 

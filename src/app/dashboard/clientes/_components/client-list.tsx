@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { memo, useMemo } from 'react';
@@ -28,13 +29,14 @@ import { maskTelefone } from '@/lib/utils';
 /* TIPOS                                                                       */
 /* -------------------------------------------------------------------------- */
 
-export type OrcamentoStatus = 'Pendente' | 'Aceito' | 'Recusado' | 'Vencido';
+export type OrcamentoStatus = 'Pendente' | 'Aceito' | 'Recusado' | 'Vencido' | 'Concluído';
 
 export interface BudgetCounts {
   Pendente: number;
   Aceito: number;
   Recusado: number;
   Vencido: number;
+  Concluído: number;
   Total: number;
 }
 
@@ -55,6 +57,7 @@ const getStatusBadgeVariant = (
 ): VariantProps<typeof badgeVariants>['variant'] => {
   switch (status) {
     case 'Aceito':
+    case 'Concluído':
       return 'default';
     case 'Recusado':
       return 'destructive';
@@ -83,6 +86,7 @@ const BudgetBadges = memo(
     const statusOrder: OrcamentoStatus[] = [
       'Pendente',
       'Aceito',
+      'Concluído',
       'Recusado',
       'Vencido',
     ];

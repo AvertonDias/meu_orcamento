@@ -288,7 +288,7 @@ export default function OrcamentoPage() {
 
   const handleUpdateStatus = async (
     budgetId: string,
-    status: 'Pendente' | 'Aceito' | 'Recusado'
+    status: 'Pendente' | 'Aceito' | 'Recusado' | 'Concluído'
   ) => {
     if (!user) return;
   
@@ -299,6 +299,8 @@ export default function OrcamentoPage() {
         ? { dataAceite: now }
         : status === 'Recusado' 
         ? { dataRecusa: now }
+        : status === 'Concluído'
+        ? { dataConclusao: now }
         : {}),
     });
   

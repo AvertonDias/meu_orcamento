@@ -23,7 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   FileText, Pencil, MessageCircle,
   CheckCircle2, XCircle, Trash2,
-  MoreVertical, FileSignature, RefreshCcw
+  MoreVertical, FileSignature, RefreshCcw, CheckCheck
 } from 'lucide-react';
 import { addDays, format, parseISO } from 'date-fns';
 import { formatCurrency, formatNumber } from '@/lib/utils';
@@ -49,7 +49,7 @@ interface BudgetListProps {
   empresa: EmpresaData | null;
   onUpdateStatus: (
     budgetId: string,
-    status: 'Pendente' | 'Aceito' | 'Recusado'
+    status: 'Pendente' | 'Aceito' | 'Recusado' | 'Concluído'
   ) => Promise<void>;
   onDelete: (budgetId: string) => void;
   onEdit: (budget: Orcamento) => void;
@@ -129,7 +129,7 @@ export function BudgetList({
   const getStatusVariant = (
     status: Orcamento['status']
   ): VariantProps<typeof badgeVariants>['variant'] => {
-    if (status === 'Aceito') return 'default';
+    if (status === 'Aceito' || status === 'Concluído') return 'default';
     if (status === 'Recusado') return 'destructive';
     if (status === 'Vencido') return 'warning';
     return 'secondary';
@@ -272,7 +272,7 @@ export function BudgetList({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" side="bottom" onClick={(e) => e.stopPropagation()}>
-                <DropdownMenuItem onClick={() => onEdit(o)} disabled={o.status === 'Aceito'}>
+                <DropdownMenuItem onClick={() => onEdit(o)} disabled={['Aceito', 'Concluído'].includes(o.status)}>
                   <Pencil className="mr-2 h-4 w-4" />
                   <span>Editar</span>
                 </DropdownMenuItem>
@@ -293,6 +293,9 @@ export function BudgetList({
                   <DropdownMenuSubTrigger><FileSignature className="mr-2 h-4 w-4" /> Alterar Status</DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent>
+                      <DropdownMenuItem onClick={() => onUpdateStatus(o.id, 'Concluído')}>
+                        <CheckCheck className="mr-2 h-4 w-4 text-primary" /> Marcar como Concluído
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onUpdateStatus(o.id, 'Aceito')}>
                         <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" /> Marcar como Aceito
                       </DropdownMenuItem>

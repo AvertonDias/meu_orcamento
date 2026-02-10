@@ -59,6 +59,7 @@ export const addOrcamento = async (orcamento: Omit<Orcamento, 'id'>): Promise<st
     cliente: clienteData,
     observacoes: orcamento.observacoes || '',
     observacoesInternas: orcamento.observacoesInternas || '',
+    dataConclusao: null,
   };
 
   await dexieDB.orcamentos.put({
@@ -106,10 +107,16 @@ export const updateOrcamentoStatus = async (
 
     const updatedData = { ...existing.data, status, ...payload };
 
-    // Limpa as datas de aceite/recusa se o status voltar a ser pendente
     if (status === 'Pendente') {
         updatedData.dataAceite = null;
         updatedData.dataRecusa = null;
+        updatedData.dataConclusao = null;
+    } else if (status === 'Aceito') {
+        updatedData.dataRecusa = null;
+        updatedData.dataConclusao = null;
+    } else if (status === 'Recusado') {
+        updatedData.dataAceite = null;
+        updatedData.dataConclusao = null;
     }
 
 

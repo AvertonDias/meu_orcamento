@@ -74,6 +74,7 @@ export function BudgetHeader({
             <SelectItem value="todos">Todos os Status</SelectItem>
             <SelectItem value="Pendente">Pendente</SelectItem>
             <SelectItem value="Aceito">Aceito</SelectItem>
+            <SelectItem value="Concluído">Concluído</SelectItem>
             <SelectItem value="Recusado">Recusado</SelectItem>
             <SelectItem value="Vencido">Vencido</SelectItem>
           </SelectContent>

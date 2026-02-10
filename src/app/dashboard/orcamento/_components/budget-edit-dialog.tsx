@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -343,7 +344,7 @@ export function BudgetEditDialog({
             <DialogTitle className="flex items-center gap-2">
               Editar Orçamento Nº {editingBudget.numeroOrcamento}
               <Badge variant={
-                editingBudget.status === 'Aceito' ? 'default'
+                editingBudget.status === 'Aceito' || editingBudget.status === 'Concluído' ? 'default'
                 : editingBudget.status === 'Recusado' ? 'destructive'
                 : editingBudget.status === 'Vencido' ? 'warning'
                 : 'secondary'

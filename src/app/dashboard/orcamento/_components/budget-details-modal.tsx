@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -36,7 +37,7 @@ interface BudgetDetailsModalProps {
 const getStatusVariant = (
   status: Orcamento['status']
 ): VariantProps<typeof badgeVariants>['variant'] => {
-  if (status === 'Aceito') return 'default';
+  if (status === 'Aceito' || status === 'Concluído') return 'default';
   if (status === 'Recusado') return 'destructive';
   if (status === 'Vencido') return 'warning';
   return 'secondary';
@@ -53,6 +54,18 @@ export function BudgetDetailsModal({
   const subtotal = budget.itens.reduce((acc, item) => acc + item.precoVenda, 0);
   const totalEditado = Math.abs(subtotal - budget.totalVenda) > 0.01;
   const ajuste = budget.totalVenda - subtotal;
+
+  const dataAceite = budget.dataAceite
+    ? parseISO(budget.dataAceite)
+    : null;
+
+  const dataRecusa = budget.dataRecusa
+    ? parseISO(budget.dataRecusa)
+    : null;
+    
+  const dataConclusao = budget.dataConclusao
+    ? parseISO(budget.dataConclusao)
+    : null;
 
   const handleEditClick = () => {
     onOpenChange(false); // fecha detalhes
@@ -79,7 +92,7 @@ export function BudgetDetailsModal({
           </DialogTitle>
         </DialogHeader>
 
-        {budget.status !== 'Aceito' && (
+        {!['Aceito', 'Concluído'].includes(budget.status) && (
           <div className="absolute top-4 right-14 z-10">
             <Button
               variant="default"
@@ -111,6 +124,31 @@ export function BudgetDetailsModal({
             <div className="font-semibold">
               {format(dataValidade, 'dd/MM/yyyy')}
             </div>
+
+            {budget.status === 'Aceito' && dataAceite && (
+              <div className="col-span-full sm:col-span-2">
+                <p className="font-semibold text-green-600">
+                  Aceito em: {format(dataAceite, 'dd/MM/yyyy')}
+                </p>
+              </div>
+            )}
+            
+            {budget.status === 'Concluído' && dataConclusao && (
+              <div className="col-span-full sm:col-span-2">
+                <p className="font-semibold text-primary">
+                  Concluído em: {format(dataConclusao, 'dd/MM/yyyy')}
+                </p>
+              </div>
+            )}
+
+            {budget.status === 'Recusado' && dataRecusa && (
+              <div className="col-span-full sm:col-span-2">
+                <p className="font-semibold text-destructive">
+                  Recusado em: {format(dataRecusa, 'dd/MM/yyyy')}
+                </p>
+              </div>
+            )}
+
           </div>
 
           {/* Itens */}

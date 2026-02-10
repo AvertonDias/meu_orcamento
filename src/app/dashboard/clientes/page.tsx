@@ -174,13 +174,14 @@ export default function ClientesPage() {
         Aceito: 0,
         Recusado: 0,
         Vencido: 0,
+        Concluído: 0,
         Total: 0,
       };
     });
 
     orcamentos.forEach(o => {
       const id = o.cliente.id;
-      if (id && counts[id]) {
+      if (id && counts[id] && counts[id][o.status] !== undefined) {
         counts[id][o.status]++;
         counts[id].Total++;
       }
@@ -480,5 +481,3 @@ export default function ClientesPage() {
     </div>
   );
 }
-
-    
