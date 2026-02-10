@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
@@ -348,6 +347,7 @@ export function BudgetWizard({
         observacoesInternas,
         dataAceite: null,
         dataRecusa: null,
+        dataConclusao: null,
       };
 
       onSaveBudget(budgetData, saveClient);
