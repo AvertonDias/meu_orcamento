@@ -104,13 +104,14 @@ export default function OrcamentoPage() {
     [user?.uid]
   )?.map(o => o.data);
 
-  const empresa = useLiveQuery(
+  const empresaArr = useLiveQuery(
     () => {
-      if (!user?.uid) return Promise.resolve(undefined);
-      return db.empresa.get(user.uid);
+      if (!user?.uid) return [];
+      return db.empresa.where('id').equals(user.uid).toArray();
     },
     [user?.uid]
-  )?.data;
+  );
+  const empresa = empresaArr?.[0]?.data;
 
   // =========================
   // STATE UI
