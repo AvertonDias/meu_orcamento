@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSync } from '@/hooks/useSync';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -34,10 +34,11 @@ export function SyncStatusIndicator() {
 
   const getVariant = () => {
     if (!isClient) return 'secondary';
-    if (errorCount > 0 || !isOnline) return 'destructive';
+    if (errorCount > 0) return 'destructive';
+    if (!isOnline) return 'destructive';
     if (isSyncing || pendingCount > 0) return 'secondary';
     return 'default';
-  }
+  };
 
   const getStatusText = () => {
     if (!isClient) return 'Carregando...';
@@ -46,14 +47,14 @@ export function SyncStatusIndicator() {
     if (isSyncing) return 'Sincronizando...';
     if (pendingCount > 0) return 'Pendente';
     return 'Sincronizado';
-  }
-
+  };
+  
   const icon = () => {
     if (!isClient || isSyncing) return <Loader2 className="h-4 w-4 animate-spin" />;
     if (errorCount > 0) return <AlertCircle className="h-4 w-4" />;
     if (!isOnline) return <CloudOff className="h-4 w-4" />;
     return <Cloud className="h-4 w-4" />;
-  }
+  };
 
   return (
     <TooltipProvider>
@@ -69,7 +70,7 @@ export function SyncStatusIndicator() {
                 <span className="hidden sm:inline">
                   {getStatusText()}
                 </span>
-                {(isClient && pendingCount > 0 && !isSyncing) && (
+                {(isClient && pendingCount > 0 && !isSyncing && errorCount === 0) && (
                   <span className="ml-1 h-2 w-2 rounded-full bg-yellow-400 animate-pulse"></span>
                 )}
               </Badge>
