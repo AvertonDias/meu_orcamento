@@ -57,7 +57,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 import { BudgetDetailsModal } from './_components/budget-details-modal';
-import { EditValidityDialog } from './_components/edit-validity-dialog';
+import { CompletionDateDialog } from './_components/completion-date-dialog';
 
 export default function OrcamentoPage() {
   const [user, loadingAuth] = useAuthState(auth);
@@ -123,6 +123,8 @@ export default function OrcamentoPage() {
     useState<Orcamento | null>(null);
   const [viewingBudget, setViewingBudget] = useState<Orcamento | null>(null);
   const [statusFilter, setStatusFilter] = useState('todos');
+
+  const [completingBudget, setCompletingBudget] = useState<Orcamento | null>(null);
 
   const [companyPhoneDialog, setCompanyPhoneDialog] = useState<{
     open: boolean;
@@ -291,6 +293,14 @@ export default function OrcamentoPage() {
     status: 'Pendente' | 'Aceito' | 'Recusado' | 'Concluído'
   ) => {
     if (!user) return;
+    
+    if (status === 'Concluído') {
+      const budgetToComplete = orcamentosSalvos?.find(o => o.id === budgetId);
+      if (budgetToComplete) {
+        setCompletingBudget(budgetToComplete);
+      }
+      return;
+    }
   
     const now = new Date().toISOString();
   
@@ -299,8 +309,6 @@ export default function OrcamentoPage() {
         ? { dataAceite: now }
         : status === 'Recusado' 
         ? { dataRecusa: now }
-        : status === 'Concluído'
-        ? { dataConclusao: now }
         : {}),
     });
   
@@ -344,9 +352,16 @@ export default function OrcamentoPage() {
     }
   
     toast({
-      title: `Orçamento ${status.toLowerCase()}`,
+      title: `Status alterado para: ${status}`,
     });
   };
+
+  const handleSaveCompletion = async (budgetId: string, completionDate: Date) => {
+    await updateOrcamentoStatus(budgetId, 'Concluído', {
+      dataConclusao: completionDate.toISOString(),
+    });
+  };
+
 
   const handleGerarPDF = (
     orc: Orcamento,
@@ -444,6 +459,15 @@ export default function OrcamentoPage() {
           isOpen={!!viewingBudget}
           onOpenChange={(open) => !open && setViewingBudget(null)}
           onEdit={handleEditBudget}
+        />
+      )}
+
+      {completingBudget && (
+        <CompletionDateDialog
+          budget={completingBudget}
+          isOpen={!!completingBudget}
+          onOpenChange={(open) => !open && setCompletingBudget(null)}
+          onSave={handleSaveCompletion}
         />
       )}
 
