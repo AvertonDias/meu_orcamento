@@ -57,7 +57,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 import { BudgetDetailsModal } from './_components/budget-details-modal';
-import { CompletionDateDialog } from './_components/completion-date-dialog';
+import { StatusUpdateDialog } from './_components/status-update-dialog';
 
 export default function OrcamentoPage() {
   const [user, loadingAuth] = useAuthState(auth);
@@ -125,7 +125,11 @@ export default function OrcamentoPage() {
   const [viewingBudget, setViewingBudget] = useState<Orcamento | null>(null);
   const [statusFilter, setStatusFilter] = useState('todos');
 
-  const [completingBudget, setCompletingBudget] = useState<Orcamento | null>(null);
+  const [statusUpdateInfo, setStatusUpdateInfo] = useState<{
+    budget: Orcamento;
+    status: 'Aceito' | 'Recusado' | 'Concluído';
+  } | null>(null);
+
 
   const [companyPhoneDialog, setCompanyPhoneDialog] = useState<{
     open: boolean;
@@ -294,25 +298,40 @@ export default function OrcamentoPage() {
     status: 'Pendente' | 'Aceito' | 'Recusado' | 'Concluído'
   ) => {
     if (!user) return;
-    
-    if (status === 'Concluído') {
-      const budgetToComplete = orcamentosSalvos?.find(o => o.id === budgetId);
-      if (budgetToComplete) {
-        setCompletingBudget(budgetToComplete);
-      }
+
+    if (status === 'Pendente') {
+      await updateOrcamentoStatus(budgetId, 'Pendente', {});
+      toast({
+        title: `Status alterado para: Pendente`,
+      });
       return;
     }
-  
-    const now = new Date().toISOString();
-  
-    await updateOrcamentoStatus(budgetId, status, {
-      ...(status === 'Aceito'
-        ? { dataAceite: now }
-        : status === 'Recusado' 
-        ? { dataRecusa: now }
-        : {}),
-    });
-  
+
+    const budgetToUpdate = orcamentosSalvos?.find(o => o.id === budgetId);
+    if (budgetToUpdate) {
+      setStatusUpdateInfo({ budget: budgetToUpdate, status });
+    }
+  };
+
+  const handleSaveStatusUpdate = async (
+    budgetId: string,
+    status: 'Aceito' | 'Recusado' | 'Concluído',
+    date: Date
+  ) => {
+    if (!user) return;
+    
+    const payload: { dataAceite?: string | null, dataRecusa?: string | null, dataConclusao?: string | null } = {};
+
+    if (status === 'Aceito') {
+      payload.dataAceite = date.toISOString();
+    } else if (status === 'Recusado') {
+      payload.dataRecusa = date.toISOString();
+    } else if (status === 'Concluído') {
+      payload.dataConclusao = date.toISOString();
+    }
+    
+    await updateOrcamentoStatus(budgetId, status, payload);
+
     const budget = orcamentosSalvos?.find(o => o.id === budgetId);
   
     if (status === 'Aceito' && budget) {
@@ -340,7 +359,6 @@ export default function OrcamentoPage() {
           duration: 7000,
         });
       }
-
   
       // Envia notificação para a empresa
       const companyPhones = empresa?.telefones?.filter(t => t.numero) ?? [];
@@ -354,12 +372,6 @@ export default function OrcamentoPage() {
   
     toast({
       title: `Status alterado para: ${status}`,
-    });
-  };
-
-  const handleSaveCompletion = async (budgetId: string, completionDate: Date) => {
-    await updateOrcamentoStatus(budgetId, 'Concluído', {
-      dataConclusao: completionDate.toISOString(),
     });
   };
 
@@ -463,12 +475,12 @@ export default function OrcamentoPage() {
         />
       )}
 
-      {completingBudget && (
-        <CompletionDateDialog
-          budget={completingBudget}
-          isOpen={!!completingBudget}
-          onOpenChange={(open) => !open && setCompletingBudget(null)}
-          onSave={handleSaveCompletion}
+      {statusUpdateInfo && (
+        <StatusUpdateDialog
+          updateInfo={statusUpdateInfo}
+          isOpen={!!statusUpdateInfo}
+          onOpenChange={(open) => !open && setStatusUpdateInfo(null)}
+          onSave={handleSaveStatusUpdate}
         />
       )}
 
