@@ -72,7 +72,7 @@ export default function OrcamentoPage() {
   // =========================
   const materiais = useLiveQuery(
     () => {
-      if (!user?.uid) return;
+      if (!user?.uid) return [];
       return db.materiais
             .where('userId')
             .equals(user.uid)
@@ -83,7 +83,7 @@ export default function OrcamentoPage() {
 
   const clientes = useLiveQuery(
     () => {
-      if (!user?.uid) return;
+      if (!user?.uid) return [];
       return db.clientes
         .where('userId')
         .equals(user.uid)
@@ -94,7 +94,7 @@ export default function OrcamentoPage() {
 
   const orcamentosSalvos = useLiveQuery(
     () => {
-      if (!user?.uid) return;
+      if (!user?.uid) return [];
       return db.orcamentos
         .where('userId')
         .equals(user.uid)
@@ -106,7 +106,7 @@ export default function OrcamentoPage() {
 
   const empresa = useLiveQuery(
     () => {
-      if (!user?.uid) return;
+      if (!user?.uid) return Promise.resolve(undefined);
       return db.empresa.get(user.uid);
     },
     [user?.uid]
