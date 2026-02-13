@@ -22,16 +22,53 @@ export function SyncStatusIndicator() {
     setIsClient(true);
   }, []);
 
+  if (!isClient) {
+    // Render a static placeholder on the server and on initial client render
+    return (
+      <TooltipProvider>
+        <div className="flex items-center justify-end gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="cursor-help inline-block">
+                <Badge
+                  variant="secondary"
+                  className="flex items-center gap-2"
+                >
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="hidden sm:inline">
+                    Carregando...
+                  </span>
+                </Badge>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Carregando status da sincronização...</p>
+            </TooltipContent>
+          </Tooltip>
+          
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                disabled={true}
+                className="h-7 w-7"
+              >
+                <RefreshCcw className="h-4 w-4" />
+                <span className="sr-only">Sincronizar manualmente</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Forçar Sincronização</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </TooltipProvider>
+    );
+  }
+  
+  // After hydration, render the actual status
   const getStatus = () => {
-    if (!isClient) {
-      return {
-        icon: <Loader2 className="h-4 w-4 animate-spin" />,
-        text: 'Carregando...',
-        variant: 'secondary' as const,
-        tooltip: 'Carregando status da sincronização...',
-        pulse: false,
-      };
-    }
     if (errorCount > 0) {
       return {
         icon: <AlertCircle className="h-4 w-4" />,
@@ -110,7 +147,7 @@ export function SyncStatusIndicator() {
               variant="ghost"
               size="icon"
               onClick={forceSync}
-              disabled={!isClient || isSyncing || !isOnline}
+              disabled={isSyncing || !isOnline}
               className="h-7 w-7"
             >
               <RefreshCcw className="h-4 w-4" />
