@@ -22,41 +22,48 @@ export function SyncStatusIndicator() {
     setIsClient(true);
   }, []);
 
+  // On the server, and on the first client render, we'll show a loading state.
+  if (!isClient) {
+    return (
+        <div className="flex items-center justify-end gap-2">
+            <Badge variant="secondary" className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="hidden sm:inline">Carregando...</span>
+            </Badge>
+            <Button variant="ghost" size="icon" disabled className="h-7 w-7">
+                <RefreshCcw className="h-4 w-4" />
+            </Button>
+      </div>
+    );
+  }
+
+  // After hydration, we render the actual status.
   const StatusIcon = () => {
-    if (!isClient || isSyncing) {
-      return <Loader2 className="h-4 w-4 animate-spin" />;
-    }
-    if (errorCount > 0) {
-      return <AlertCircle className="h-4 w-4" />;
-    }
-    if (!isOnline) {
-      return <CloudOff className="h-4 w-4" />;
-    }
+    if (isSyncing) return <Loader2 className="h-4 w-4 animate-spin" />;
+    if (errorCount > 0) return <AlertCircle className="h-4 w-4" />;
+    if (!isOnline) return <CloudOff className="h-4 w-4" />;
     return <Cloud className="h-4 w-4" />;
   };
 
-  const statusText = isClient ? (
+  const statusText =
     errorCount > 0 ? 'Erro' :
     !isOnline ? 'Offline' :
     isSyncing ? 'Sincronizando...' :
     pendingCount > 0 ? 'Pendente' :
-    'Sincronizado'
-  ) : 'Carregando...';
+    'Sincronizado';
 
-  const badgeVariant = isClient ? (
+  const badgeVariant =
     errorCount > 0 || !isOnline ? 'destructive' :
     isSyncing || pendingCount > 0 ? 'secondary' :
-    'default'
-  ) : 'secondary';
+    'default';
   
-  const tooltipContent = isClient ? (
+  const tooltipContent =
     errorCount > 0 ? `${errorCount} item(s) com erro de sincronização. Tente forçar a sincronização.` :
     !isOnline ? 'Você está offline. As alterações serão sincronizadas quando você se conectar.' :
     isSyncing ? `Sincronizando ${pendingCount > 0 ? `${pendingCount} item(s)` : ''}...` :
     pendingCount > 0 ? `${pendingCount} ${pendingCount === 1 ? 'item pendente' : 'itens pendentes'} para sincronizar.` :
     lastSync ? `Sincronizado. Última vez: ${formatDistanceToNow(new Date(lastSync), { addSuffix: true, locale: ptBR })}` :
-    'Conectado e sincronizado.'
-  ) : 'Carregando...';
+    'Conectado e sincronizado.';
 
   return (
     <TooltipProvider>
@@ -72,7 +79,7 @@ export function SyncStatusIndicator() {
                 <span className="hidden sm:inline">
                   {statusText}
                 </span>
-                {(isClient && pendingCount > 0 && !isSyncing && errorCount === 0) && (
+                {(pendingCount > 0 && !isSyncing && errorCount === 0) && (
                   <span className="ml-1 h-2 w-2 rounded-full bg-yellow-400 animate-pulse"></span>
                 )}
               </Badge>
@@ -89,7 +96,7 @@ export function SyncStatusIndicator() {
               variant="ghost"
               size="icon"
               onClick={forceSync}
-              disabled={!isClient || isSyncing || !isOnline}
+              disabled={isSyncing || !isOnline}
               className="h-7 w-7"
             >
               <RefreshCcw className="h-4 w-4" />
