@@ -102,7 +102,12 @@ export default function OrcamentoPage() {
         .then(list => list.reverse());
     },
     [user?.uid]
-  )?.map(o => o.data);
+  )?.map(o => ({
+    ...o.data,
+    dataAceite: o.data.dataAceite ?? null,
+    dataRecusa: o.data.dataRecusa ?? null,
+    dataConclusao: o.data.dataConclusao ?? null,
+  }));
 
   const empresaArr = useLiveQuery(
     () => {
