@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, {
@@ -19,6 +18,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
+import { PwaInstallButton } from '@/components/pwa-install-button';
 
 import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -415,14 +415,16 @@ export default function OrcamentoPage() {
         </CardHeader>
         <CardContent className="space-y-4">
            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
-            <Button
-              onClick={() => setIsWizardOpen(true)}
-              disabled={isLoading}
-              className="w-full sm:w-auto"
-            >
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Novo Orçamento
-            </Button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                onClick={() => setIsWizardOpen(true)}
+                disabled={isLoading}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Novo Orçamento
+              </Button>
+              <PwaInstallButton />
+            </div>
             <div className="w-full sm:w-auto sm:max-w-md flex-grow">
               <BudgetHeader
                 searchTerm={searchTerm}
