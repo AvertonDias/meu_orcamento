@@ -1,23 +1,23 @@
 {
-  "name": "Meu orçamento",
-  "short_name": "Meu orçamento",
+  "name": "Meu Orçamento",
+  "short_name": "Meu Orçamento",
   "description": "Gere orçamentos de serviços de forma rápida, precisa e profissional.",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#64B5F6",
   "icons": [
     {
       "src": "/ico_v2.jpg",
       "sizes": "192x192",
       "type": "image/jpeg",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/ico_v2.jpg",
       "sizes": "512x512",
       "type": "image/jpeg",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
-  ]
+  ],
+  "start_url": "/dashboard/orcamento",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#64B5F6"
 }

@@ -18,7 +18,9 @@ export const metadata: Metadata = {
   title: 'Meu orçamento',
   description: 'Gere orçamentos de serviços de forma rápida, precisa e profissional.',
   manifest: '/manifest.json',
-  icons: null, // Evita que o Next.js procure por um favicon.ico e cause erro no build
+  icons: {
+    apple: '/ico_v2.jpg',
+  },
 };
 
 export const viewport: Viewport = {
