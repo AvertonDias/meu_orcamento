@@ -13,7 +13,6 @@ import { App as CapacitorApp } from '@capacitor/app';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Contacts } from '@capacitor-community/contacts';
 
-import { PwaManager } from '@/components/pwa-install-button';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { DesktopSidebar } from '@/components/layout/desktop-sidebar';
 import { MobileNavbar } from '@/components/layout/mobile-navbar';
@@ -183,8 +182,6 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
   ====================================================== */
   return (
     <TooltipProvider>
-      <PwaManager />
-
       <div className="flex min-h-screen w-full">
 
         <DesktopSidebar
