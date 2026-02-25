@@ -60,6 +60,46 @@ import { formatCurrency, formatNumber } from '@/lib/utils';
 import { BudgetDetailsModal } from './_components/budget-details-modal';
 import { StatusUpdateDialog } from './_components/status-update-dialog';
 
+
+/**
+ * Limpa e migra um objeto de cliente de qualquer estrutura (antiga ou nova)
+ * para a estrutura ClienteData mais recente e consistente.
+ * @param clienteData O objeto de cliente bruto do banco de dados.
+ * @param defaultUserId O ID do usuário para usar como fallback.
+ * @returns Um objeto ClienteData limpo e seguro para uso.
+ */
+const getCleanedCliente = (clienteData: any, defaultUserId: string): ClienteData => {
+  const baseCliente = (typeof clienteData === 'object' && clienteData !== null) 
+    ? clienteData 
+    : {};
+
+  let telefones: Telefone[] = [];
+
+  // Verifica a estrutura nova primeiro
+  if (Array.isArray(baseCliente.telefones) && baseCliente.telefones.length > 0) {
+    telefones = baseCliente.telefones;
+  } 
+  // Verifica a estrutura antiga (telefone como string) e a converte
+  else if (typeof baseCliente.telefone === 'string' && baseCliente.telefone) {
+    telefones = [{ nome: 'Principal', numero: baseCliente.telefone, principal: true }];
+  }
+
+  // Remove o campo 'telefone' antigo para evitar inconsistências
+  const { telefone, ...restOfClienteData } = baseCliente;
+
+  return {
+    ...restOfClienteData,
+    id: baseCliente.id || 'unknown',
+    userId: baseCliente.userId || defaultUserId,
+    nome: baseCliente.nome || 'Cliente Desconhecido',
+    telefones: telefones,
+    cpfCnpj: baseCliente.cpfCnpj || '',
+    email: baseCliente.email || '',
+    endereco: baseCliente.endereco || '',
+  };
+};
+
+
 export default function OrcamentoPage() {
   const [user, loadingAuth] = useAuthState(auth);
   const { toast } = useToast();
@@ -104,21 +144,18 @@ export default function OrcamentoPage() {
     },
     [user?.uid]
   )?.map(o => {
-    // Ultra-defensive data integrity check
     if (!o || typeof o.id !== 'string' || !o.id || typeof o.data !== 'object' || o.data === null) {
       console.warn("Invalid Dexie record found and skipped:", o);
       return null;
     }
 
-    const data = o.data as Partial<Orcamento>; // Treat as partial to be safe
+    const data = o.data as Partial<Orcamento> & { cliente?: any };
 
-    // Reconstruct the object, making no assumptions.
-    // The ID from the wrapper is the only source of truth.
     const cleanBudget: Orcamento = {
       id: o.id,
       userId: o.userId,
       numeroOrcamento: String(data.numeroOrcamento || 'N/A'),
-      cliente: (typeof data.cliente === 'object' && data.cliente !== null) ? data.cliente : { id: 'unknown', userId: o.userId, nome: 'Cliente Desconhecido', telefones: [] },
+      cliente: getCleanedCliente(data.cliente, o.userId), // Usa a função de limpeza
       itens: Array.isArray(data.itens) ? data.itens : [],
       totalVenda: typeof data.totalVenda === 'number' ? data.totalVenda : 0,
       dataCriacao: typeof data.dataCriacao === 'string' ? data.dataCriacao : new Date().toISOString(),

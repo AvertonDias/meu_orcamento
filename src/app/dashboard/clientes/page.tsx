@@ -96,7 +96,25 @@ export default function ClientesPage() {
             .toArray()
         : [],
     [user]
-  )?.map(c => ({ ...c.data, id: c.id }));
+  )?.map(c => {
+      const rawData = c.data as any;
+      let telefones: Telefone[] = [];
+
+      // Verifica a estrutura nova primeiro
+      if (Array.isArray(rawData.telefones)) {
+          telefones = rawData.telefones;
+      } 
+      // Verifica a estrutura antiga (telefone como string)
+      else if (typeof rawData.telefone === 'string' && rawData.telefone) {
+          telefones = [{ nome: 'Principal', numero: rawData.telefone, principal: true }];
+      }
+      
+      // Remove o campo 'telefone' antigo para evitar inconsistências
+      const { telefone, ...restOfData } = rawData;
+
+      return { ...restOfData, id: c.id, userId: c.userId, telefones: telefones };
+  });
+
 
   const orcamentos = useLiveQuery(
     () =>
