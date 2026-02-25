@@ -318,43 +318,53 @@ export default function OrcamentoPage() {
   const handleUpdateBudget = async (budget: Orcamento) => {
     if (!user) return;
 
-    const { id, ...data } = budget;
-    await updateOrcamento(id, data);
-
-    toast({ title: 'Orçamento atualizado com sucesso' });
+    try {
+      const { id, ...data } = budget;
+      if (!id || typeof id !== 'string') {
+        throw new Error("Não foi possível salvar as alterações (ID inválido).");
+      }
+      await updateOrcamento(id, data);
+      toast({ title: 'Orçamento atualizado com sucesso' });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar orçamento",
+        description: error.message || "Ocorreu um erro inesperado.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleUpdateStatus = async (
     budgetId: string,
     status: 'Pendente' | 'Aceito' | 'Recusado' | 'Concluído'
   ) => {
-    if (!user) return;
-
-    if (status === 'Pendente') {
-      try {
+    try {
+      if (!user || !orcamentosSalvos) return;
+  
+      if (!budgetId || typeof budgetId !== 'string') {
+        throw new Error("Ocorreu um erro interno (ID de orçamento inválido). A operação não pode ser concluída.");
+      }
+  
+      if (status === 'Pendente') {
         await updateOrcamentoStatus(budgetId, 'Pendente', {});
         toast({
           title: `Status alterado para: Pendente`,
         });
-      } catch (error: any) {
-        toast({
-          title: "Erro ao atualizar status",
-          description: error.message || "Não foi possível reverter o status.",
-          variant: "destructive",
-        });
+        return;
       }
-      return;
-    }
-
-    const budgetToUpdate = orcamentosSalvos?.find(o => o.id === budgetId);
-    if (budgetToUpdate) {
-      setStatusUpdateInfo({ budget: budgetToUpdate, status });
-    } else {
-       toast({
-          title: "Erro ao encontrar orçamento",
-          description: "Não foi possível localizar o orçamento para alterar o status. Tente sincronizar.",
-          variant: "destructive",
-        });
+  
+      const budgetToUpdate = orcamentosSalvos.find(o => o.id === budgetId);
+      if (budgetToUpdate) {
+        setStatusUpdateInfo({ budget: budgetToUpdate, status });
+      } else {
+        throw new Error("Não foi possível localizar o orçamento para alterar o status. Tente sincronizar os dados.");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro ao iniciar atualização de status",
+        description: error.message || "Ocorreu um erro inesperado.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -363,70 +373,69 @@ export default function OrcamentoPage() {
     status: 'Aceito' | 'Recusado' | 'Concluído',
     date: Date
   ) => {
-    if (!user) return;
-    
-    const payload: { dataAceite?: string | null, dataRecusa?: string | null, dataConclusao?: string | null } = {};
-
-    if (status === 'Aceito') {
-      payload.dataAceite = date.toISOString();
-    } else if (status === 'Recusado') {
-      payload.dataRecusa = date.toISOString();
-    } else if (status === 'Concluído') {
-      payload.dataConclusao = date.toISOString();
-    }
-    
     try {
+      if (!user || !orcamentosSalvos) return;
+      
+      const payload: { dataAceite?: string | null, dataRecusa?: string | null, dataConclusao?: string | null } = {};
+  
+      if (status === 'Aceito') {
+        payload.dataAceite = date.toISOString();
+      } else if (status === 'Recusado') {
+        payload.dataRecusa = date.toISOString();
+      } else if (status === 'Concluído') {
+        payload.dataConclusao = date.toISOString();
+      }
+      
       await updateOrcamentoStatus(budgetId, status, payload);
+  
+      const budget = orcamentosSalvos.find(o => o.id === budgetId);
+    
+      if (status === 'Aceito' && budget) {
+        // Atualiza estoque e coleta alertas
+        const lowStockAlerts: string[] = [];
+        for (const item of budget.itens) {
+          if (!item.materialId.startsWith('avulso-')) {
+            try {
+              const lowStockItemName = await updateEstoque(user.uid, item.materialId, item.quantidade);
+              if (lowStockItemName) {
+                lowStockAlerts.push(lowStockItemName);
+              }
+            } catch (err) {
+              console.error('Erro ao atualizar estoque:', err);
+            }
+          }
+        }
+        
+        // Exibe alertas de estoque baixo
+        if (lowStockAlerts.length > 0) {
+          toast({
+            title: "Aviso de Estoque Baixo",
+            description: `Os itens: ${lowStockAlerts.join(', ')} atingiram o estoque mínimo.`,
+            variant: "destructive",
+            duration: 7000,
+          });
+        }
+    
+        // Envia notificação para a empresa
+        const companyPhones = empresa?.telefones?.filter(t => t.numero) ?? [];
+        if (companyPhones.length === 1) {
+          openCompanyWhatsApp(budget, companyPhones[0].numero);
+        } else if (companyPhones.length > 1) {
+          setSelectedCompanyPhone(companyPhones.find(p => p.principal)?.numero || companyPhones[0].numero);
+          setCompanyPhoneDialog({ open: true, phones: companyPhones, orcamento: budget });
+        }
+      }
+    
+      toast({
+        title: `Status alterado para: ${status}`,
+      });
     } catch(error: any) {
       toast({
-        title: "Erro ao atualizar status",
+        title: "Erro ao salvar atualização de status",
         description: error.message || "Não foi possível modificar o orçamento.",
         variant: "destructive",
       });
-      return;
     }
-
-    const budget = orcamentosSalvos?.find(o => o.id === budgetId);
-  
-    if (status === 'Aceito' && budget) {
-      // Atualiza estoque e coleta alertas
-      const lowStockAlerts: string[] = [];
-      for (const item of budget.itens) {
-        if (!item.materialId.startsWith('avulso-')) {
-          try {
-            const lowStockItemName = await updateEstoque(user.uid, item.materialId, item.quantidade);
-            if (lowStockItemName) {
-              lowStockAlerts.push(lowStockItemName);
-            }
-          } catch (err) {
-            console.error('Erro ao atualizar estoque:', err);
-          }
-        }
-      }
-      
-      // Exibe alertas de estoque baixo
-      if (lowStockAlerts.length > 0) {
-        toast({
-          title: "Aviso de Estoque Baixo",
-          description: `Os itens: ${lowStockAlerts.join(', ')} atingiram o estoque mínimo.`,
-          variant: "destructive",
-          duration: 7000,
-        });
-      }
-  
-      // Envia notificação para a empresa
-      const companyPhones = empresa?.telefones?.filter(t => t.numero) ?? [];
-      if (companyPhones.length === 1) {
-        openCompanyWhatsApp(budget, companyPhones[0].numero);
-      } else if (companyPhones.length > 1) {
-        setSelectedCompanyPhone(companyPhones.find(p => p.principal)?.numero || companyPhones[0].numero);
-        setCompanyPhoneDialog({ open: true, phones: companyPhones, orcamento: budget });
-      }
-    }
-  
-    toast({
-      title: `Status alterado para: ${status}`,
-    });
   };
 
 
