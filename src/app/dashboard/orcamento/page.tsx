@@ -104,34 +104,35 @@ export default function OrcamentoPage() {
     },
     [user?.uid]
   )?.map(o => {
-    // Aggressive data integrity check
-    if (!o || !o.id || !o.data) {
-      // If the wrapper or its core data is invalid, discard it.
+    // Ultra-defensive data integrity check
+    if (!o || typeof o.id !== 'string' || !o.id || typeof o.data !== 'object' || o.data === null) {
+      console.warn("Invalid Dexie record found and skipped:", o);
       return null;
     }
 
-    const data = o.data;
+    const data = o.data as Partial<Orcamento>; // Treat as partial to be safe
 
-    // Create a clean object, ensuring required fields are present.
+    // Reconstruct the object, making no assumptions.
+    // The ID from the wrapper is the only source of truth.
     const cleanBudget: Orcamento = {
-      id: o.id, // Use the wrapper's ID as the source of truth.
+      id: o.id,
       userId: o.userId,
-      numeroOrcamento: data.numeroOrcamento || 'N/A',
-      cliente: data.cliente || { id: 'unknown', userId: o.userId, nome: 'Cliente Desconhecido', telefones: [] },
+      numeroOrcamento: String(data.numeroOrcamento || 'N/A'),
+      cliente: (typeof data.cliente === 'object' && data.cliente !== null) ? data.cliente : { id: 'unknown', userId: o.userId, nome: 'Cliente Desconhecido', telefones: [] },
       itens: Array.isArray(data.itens) ? data.itens : [],
       totalVenda: typeof data.totalVenda === 'number' ? data.totalVenda : 0,
-      dataCriacao: data.dataCriacao || new Date().toISOString(),
+      dataCriacao: typeof data.dataCriacao === 'string' ? data.dataCriacao : new Date().toISOString(),
       status: data.status || 'Pendente',
-      validadeDias: data.validadeDias || '0',
-      observacoes: data.observacoes || '',
-      observacoesInternas: data.observacoesInternas || '',
+      validadeDias: String(data.validadeDias || '0'),
+      observacoes: String(data.observacoes || ''),
+      observacoesInternas: String(data.observacoesInternas || ''),
       dataAceite: data.dataAceite ?? null,
       dataRecusa: data.dataRecusa ?? null,
       dataConclusao: data.dataConclusao ?? null,
-      notificacaoVencimentoEnviada: data.notificacaoVencimentoEnviada ?? false,
+      notificacaoVencimentoEnviada: !!data.notificacaoVencimentoEnviada,
     };
     return cleanBudget;
-  }).filter((o): o is Orcamento => o !== null); // Filter out nulls and satisfy TypeScript
+  }).filter((o): o is Orcamento => o !== null);
 
 
   const empresaArr = useLiveQuery(
@@ -330,16 +331,30 @@ export default function OrcamentoPage() {
     if (!user) return;
 
     if (status === 'Pendente') {
-      await updateOrcamentoStatus(budgetId, 'Pendente', {});
-      toast({
-        title: `Status alterado para: Pendente`,
-      });
+      try {
+        await updateOrcamentoStatus(budgetId, 'Pendente', {});
+        toast({
+          title: `Status alterado para: Pendente`,
+        });
+      } catch (error: any) {
+        toast({
+          title: "Erro ao atualizar status",
+          description: error.message || "Não foi possível reverter o status.",
+          variant: "destructive",
+        });
+      }
       return;
     }
 
     const budgetToUpdate = orcamentosSalvos?.find(o => o.id === budgetId);
     if (budgetToUpdate) {
       setStatusUpdateInfo({ budget: budgetToUpdate, status });
+    } else {
+       toast({
+          title: "Erro ao encontrar orçamento",
+          description: "Não foi possível localizar o orçamento para alterar o status. Tente sincronizar.",
+          variant: "destructive",
+        });
     }
   };
 
@@ -360,7 +375,16 @@ export default function OrcamentoPage() {
       payload.dataConclusao = date.toISOString();
     }
     
-    await updateOrcamentoStatus(budgetId, status, payload);
+    try {
+      await updateOrcamentoStatus(budgetId, status, payload);
+    } catch(error: any) {
+      toast({
+        title: "Erro ao atualizar status",
+        description: error.message || "Não foi possível modificar o orçamento.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const budget = orcamentosSalvos?.find(o => o.id === budgetId);
   
