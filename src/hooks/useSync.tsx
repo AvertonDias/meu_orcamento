@@ -49,6 +49,7 @@ export function useSync() {
   const { toast } = useToast();
   const router = useRouter();
 
+  const [isClient, setIsClient] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [isSyncingState, setIsSyncingState] = useState(isSyncingGlobally);
   const [lastSync, setLastSync] = useLocalStorage<string | null>('lastSyncTime', null);
@@ -60,8 +61,9 @@ export function useSync() {
     [user]
   )?.map(o => o.data);
 
-
   useEffect(() => {
+    setIsClient(true);
+
     const listener = (syncing: boolean) => setIsSyncingState(syncing);
     listeners.add(listener);
     return () => {
@@ -111,6 +113,7 @@ export function useSync() {
     const now = new Date();
   
     orcamentosSalvos.forEach(async orc => {
+      if (!orc) return;
       if (orc.status !== 'Pendente') return;
   
       const validade = Number(orc.validadeDias);
@@ -284,11 +287,11 @@ export function useSync() {
   }, [syncState, isOnline, performPush]);
 
   return {
-    isOnline,
+    isOnline: isClient ? isOnline : true,
     isSyncing: isSyncingState,
-    pendingCount: syncState?.pendingCount ?? 0,
-    errorCount: syncState?.errorCount ?? 0,
-    lastSync,
+    pendingCount: isClient ? (syncState?.pendingCount ?? 0) : 0,
+    errorCount: isClient ? (syncState?.errorCount ?? 0) : 0,
+    lastSync: isClient ? lastSync : null,
     forceSync,
   };
 }
