@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, {
@@ -136,10 +135,12 @@ export default function OrcamentoPage() {
   const orcamentosSalvos = useLiveQuery(
     () => {
       if (!user?.uid) return [];
+      // Ordena por data de criação (mais novos primeiro) diretamente na query
       return db.orcamentos
         .where('userId')
         .equals(user.uid)
-        .toArray();
+        .reverse()
+        .sortBy('data.dataCriacao');
     },
     [user?.uid]
   )?.map(o => {
@@ -241,22 +242,7 @@ export default function OrcamentoPage() {
   const filteredOrcamentos = useMemo(() => {
     if (!orcamentosSalvos) return [];
 
-    let list = [...orcamentosSalvos].sort((a, b) => {
-      const [numAStr, yearAStr] = a.numeroOrcamento?.split('-') || ["0", "0"];
-      const [numBStr, yearBStr] = b.numeroOrcamento?.split('-') || ["0", "0"];
-
-      const yearA = parseInt(yearAStr, 10) || 0;
-      const yearB = parseInt(yearBStr, 10) || 0;
-
-      if (yearA !== yearB) {
-        return yearB - yearA; // Sort by year descending
-      }
-
-      const numA = parseInt(numAStr, 10) || 0;
-      const numB = parseInt(numBStr, 10) || 0;
-      
-      return numB - numA; // Then by number descending
-    });
+    let list = [...orcamentosSalvos];
 
     if (clienteIdParam) {
       list = list.filter(
@@ -371,9 +357,6 @@ export default function OrcamentoPage() {
 
     try {
       const { id, ...data } = budget;
-      if (!id || typeof id !== 'string') {
-        throw new Error("Não foi possível salvar as alterações (ID inválido).");
-      }
       await updateOrcamento(id, data);
       toast({ title: 'Orçamento atualizado com sucesso' });
     } catch (error: any) {
@@ -391,10 +374,6 @@ export default function OrcamentoPage() {
   ) => {
     try {
       if (!user || !orcamentosSalvos) return;
-  
-      if (!budgetId || typeof budgetId !== 'string') {
-        throw new Error("Ocorreu um erro interno (ID de orçamento inválido). A operação não pode ser concluída.");
-      }
   
       if (status === 'Pendente') {
         await updateOrcamentoStatus(budgetId, 'Pendente', {});
@@ -631,5 +610,3 @@ export default function OrcamentoPage() {
     </div>
   );
 }
-
-    
