@@ -45,24 +45,22 @@ const statusConfig = {
 
 
 export function StatusUpdateDialog({ isOpen, onOpenChange, updateInfo, onSave }: StatusUpdateDialogProps) {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   const config = updateInfo ? statusConfig[updateInfo.status] : null;
 
   useEffect(() => {
-    if (updateInfo?.budget && config) {
+    if (isOpen && updateInfo?.budget && config) {
       const budgetDateField = updateInfo.budget[config.dateField as keyof Orcamento];
       if (budgetDateField && typeof budgetDateField === 'string') {
         setSelectedDate(parseISO(budgetDateField));
       } else {
         setSelectedDate(new Date());
       }
-    } else {
-      setSelectedDate(new Date());
     }
-  }, [updateInfo, config]);
+  }, [isOpen, updateInfo, config]);
 
   const handleSave = async () => {
     if (!updateInfo || !selectedDate) {

@@ -26,17 +26,19 @@ interface CompletionDateDialogProps {
 }
 
 export function CompletionDateDialog({ isOpen, onOpenChange, budget, onSave }: CompletionDateDialogProps) {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (budget?.dataConclusao) {
-      setSelectedDate(parseISO(budget.dataConclusao));
-    } else {
-      setSelectedDate(new Date());
+    if (isOpen) {
+        if (budget?.dataConclusao) {
+            setSelectedDate(parseISO(budget.dataConclusao));
+        } else {
+            setSelectedDate(new Date());
+        }
     }
-  }, [budget]);
+  }, [isOpen, budget]);
 
   const handleSave = async () => {
     if (!budget || !selectedDate) {
