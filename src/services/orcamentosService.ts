@@ -73,26 +73,35 @@ export const addOrcamento = async (orcamento: Omit<Orcamento, 'id'>): Promise<st
 };
 
 export const updateOrcamento = async (orcamentoId: string, orcamento: Partial<Orcamento>) => {
-  const existing = await dexieDB.orcamentos.get(orcamentoId);
-  if (!existing) throw new Error("Orçamento não encontrado para atualização.");
-  
-  const updatedData = { ...existing.data, ...orcamento };
-  
-  // Garante que campos opcionais não sejam undefined
-  if (updatedData.cliente) {
-    updatedData.cliente.cpfCnpj = updatedData.cliente.cpfCnpj || '';
-    updatedData.cliente.email = updatedData.cliente.email || '';
-    updatedData.cliente.endereco = updatedData.cliente.endereco || '';
+  try {
+    if (!orcamentoId || typeof orcamentoId !== 'string') {
+      console.error("updateOrcamento foi chamado com um ID inválido:", orcamentoId);
+      throw new Error("Não foi possível salvar as alterações (ID inválido).");
+    }
+    const existing = await dexieDB.orcamentos.get(orcamentoId);
+    if (!existing) throw new Error("Orçamento não encontrado para atualização.");
+    
+    const updatedData = { ...existing.data, ...orcamento };
+    
+    // Garante que campos opcionais não sejam undefined
+    if (updatedData.cliente) {
+      updatedData.cliente.cpfCnpj = updatedData.cliente.cpfCnpj || '';
+      updatedData.cliente.email = updatedData.cliente.email || '';
+      updatedData.cliente.endereco = updatedData.cliente.endereco || '';
+    }
+    updatedData.observacoes = updatedData.observacoes || '';
+    updatedData.observacoesInternas = updatedData.observacoesInternas || '';
+
+
+    await dexieDB.orcamentos.put({
+      ...existing,
+      data: updatedData,
+      syncStatus: 'pending',
+    });
+  } catch (error: any) {
+    console.error("Erro em updateOrcamento:", error);
+    throw new Error(error.message || "Falha ao salvar a edição do orçamento.");
   }
-  updatedData.observacoes = updatedData.observacoes || '';
-  updatedData.observacoesInternas = updatedData.observacoesInternas || '';
-
-
-  await dexieDB.orcamentos.put({
-    ...existing,
-    data: updatedData,
-    syncStatus: 'pending',
-  });
 };
 
 export const updateOrcamentoStatus = async (
@@ -100,6 +109,7 @@ export const updateOrcamentoStatus = async (
   status: Orcamento['status'],
   payload: object
 ) => {
+  try {
     if (!budgetId || typeof budgetId !== 'string') {
         console.error("updateOrcamentoStatus foi chamado com um budgetId inválido:", budgetId);
         throw new Error("ID do orçamento inválido fornecido para atualização de status.");
@@ -127,6 +137,10 @@ export const updateOrcamentoStatus = async (
         data: updatedData,
         syncStatus: 'pending',
     });
+  } catch (error: any) {
+    console.error("Erro em updateOrcamentoStatus:", error);
+    throw new Error(error.message || "Falha ao atualizar o status do orçamento.");
+  }
 };
 
 
