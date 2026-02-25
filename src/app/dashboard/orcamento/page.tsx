@@ -102,13 +102,19 @@ export default function OrcamentoPage() {
         .then(list => list.reverse());
     },
     [user?.uid]
-  )?.map(o => ({
-    ...o.data,
-    id: o.id, // Garante que o ID do wrapper (chave primária) seja usado
-    dataAceite: o.data.dataAceite ?? null,
-    dataRecusa: o.data.dataRecusa ?? null,
-    dataConclusao: o.data.dataConclusao ?? null,
-  }));
+  )?.map(o => {
+    // Data integrity check to handle legacy or corrupt data.
+    const data = o.data || {};
+    return {
+      ...(data as Orcamento), // Cast to Orcamento to satisfy spread
+      id: o.id, // CRUCIAL: Always use the wrapper's primary key as the true ID.
+      userId: o.userId,
+      // Ensure date fields exist to prevent runtime errors.
+      dataAceite: o.data?.dataAceite ?? null,
+      dataRecusa: o.data?.dataRecusa ?? null,
+      dataConclusao: o.data?.dataConclusao ?? null,
+    };
+  }).filter(o => o && o.id); // Extra safety: filter out any records that ended up with no ID.
 
   const empresaArr = useLiveQuery(
     () => {
