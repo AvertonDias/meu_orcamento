@@ -1,4 +1,3 @@
-
 'use client';
 
 import { db as firestoreDB } from '@/lib/firebase';
@@ -76,9 +75,7 @@ export const updateOrcamento = async (orcamentoId: string, orcamento: Partial<Or
   const existing = await dexieDB.orcamentos.get(orcamentoId);
   if (!existing) throw new Error("Orçamento não encontrado para atualização.");
   
-  const { id, ...restOfBudget } = orcamento;
-
-  const updatedData = { ...existing.data, ...restOfBudget };
+  const updatedData = { ...existing.data, ...orcamento };
   
   // Garante que campos opcionais não sejam undefined
   if (updatedData.cliente) {

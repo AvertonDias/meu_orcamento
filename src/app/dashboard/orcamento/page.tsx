@@ -104,6 +104,7 @@ export default function OrcamentoPage() {
     [user?.uid]
   )?.map(o => ({
     ...o.data,
+    id: o.id, // Garante que o ID do wrapper (chave primária) seja usado
     dataAceite: o.data.dataAceite ?? null,
     dataRecusa: o.data.dataRecusa ?? null,
     dataConclusao: o.data.dataConclusao ?? null,
