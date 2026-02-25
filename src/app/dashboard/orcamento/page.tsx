@@ -139,25 +139,7 @@ export default function OrcamentoPage() {
       return db.orcamentos
         .where('userId')
         .equals(user.uid)
-        .toArray()
-        .then(list => {
-          return list.sort((a, b) => {
-            const [numAStr, yearAStr] = a.data.numeroOrcamento?.split('-') || ["0", "0"];
-            const [numBStr, yearBStr] = b.data.numeroOrcamento?.split('-') || ["0", "0"];
-
-            const yearA = parseInt(yearAStr, 10) || 0;
-            const yearB = parseInt(yearBStr, 10) || 0;
-
-            if (yearA !== yearB) {
-              return yearB - yearA; // Sort by year descending
-            }
-
-            const numA = parseInt(numAStr, 10) || 0;
-            const numB = parseInt(numBStr, 10) || 0;
-            
-            return numB - numA; // Then by number descending
-          });
-        });
+        .toArray();
     },
     [user?.uid]
   )?.map(o => {
@@ -259,7 +241,22 @@ export default function OrcamentoPage() {
   const filteredOrcamentos = useMemo(() => {
     if (!orcamentosSalvos) return [];
 
-    let list = [...orcamentosSalvos];
+    let list = [...orcamentosSalvos].sort((a, b) => {
+      const [numAStr, yearAStr] = a.numeroOrcamento?.split('-') || ["0", "0"];
+      const [numBStr, yearBStr] = b.numeroOrcamento?.split('-') || ["0", "0"];
+
+      const yearA = parseInt(yearAStr, 10) || 0;
+      const yearB = parseInt(yearBStr, 10) || 0;
+
+      if (yearA !== yearB) {
+        return yearB - yearA; // Sort by year descending
+      }
+
+      const numA = parseInt(numAStr, 10) || 0;
+      const numB = parseInt(numBStr, 10) || 0;
+      
+      return numB - numA; // Then by number descending
+    });
 
     if (clienteIdParam) {
       list = list.filter(
@@ -634,3 +631,5 @@ export default function OrcamentoPage() {
     </div>
   );
 }
+
+    
