@@ -1,3 +1,4 @@
+
 'use client';
 
 import { db as firestoreDB } from '@/lib/firebase';
@@ -99,6 +100,10 @@ export const updateOrcamentoStatus = async (
   status: Orcamento['status'],
   payload: object
 ) => {
+    if (!budgetId || typeof budgetId !== 'string') {
+        console.error("updateOrcamentoStatus foi chamado com um budgetId inválido:", budgetId);
+        throw new Error("ID do orçamento inválido fornecido para atualização de status.");
+    }
     const existing = await dexieDB.orcamentos.get(budgetId);
     if (!existing) throw new Error("Orçamento não encontrado.");
 

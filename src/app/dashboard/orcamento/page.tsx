@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, {
@@ -103,18 +104,35 @@ export default function OrcamentoPage() {
     },
     [user?.uid]
   )?.map(o => {
-    // Data integrity check to handle legacy or corrupt data.
-    const data = o.data || {};
-    return {
-      ...(data as Orcamento), // Cast to Orcamento to satisfy spread
-      id: o.id, // CRUCIAL: Always use the wrapper's primary key as the true ID.
+    // Aggressive data integrity check
+    if (!o || !o.id || !o.data) {
+      // If the wrapper or its core data is invalid, discard it.
+      return null;
+    }
+
+    const data = o.data;
+
+    // Create a clean object, ensuring required fields are present.
+    const cleanBudget: Orcamento = {
+      id: o.id, // Use the wrapper's ID as the source of truth.
       userId: o.userId,
-      // Ensure date fields exist to prevent runtime errors.
-      dataAceite: o.data?.dataAceite ?? null,
-      dataRecusa: o.data?.dataRecusa ?? null,
-      dataConclusao: o.data?.dataConclusao ?? null,
+      numeroOrcamento: data.numeroOrcamento || 'N/A',
+      cliente: data.cliente || { id: 'unknown', userId: o.userId, nome: 'Cliente Desconhecido', telefones: [] },
+      itens: Array.isArray(data.itens) ? data.itens : [],
+      totalVenda: typeof data.totalVenda === 'number' ? data.totalVenda : 0,
+      dataCriacao: data.dataCriacao || new Date().toISOString(),
+      status: data.status || 'Pendente',
+      validadeDias: data.validadeDias || '0',
+      observacoes: data.observacoes || '',
+      observacoesInternas: data.observacoesInternas || '',
+      dataAceite: data.dataAceite ?? null,
+      dataRecusa: data.dataRecusa ?? null,
+      dataConclusao: data.dataConclusao ?? null,
+      notificacaoVencimentoEnviada: data.notificacaoVencimentoEnviada ?? false,
     };
-  }).filter(o => o && o.id); // Extra safety: filter out any records that ended up with no ID.
+    return cleanBudget;
+  }).filter((o): o is Orcamento => o !== null); // Filter out nulls and satisfy TypeScript
+
 
   const empresaArr = useLiveQuery(
     () => {
