@@ -1,8 +1,7 @@
-
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
-import type { ClienteData, Telefone } from '@/lib/types';
+import type { ClienteData, Telefone, Orcamento } from '@/lib/types';
 
 import {
   Card,
@@ -47,8 +46,36 @@ import {
 import { findDuplicateClient } from '@/lib/utils';
 
 // =================================================================
-// MAPPERS (Conversores de modelo)
+// HELPERS
 // =================================================================
+
+const getCleanedCliente = (clienteData: any, defaultUserId: string): ClienteData => {
+  const baseCliente = (typeof clienteData === 'object' && clienteData !== null) 
+    ? clienteData 
+    : {};
+
+  let telefones: Telefone[] = [];
+
+  if (Array.isArray(baseCliente.telefones) && baseCliente.telefones.length > 0) {
+    telefones = baseCliente.telefones;
+  } 
+  else if (typeof baseCliente.telefone === 'string' && baseCliente.telefone) {
+    telefones = [{ nome: 'Principal', numero: baseCliente.telefone, principal: true }];
+  }
+
+  const { telefone, ...restOfClienteData } = baseCliente;
+
+  return {
+    ...restOfClienteData,
+    id: baseCliente.id || 'unknown-client-id',
+    userId: baseCliente.userId || defaultUserId,
+    nome: baseCliente.nome || 'Cliente Desconhecido',
+    telefones: telefones,
+    cpfCnpj: baseCliente.cpfCnpj || '',
+    email: baseCliente.email || '',
+    endereco: baseCliente.endereco || '',
+  };
+};
 
 /**
  * Converte o modelo de dados do formulário (ClientFormValues)
@@ -96,24 +123,7 @@ export default function ClientesPage() {
             .toArray()
         : [],
     [user]
-  )?.map(c => {
-      const rawData = c.data as any;
-      let telefones: Telefone[] = [];
-
-      // Verifica a estrutura nova primeiro
-      if (Array.isArray(rawData.telefones)) {
-          telefones = rawData.telefones;
-      } 
-      // Verifica a estrutura antiga (telefone como string)
-      else if (typeof rawData.telefone === 'string' && rawData.telefone) {
-          telefones = [{ nome: 'Principal', numero: rawData.telefone, principal: true }];
-      }
-      
-      // Remove o campo 'telefone' antigo para evitar inconsistências
-      const { telefone, ...restOfData } = rawData;
-
-      return { ...restOfData, id: c.id, userId: c.userId, telefones: telefones };
-  });
+  )?.map(c => getCleanedCliente(c.data, user?.uid || ''));
 
 
   const orcamentos = useLiveQuery(
@@ -122,7 +132,17 @@ export default function ClientesPage() {
         ? db.orcamentos.where('userId').equals(user.uid).toArray()
         : [],
     [user]
-  )?.map(o => o.data);
+  )?.map(o => {
+    if (!o || typeof o.id !== 'string' || !o.id || typeof o.data !== 'object' || o.data === null) {
+      return null;
+    }
+    const data = o.data as Partial<Orcamento> & { cliente?: any };
+    return {
+      ...data,
+      id: o.id,
+      cliente: getCleanedCliente(data.cliente, o.userId),
+    } as Orcamento;
+  }).filter((o): o is Orcamento => o !== null);
 
   const isLoadingData =
     loadingAuth || clientes === undefined || orcamentos === undefined;
@@ -166,6 +186,7 @@ export default function ClientesPage() {
 
     return clientes
       .filter(c => {
+        if (!c.id) return false; // Garante que clientes sem ID sejam filtrados
         if (!normalizedSearch) return true;
 
         const nome = c.nome.toLowerCase();
@@ -187,19 +208,21 @@ export default function ClientesPage() {
     if (!clientes || !orcamentos) return counts;
 
     clientes.forEach(c => {
-      counts[c.id!] = {
-        Pendente: 0,
-        Aceito: 0,
-        Recusado: 0,
-        Vencido: 0,
-        Concluído: 0,
-        Total: 0,
-      };
+      if (c.id) {
+        counts[c.id] = {
+          Pendente: 0,
+          Aceito: 0,
+          Recusado: 0,
+          Vencido: 0,
+          Concluído: 0,
+          Total: 0,
+        };
+      }
     });
 
     orcamentos.forEach(o => {
-      const id = o.cliente.id;
-      if (id && counts[id] && counts[id][o.status] !== undefined) {
+      const id = o.cliente?.id;
+      if (id && counts[id] && o.status && counts[id][o.status] !== undefined) {
         counts[id][o.status]++;
         counts[id].Total++;
       }
