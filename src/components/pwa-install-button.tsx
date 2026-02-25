@@ -17,9 +17,12 @@ interface BeforeInstallPromptEvent extends Event {
 export function PwaInstallButton() {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
+    setIsClient(true);
+    
     // Check if the app is already running in standalone mode
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
     if (isStandalone) {
@@ -77,8 +80,8 @@ export function PwaInstallButton() {
     setInstallPrompt(null);
   };
   
-  // Don't show the button if the app is already installed or the prompt is not available
-  if (isAppInstalled || !installPrompt) {
+  // Don't show the button if not on client, or if the app is already installed or the prompt is not available
+  if (!isClient || isAppInstalled || !installPrompt) {
     return null;
   }
 
