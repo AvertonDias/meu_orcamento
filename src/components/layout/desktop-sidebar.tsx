@@ -1,7 +1,6 @@
-
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -23,6 +22,11 @@ interface DesktopSidebarProps {
 export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -50,6 +54,10 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
       <span className={cn("truncate", isCollapsed && "sr-only")}>Sair</span>
     </Button>
   );
+
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <aside className={cn(
