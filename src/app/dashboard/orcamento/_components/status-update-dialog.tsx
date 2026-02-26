@@ -52,38 +52,83 @@ export function StatusUpdateDialog({ isOpen, onOpenChange, updateInfo, onSave }:
   const config = updateInfo ? statusConfig[updateInfo.status] : null;
 
   useEffect(() => {
-    if (isOpen && updateInfo?.budget && config) {
-      const budgetDateField = updateInfo.budget[config.dateField as keyof Orcamento];
-      if (budgetDateField && typeof budgetDateField === 'string') {
-        setSelectedDate(parseISO(budgetDateField));
-      } else {
-        setSelectedDate(new Date());
-      }
+    if (!isOpen) return;
+    if (!updateInfo?.budget?.id) return;
+    if (!config) return;
+  
+    const budgetDateField =
+      updateInfo.budget[config.dateField as keyof Orcamento];
+  
+    if (budgetDateField && typeof budgetDateField === 'string') {
+      setSelectedDate(parseISO(budgetDateField));
+    } else {
+      setSelectedDate(new Date());
     }
-  }, [isOpen, updateInfo, config]);
+  }, [isOpen, updateInfo?.budget?.id]);
 
   const handleSave = async () => {
     if (!updateInfo || !selectedDate) {
-      toast({ title: 'Data inválida', description: 'Por favor, selecione uma data.', variant: 'destructive' });
+      toast({
+        title: 'Data inválida',
+        description: 'Por favor, selecione uma data.',
+        variant: 'destructive'
+      });
       return;
     }
-
+  
     const { budget, status } = updateInfo;
-
-    const dataCriacao = parseISO(budget.dataCriacao);
-    if (selectedDate < dataCriacao) {
-      toast({ title: 'Data inválida', description: 'A data selecionada não pode ser anterior à data de criação do orçamento.', variant: 'destructive' });
+  
+    // 🔴 VALIDAÇÃO CRÍTICA
+    if (!budget?.id || typeof budget.id !== 'string') {
+      console.error("StatusUpdateDialog tentou salvar sem ID:", budget);
+      
+      toast({
+        title: 'Erro interno',
+        description: 'Orçamento sem ID válido.',
+        variant: 'destructive'
+      });
+  
       return;
     }
-
+  
+    const dataCriacao = parseISO(budget.dataCriacao);
+  
+    if (selectedDate < dataCriacao) {
+      toast({
+        title: 'Data inválida',
+        description: 'A data selecionada não pode ser anterior à data de criação do orçamento.',
+        variant: 'destructive'
+      });
+      return;
+    }
+  
     setIsSaving(true);
+  
     try {
+  
+      console.log("Salvando status:", {
+        id: budget.id,
+        status,
+        date: selectedDate
+      });
+  
       await onSave(budget.id, status, selectedDate);
+  
       onOpenChange(false);
-    } catch {
-      toast({ title: 'Erro ao salvar', variant: 'destructive' });
+  
+    } catch (error: any) {
+  
+      console.error("Erro ao salvar status:", error);
+  
+      toast({
+        title: 'Erro ao salvar',
+        variant: 'destructive'
+      });
+  
     } finally {
+  
       setIsSaving(false);
+  
     }
   };
 
