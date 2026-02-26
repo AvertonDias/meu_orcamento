@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -22,11 +22,6 @@ interface DesktopSidebarProps {
 export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const handleLogout = async () => {
     try {
@@ -55,10 +50,6 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
     </Button>
   );
 
-  if (!isClient) {
-    return null;
-  }
-
   return (
     <aside className={cn(
       "hidden md:fixed md:inset-y-0 md:left-0 md:z-10 md:flex flex-col border-r bg-muted/40 transition-all duration-300",
@@ -71,19 +62,16 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
           isCollapsed && "justify-center px-0"
         )}>
           <Link href="/dashboard/orcamento" className="flex items-center gap-2">
-            <div className="rounded-md p-1 shrink-0">
-                <Image
-                    src="/ico_v2.jpg"
-                    alt="Logo"
-                    width={24}
-                    height={24}
-                    className="rounded-sm"
-                />
+            <div className="bg-white rounded-md p-1 shrink-0">
+              <Image 
+                src="/ico_v2.jpg" 
+                alt="Logo" 
+                width={24} 
+                height={24} 
+                className="rounded-sm"
+              />
             </div>
-            <span className={cn(
-              "font-semibold truncate",
-              isCollapsed && "sr-only"
-            )}>
+            <span className={cn("font-semibold truncate", isCollapsed && "sr-only")}>
               Meu orçamento
             </span>
           </Link>
