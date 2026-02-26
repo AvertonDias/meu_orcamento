@@ -1,4 +1,3 @@
-
 'use client';
 
 import { db as firestoreDB } from '@/lib/firebase';
@@ -75,9 +74,10 @@ export const addOrcamento = async (orcamento: Omit<Orcamento, 'id'>): Promise<st
 export const updateOrcamento = async (orcamentoId: string, orcamento: Partial<Orcamento>) => {
   try {
     if (!orcamentoId || typeof orcamentoId !== 'string') {
-      console.error("updateOrcamento foi chamado com um ID inválido:", orcamentoId);
-      throw new Error("Não foi possível salvar as alterações (ID inválido).");
+      console.warn("updateOrcamento ignorado - ID inválido:", orcamentoId);
+      return;
     }
+    
     const existing = await dexieDB.orcamentos.get(orcamentoId);
     if (!existing) throw new Error("Orçamento não encontrado para atualização.");
     
@@ -111,9 +111,10 @@ export const updateOrcamentoStatus = async (
 ) => {
   try {
     if (!budgetId || typeof budgetId !== 'string') {
-        console.error("updateOrcamentoStatus foi chamado com um budgetId inválido:", budgetId);
-        throw new Error("ID do orçamento inválido fornecido para atualização de status.");
+        console.warn("updateOrcamentoStatus ignorado - ID inválido:", budgetId);
+        return;
     }
+
     const existing = await dexieDB.orcamentos.get(budgetId);
     if (!existing) throw new Error("Orçamento não encontrado.");
 
