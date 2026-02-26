@@ -133,15 +133,30 @@ export default function ClientesPage() {
         : [],
     [user]
   )?.map(o => {
-    if (!o || typeof o.id !== 'string' || !o.id || typeof o.data !== 'object' || o.data === null) {
+    if (!o || typeof o.id !== 'string' || !o.id) {
       return null;
     }
-    const data = o.data as Partial<Orcamento> & { cliente?: any };
-    return {
-      ...data,
-      id: o.id,
-      cliente: getCleanedCliente(data.cliente, o.userId),
-    } as Orcamento;
+
+    const data = (o.data || o) as Partial<Orcamento> & { cliente?: any };
+
+    const cleanBudget: Orcamento = {
+        id: o.id,
+        userId: o.userId,
+        numeroOrcamento: String(data.numeroOrcamento || 'N/A'),
+        cliente: getCleanedCliente(data.cliente, o.userId),
+        itens: Array.isArray(data.itens) ? data.itens : [],
+        totalVenda: typeof data.totalVenda === 'number' ? data.totalVenda : 0,
+        dataCriacao: typeof data.dataCriacao === 'string' ? data.dataCriacao : new Date().toISOString(),
+        status: data.status || 'Pendente',
+        validadeDias: String(data.validadeDias || '0'),
+        observacoes: String(data.observacoes || ''),
+        observacoesInternas: String(data.observacoesInternas || ''),
+        dataAceite: data.dataAceite ?? null,
+        dataRecusa: data.dataRecusa ?? null,
+        dataConclusao: data.dataConclusao ?? null,
+        notificacaoVencimentoEnviada: !!data.notificacaoVencimentoEnviada,
+    };
+    return cleanBudget;
   }).filter((o): o is Orcamento => o !== null);
 
   const isLoadingData =

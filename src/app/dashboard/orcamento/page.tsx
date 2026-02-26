@@ -144,18 +144,19 @@ export default function OrcamentoPage() {
     },
     [user?.uid]
   )?.map(o => {
-    if (!o || typeof o.id !== 'string' || !o.id || typeof o.data !== 'object' || o.data === null) {
+    if (!o || typeof o.id !== 'string' || !o.id) {
       console.warn("Invalid Dexie record found and skipped:", o);
       return null;
     }
-
-    const data = o.data as Partial<Orcamento> & { cliente?: any };
-
+  
+    // Handle both wrapped and flat structures
+    const data = (o.data || o) as Partial<Orcamento> & { cliente?: any };
+  
     const cleanBudget: Orcamento = {
-      id: o.id,
+      id: o.id, // Always use the wrapper ID as the true source
       userId: o.userId,
       numeroOrcamento: String(data.numeroOrcamento || 'N/A'),
-      cliente: getCleanedCliente(data.cliente, o.userId), // Usa a função de limpeza
+      cliente: getCleanedCliente(data.cliente, o.userId), // Use a função de limpeza
       itens: Array.isArray(data.itens) ? data.itens : [],
       totalVenda: typeof data.totalVenda === 'number' ? data.totalVenda : 0,
       dataCriacao: typeof data.dataCriacao === 'string' ? data.dataCriacao : new Date().toISOString(),
