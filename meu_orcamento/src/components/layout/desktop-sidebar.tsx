@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -20,6 +20,12 @@ interface DesktopSidebarProps {
 }
 
 export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarProps) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const router = useRouter();
   const { toast } = useToast();
 
@@ -35,6 +41,10 @@ export function DesktopSidebar({ isCollapsed, setIsCollapsed }: DesktopSidebarPr
       });
     }
   };
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <aside className={cn(
