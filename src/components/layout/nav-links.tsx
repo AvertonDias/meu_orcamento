@@ -9,7 +9,6 @@ import { Home, Users, Wrench, Ruler, Settings } from 'lucide-react';
 import { useDirtyState } from '@/contexts/dirty-state-context';
 import { usePermissionDialog } from '@/hooks/use-permission-dialog';
 
-// Definição dos itens de navegação
 export const navItems = [
   { href: '/dashboard/orcamento', label: 'Orçamentos', icon: Home },
   { href: '/dashboard/clientes', label: 'Clientes', icon: Users },
@@ -24,7 +23,7 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
   const { isDirty, setIsDirty } = useDirtyState();
   const { requestPermission } = usePermissionDialog();
 
-  const handleLinkClick = async (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  const handleLinkClick = async (e: React.MouseEvent, href: string) => {
     if (isDirty && pathname !== href) {
       e.preventDefault();
       const discardChanges = await requestPermission({
@@ -47,21 +46,24 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
         
         return (
           <Tooltip key={item.href} delayDuration={0}>
+            {/* SOLUÇÃO: TooltipTrigger agora envolve uma div, não o Link diretamente */}
             <TooltipTrigger asChild>
-              <Link
-                href={item.href}
-                onClick={(e) => handleLinkClick(e, item.href)}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg py-2 transition-all hover:text-primary outline-none w-full',
-                  isActive ? 'bg-muted text-primary font-medium' : 'text-muted-foreground',
-                  isCollapsed ? 'h-9 w-9 justify-center p-0' : 'px-3 justify-start'
-                )}
-              >
-                <item.icon className="h-5 w-5 shrink-0" />
-                <span className={cn("truncate", isCollapsed && "sr-only")}>
-                  {item.label}
-                </span>
-              </Link>
+              <div className="w-full"> 
+                <Link
+                  href={item.href}
+                  onClick={(e) => handleLinkClick(e, item.href)}
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg py-2 transition-all hover:text-primary outline-none w-full',
+                    isActive ? 'bg-muted text-primary font-medium' : 'text-muted-foreground',
+                    isCollapsed ? 'h-9 w-9 justify-center p-0' : 'px-3 justify-start'
+                  )}
+                >
+                  <item.icon className="h-5 w-5 shrink-0" />
+                  <span className={cn("truncate", isCollapsed && "sr-only")}>
+                    {item.label}
+                  </span>
+                </Link>
+              </div>
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={10}>
               {item.label}
