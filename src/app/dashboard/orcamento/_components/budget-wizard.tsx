@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
@@ -423,13 +424,11 @@ export function BudgetWizard({
                 {clientSelectionType === 'existente' ? (
                    <div className="space-y-4">
                     <Popover modal={false} open={isClientPopoverOpen} onOpenChange={setIsClientPopoverOpen}>
-                      <PopoverTrigger>
-                        <span tabIndex={0}>
+                      <PopoverTrigger asChild>
                         <Button variant="outline" role="combobox" aria-expanded={isClientPopoverOpen} className="w-full justify-between">
                           {clienteData.id ? clienteData.nome : "Selecione um cliente..."}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
-                        </span>
                       </PopoverTrigger>
                       <PopoverContent
                         className="w-[--radix-popover-trigger-width] p-0"
@@ -547,8 +546,7 @@ export function BudgetWizard({
                   ) : (
                     <div className="space-y-2">
                       <Popover modal={false} open={isMaterialPopoverOpen} onOpenChange={setIsMaterialPopoverOpen}>
-                        <PopoverTrigger>
-                          <span tabIndex={0}>
+                        <PopoverTrigger asChild>
                           <Button variant="outline" role="combobox" aria-expanded={isMaterialPopoverOpen} className="w-full justify-between text-left h-auto">
                            <span className="flex flex-col">
                               {selectedMaterial?.descricao ? (
@@ -565,7 +563,6 @@ export function BudgetWizard({
                             </span>
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
-                          </span>
                         </PopoverTrigger>
                         <PopoverContent
                           className="w-[--radix-popover-trigger-width] p-0"
