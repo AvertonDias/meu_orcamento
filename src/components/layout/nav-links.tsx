@@ -23,7 +23,7 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
   const { isDirty, setIsDirty } = useDirtyState();
   const { requestPermission } = usePermissionDialog();
 
-  const handleLinkClick = async (e: React.MouseEvent, href: string) => {
+  const handleLinkClick = async (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     if (isDirty && pathname !== href) {
       e.preventDefault();
       const discardChanges = await requestPermission({
@@ -45,13 +45,13 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
         const isActive = pathname === item.href;
         
         return (
-          <Tooltip key={item.href} delayDuration={0}>
-            {/* SOLUÇÃO: TooltipTrigger agora envolve uma div, não o Link diretamente */}
+          <Tooltip key={item.href} delayDuration={200}>
             <TooltipTrigger asChild>
               <div className="w-full"> 
                 <Link
                   href={item.href}
                   onClick={(e) => handleLinkClick(e, item.href)}
+                  prefetch={false}
                   className={cn(
                     'flex items-center gap-3 rounded-lg py-2 transition-all hover:text-primary outline-none w-full',
                     isActive ? 'bg-muted text-primary font-medium' : 'text-muted-foreground',
