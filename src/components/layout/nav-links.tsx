@@ -23,7 +23,7 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
   const { isDirty, setIsDirty } = useDirtyState();
   const { requestPermission } = usePermissionDialog();
 
-  const handleLinkClick = async (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  const handleLinkClick = async (e: React.MouseEvent, href: string) => {
     if (isDirty && pathname !== href) {
       e.preventDefault();
       const discardChanges = await requestPermission({
