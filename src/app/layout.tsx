@@ -8,6 +8,8 @@ import { UnifiedThemeProvider } from '@/contexts/unified-theme-provider';
 import PwaRegistry from './pwa-registry';
 import { PermissionDialogProvider } from '@/hooks/use-permission-dialog';
 import FirebaseAuthHandler from '@/components/firebase-auth-handler';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { DirtyStateProvider } from '@/contexts/dirty-state-context';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -51,12 +53,16 @@ export default function RootLayout({
 
       <body className={`${inter.variable} font-body antialiased`}>
         <UnifiedThemeProvider>
-          <PermissionDialogProvider>
-            <FirebaseAuthHandler />
-            <PwaRegistry />
-            {children}
-            <Toaster />
-          </PermissionDialogProvider>
+          <TooltipProvider>
+            <DirtyStateProvider>
+              <PermissionDialogProvider>
+                <FirebaseAuthHandler />
+                <PwaRegistry />
+                {children}
+                <Toaster />
+              </PermissionDialogProvider>
+            </DirtyStateProvider>
+          </TooltipProvider>
         </UnifiedThemeProvider>
       </body>
     </html>

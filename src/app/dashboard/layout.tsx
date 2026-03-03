@@ -13,16 +13,15 @@ import { App as CapacitorApp } from '@capacitor/app';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Contacts } from '@capacitor-community/contacts';
 
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { DesktopSidebar } from '@/components/layout/desktop-sidebar';
 import { MobileNavbar } from '@/components/layout/mobile-navbar';
 
-import { usePermissionDialog, PermissionDialogProvider } from '@/hooks/use-permission-dialog';
+import { usePermissionDialog } from '@/hooks/use-permission-dialog';
 import { useSync } from '@/hooks/useSync';
-import { DirtyStateProvider, useDirtyState } from '@/contexts/dirty-state-context';
+import { useDirtyState } from '@/contexts/dirty-state-context';
 import { useToast } from '@/hooks/use-toast';
 
-function MainLayoutContent({ children }: { children: React.ReactNode }) {
+export default function MainLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { toast } = useToast();
   
@@ -181,40 +180,27 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
      LAYOUT
   ====================================================== */
   return (
-    <TooltipProvider>
-      <div className="flex min-h-screen w-full">
+    <div className="flex min-h-screen w-full">
 
-        <DesktopSidebar
-          isCollapsed={isSidebarCollapsed}
-          setIsCollapsed={setIsSidebarCollapsed}
-        />
+      <DesktopSidebar
+        isCollapsed={isSidebarCollapsed}
+        setIsCollapsed={setIsSidebarCollapsed}
+      />
 
-        <div
-          className={cn(
-            'flex flex-col flex-1 transition-all duration-300 ease-in-out',
-            isSidebarCollapsed
-              ? 'md:pl-[60px]'
-              : 'md:pl-[220px] lg:pl-[280px]'
-          )}
-        >
-          <MobileNavbar />
+      <div
+        className={cn(
+          'flex flex-col flex-1 transition-all duration-300 ease-in-out',
+          isSidebarCollapsed
+            ? 'md:pl-[60px]'
+            : 'md:pl-[220px] lg:pl-[280px]'
+        )}
+      >
+        <MobileNavbar />
 
-          <main className="flex-1 overflow-y-auto">
-            {children}
-          </main>
-        </div>
+        <main className="flex-1 overflow-y-auto">
+          {children}
+        </main>
       </div>
-    </TooltipProvider>
-  );
-}
-
-
-export default function MainLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <DirtyStateProvider>
-      <PermissionDialogProvider>
-        <MainLayoutContent>{children}</MainLayoutContent>
-      </PermissionDialogProvider>
-    </DirtyStateProvider>
+    </div>
   );
 }
