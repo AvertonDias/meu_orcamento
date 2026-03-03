@@ -9,6 +9,7 @@ import { Home, Users, Wrench, Ruler, Settings } from 'lucide-react';
 import { useDirtyState } from '@/contexts/dirty-state-context';
 import { usePermissionDialog } from '@/hooks/use-permission-dialog';
 
+// Definição dos itens de navegação
 export const navItems = [
   { href: '/dashboard/orcamento', label: 'Orçamentos', icon: Home },
   { href: '/dashboard/clientes', label: 'Clientes', icon: Users },
@@ -24,9 +25,8 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
   const { requestPermission } = usePermissionDialog();
 
   const handleLinkClick = async (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    // Only run custom logic if the form is dirty
     if (isDirty && pathname !== href) {
-      e.preventDefault(); // Stop the navigation
+      e.preventDefault();
       const discardChanges = await requestPermission({
         title: "Alterações não salvas",
         description: "Deseja descartar as alterações e sair?",
@@ -35,10 +35,9 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
       });
       if (discardChanges) {
         setIsDirty(false);
-        router.push(href); // Navigate programmatically
+        router.push(href);
       }
     }
-    // If not dirty, do nothing and let the Link component handle navigation normally.
   };
 
   return (
@@ -59,7 +58,9 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
                 )}
               >
                 <item.icon className="h-5 w-5 shrink-0" />
-                <span className={cn("truncate", isCollapsed && "sr-only")}>{item.label}</span>
+                <span className={cn("truncate", isCollapsed && "sr-only")}>
+                  {item.label}
+                </span>
               </Link>
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={10}>
