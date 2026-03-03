@@ -26,12 +26,14 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
   const handleLinkClick = async (e: React.MouseEvent, href: string) => {
     if (isDirty && pathname !== href) {
       e.preventDefault();
+
       const discardChanges = await requestPermission({
         title: "Alterações não salvas",
         description: "Deseja descartar as alterações e sair?",
         actionLabel: "Sair",
         cancelLabel: "Ficar"
       });
+
       if (discardChanges) {
         setIsDirty(false);
         router.push(href);
@@ -43,29 +45,43 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
     <nav className="grid gap-1 px-2">
       {navItems.map((item) => {
         const isActive = pathname === item.href;
-        
+
+        const linkElement = (
+          <Link
+            href={item.href}
+            onClick={(e) => handleLinkClick(e, item.href)}
+            prefetch={false}
+            className={cn(
+              'flex items-center gap-3 rounded-lg py-2 transition-all hover:text-primary outline-none w-full',
+              isActive
+                ? 'bg-muted text-primary font-medium'
+                : 'text-muted-foreground',
+              isCollapsed
+                ? 'h-9 w-9 justify-center p-0'
+                : 'px-3 justify-start'
+            )}
+          >
+            <item.icon className="h-5 w-5 shrink-0" />
+            <span className={cn("truncate", isCollapsed && "sr-only")}>
+              {item.label}
+            </span>
+          </Link>
+        );
+
+        // Só usa Tooltip quando colapsado (arquitetura mais segura)
+        if (!isCollapsed) {
+          return (
+            <React.Fragment key={item.href}>
+              {linkElement}
+            </React.Fragment>
+          );
+        }
+
         return (
           <Tooltip key={item.href} delayDuration={200}>
             <TooltipTrigger asChild>
-              <div className="w-full">
-                <Link
-                  href={item.href}
-                  onClick={(e) => handleLinkClick(e, item.href)}
-                  prefetch={false} 
-                  className={cn(
-                    'flex items-center gap-3 rounded-lg py-2 transition-all hover:text-primary outline-none w-full',
-                    isActive ? 'bg-muted text-primary font-medium' : 'text-muted-foreground',
-                    isCollapsed ? 'h-9 w-9 justify-center p-0' : 'px-3 justify-start'
-                  )}
-                >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  <span className={cn("truncate", isCollapsed && "sr-only")}>
-                    {item.label}
-                  </span>
-                </Link>
-              </div>
+              {linkElement}
             </TooltipTrigger>
-            
             <TooltipContent side="right" sideOffset={10}>
               {item.label}
             </TooltipContent>

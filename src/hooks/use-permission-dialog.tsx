@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
@@ -28,45 +27,49 @@ const PermissionDialogContext = createContext<PermissionDialogContextType | unde
 
 export function PermissionDialogProvider({ children }: { children: ReactNode }) {
   const [permissionRequest, setPermissionRequest] = useState<PermissionRequest | null>(null);
-  const [resolvePromise, setResolvePromise] = useState<(value: boolean) => void>(() => {});
+  const [resolver, setResolver] = useState<((value: boolean) => void) | null>(null);
 
   const requestPermission = useCallback((request: PermissionRequest) => {
     return new Promise<boolean>((resolve) => {
       setPermissionRequest(request);
-      setResolvePromise(() => resolve);
+      setResolver(() => resolve);
     });
   }, []);
 
-  const handleAllow = () => {
-    resolvePromise(true);
+  const handleResolve = (value: boolean) => {
+    resolver?.(value);
     setPermissionRequest(null);
+    setResolver(null);
   };
 
-  const handleDeny = () => {
-    resolvePromise(false);
-    setPermissionRequest(null);
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      handleResolve(false);
+    }
   };
 
   return (
     <PermissionDialogContext.Provider value={{ requestPermission }}>
       {children}
-      <AlertDialog open={!!permissionRequest}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{permissionRequest?.title}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {permissionRequest?.description}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleDeny}>
-              {permissionRequest?.cancelLabel || 'Agora não'}
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleAllow}>
-              {permissionRequest?.actionLabel || 'Permitir'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+      <AlertDialog open={!!permissionRequest} onOpenChange={handleOpenChange}>
+        {permissionRequest && (
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{permissionRequest.title}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {permissionRequest.description}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => handleResolve(false)}>
+                {permissionRequest.cancelLabel || 'Agora não'}
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={() => handleResolve(true)}>
+                {permissionRequest.actionLabel || 'Permitir'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        )}
       </AlertDialog>
     </PermissionDialogContext.Provider>
   );
