@@ -48,21 +48,20 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
         
         return (
           <Tooltip key={item.href} delayDuration={0}>
-            <Link href={item.href} legacyBehavior passHref>
-              <TooltipTrigger asChild>
-                <a
-                  onClick={(e) => handleLinkClick(e, item.href)}
-                  className={cn(
-                    'flex items-center gap-3 rounded-lg py-2 transition-all hover:text-primary outline-none w-full',
-                    isActive ? 'bg-muted text-primary font-medium' : 'text-muted-foreground',
-                    isCollapsed ? 'h-9 w-9 justify-center p-0' : 'px-3 justify-start'
-                  )}
-                >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  <span className={cn("truncate", isCollapsed && "sr-only")}>{item.label}</span>
-                </a>
-              </TooltipTrigger>
-            </Link>
+            <TooltipTrigger asChild>
+              <Link
+                href={item.href}
+                onClick={(e) => handleLinkClick(e, item.href)}
+                className={cn(
+                  'flex items-center gap-3 rounded-lg py-2 transition-all hover:text-primary outline-none w-full',
+                  isActive ? 'bg-muted text-primary font-medium' : 'text-muted-foreground',
+                  isCollapsed ? 'h-9 w-9 justify-center p-0' : 'px-3 justify-start'
+                )}
+              >
+                <item.icon className="h-5 w-5 shrink-0" />
+                <span className={cn("truncate", isCollapsed && "sr-only")}>{item.label}</span>
+              </Link>
+            </TooltipTrigger>
             <TooltipContent side="right" sideOffset={10}>
               {item.label}
             </TooltipContent>
