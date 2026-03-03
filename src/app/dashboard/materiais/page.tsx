@@ -416,12 +416,10 @@ export default function MateriaisPage() {
                               <Pencil className="mr-2 h-4 w-4" /> Editar
                             </Button>
                             <AlertDialog>
-                              <AlertDialogTrigger>
-                                <span tabIndex={-1}>
+                              <AlertDialogTrigger asChild>
                                 <Button variant="destructive" size="sm" className="flex-1 w-full">
                                   <Trash2 className="mr-2 h-4 w-4" /> Excluir
                                 </Button>
-                                </span>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
@@ -476,12 +474,10 @@ export default function MateriaisPage() {
                             <Pencil className="h-4 w-4" />
                           </Button>
                           <AlertDialog>
-                            <AlertDialogTrigger>
-                              <span tabIndex={-1}>
+                            <AlertDialogTrigger asChild>
                               <Button variant="ghost" size="icon">
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
-                              </span>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
