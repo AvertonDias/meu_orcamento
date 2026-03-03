@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -23,7 +24,7 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
   const { isDirty, setIsDirty } = useDirtyState();
   const { requestPermission } = usePermissionDialog();
 
-  const handleLinkClick = async (e: React.MouseEvent, href: string) => {
+  const handleLinkClick = async (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     // Only run custom logic if the form is dirty
     if (isDirty && pathname !== href) {
       e.preventDefault(); // Stop the navigation
@@ -48,21 +49,20 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
         
         return (
           <Tooltip key={item.href} delayDuration={0}>
-            <Link href={item.href} passHref legacyBehavior>
-              <TooltipTrigger asChild>
-                <a
-                  onClick={(e) => handleLinkClick(e, item.href)}
-                  className={cn(
-                    'flex items-center gap-3 rounded-lg py-2 transition-all hover:text-primary outline-none w-full',
-                    isActive ? 'bg-muted text-primary font-medium' : 'text-muted-foreground',
-                    isCollapsed ? 'h-9 w-9 justify-center p-0' : 'px-3 justify-start'
-                  )}
-                >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  <span className={cn("truncate", isCollapsed && "sr-only")}>{item.label}</span>
-                </a>
-              </TooltipTrigger>
-            </Link>
+            <TooltipTrigger asChild>
+              <Link
+                href={item.href}
+                onClick={(e) => handleLinkClick(e, item.href)}
+                className={cn(
+                  'flex items-center gap-3 rounded-lg py-2 transition-all hover:text-primary outline-none w-full',
+                  isActive ? 'bg-muted text-primary font-medium' : 'text-muted-foreground',
+                  isCollapsed ? 'h-9 w-9 justify-center p-0' : 'px-3 justify-start'
+                )}
+              >
+                <item.icon className="h-5 w-5 shrink-0" />
+                <span className={cn("truncate", isCollapsed && "sr-only")}>{item.label}</span>
+              </Link>
+            </TooltipTrigger>
             <TooltipContent side="right" sideOffset={10}>
               {item.label}
             </TooltipContent>
