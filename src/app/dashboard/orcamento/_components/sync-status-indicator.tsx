@@ -22,45 +22,19 @@ export function SyncStatusIndicator() {
   }, []);
 
   if (!isClient) {
-    // Render a static placeholder on the server and on initial client render
+    // Render a simple, non-interactive placeholder on the server to prevent hydration errors.
     return (
-        <div className="flex items-center justify-end gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="cursor-help inline-block">
-                <Badge
-                  variant="secondary"
-                  className="flex items-center gap-2"
-                >
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="hidden sm:inline">
-                    Carregando...
-                  </span>
-                </Badge>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Carregando status da sincronização...</p>
-            </TooltipContent>
-          </Tooltip>
-          
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                disabled={true}
-                className="h-7 w-7"
-              >
-                <RefreshCcw className="h-4 w-4" />
-                <span className="sr-only">Sincronizar manualmente</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Forçar Sincronização</p>
-            </TooltipContent>
-          </Tooltip>
+      <div className="flex items-center justify-end gap-2 h-7">
+        <div className="flex items-center gap-2 rounded-full border border-transparent bg-secondary text-secondary-foreground px-2.5 py-0.5 text-xs font-semibold">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="hidden sm:inline">
+                Carregando...
+            </span>
         </div>
+        <div className="h-7 w-7 inline-flex items-center justify-center">
+            <RefreshCcw className="h-4 w-4" />
+        </div>
+      </div>
     );
   }
   
