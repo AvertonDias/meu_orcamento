@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Cloud, CloudOff, Loader2, RefreshCcw, AlertCircle } from 'lucide-react';
@@ -25,7 +24,6 @@ export function SyncStatusIndicator() {
   if (!isClient) {
     // Render a static placeholder on the server and on initial client render
     return (
-      <TooltipProvider>
         <div className="flex items-center justify-end gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -63,7 +61,6 @@ export function SyncStatusIndicator() {
             </TooltipContent>
           </Tooltip>
         </div>
-      </TooltipProvider>
     );
   }
   
@@ -117,7 +114,6 @@ export function SyncStatusIndicator() {
   const status = getStatus();
 
   return (
-    <TooltipProvider>
       <div className="flex items-center justify-end gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
@@ -159,6 +155,5 @@ export function SyncStatusIndicator() {
           </TooltipContent>
         </Tooltip>
       </div>
-    </TooltipProvider>
   );
 }
