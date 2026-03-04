@@ -46,46 +46,38 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
       {navItems.map((item) => {
         const isActive = pathname === item.href;
 
-        const linkElement = (
+        return (
           <Link
+            key={item.href}
             href={item.href}
             onClick={(e) => handleLinkClick(e, item.href)}
-            prefetch={false}
-            className={cn(
-              'flex items-center gap-3 rounded-lg py-2 transition-all hover:text-primary outline-none w-full',
-              isActive
-                ? 'bg-muted text-primary font-medium'
-                : 'text-muted-foreground',
-              isCollapsed
-                ? 'h-9 w-9 justify-center p-0'
-                : 'px-3 justify-start'
-            )}
+            legacyBehavior
+            passHref
           >
-            <item.icon className="h-5 w-5 shrink-0" />
-            <span className={cn("truncate", isCollapsed && "sr-only")}>
-              {item.label}
-            </span>
+            <Tooltip delayDuration={isCollapsed ? 0 : 200}>
+              <TooltipTrigger asChild>
+                <a
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg py-2 transition-all hover:text-primary outline-none w-full',
+                    isActive
+                      ? 'bg-muted text-primary font-medium'
+                      : 'text-muted-foreground',
+                    isCollapsed
+                      ? 'h-9 w-9 justify-center p-0'
+                      : 'px-3 justify-start'
+                  )}
+                >
+                  <item.icon className="h-5 w-5 shrink-0" />
+                  <span className={cn("truncate", isCollapsed && "sr-only")}>
+                    {item.label}
+                  </span>
+                </a>
+              </TooltipTrigger>
+              <TooltipContent side="right" sideOffset={10}>
+                {item.label}
+              </TooltipContent>
+            </Tooltip>
           </Link>
-        );
-
-        // Só usa Tooltip quando colapsado (arquitetura mais segura)
-        if (!isCollapsed) {
-          return (
-            <React.Fragment key={item.href}>
-              {linkElement}
-            </React.Fragment>
-          );
-        }
-
-        return (
-          <Tooltip key={item.href} delayDuration={200}>
-            <TooltipTrigger asChild>
-              {linkElement}
-            </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={10}>
-              {item.label}
-            </TooltipContent>
-          </Tooltip>
         );
       })}
     </nav>
