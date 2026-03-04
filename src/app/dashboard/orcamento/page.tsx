@@ -55,42 +55,9 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { formatCurrency, formatNumber } from '@/lib/utils';
+import { formatCurrency, formatNumber, getCleanedCliente } from '@/lib/utils';
 import { BudgetDetailsModal } from './_components/budget-details-modal';
 import { StatusUpdateDialog } from './_components/status-update-dialog';
-
-
-/**
- * Limpa e migra um objeto de cliente de qualquer estrutura (antiga ou nova)
- * para a estrutura ClienteData mais recente e consistente.
- * @param clienteData O objeto de cliente bruto do banco de dados.
- * @param defaultUserId O ID do usuário para usar como fallback.
- * @returns Um objeto ClienteData limpo e seguro para uso.
- */
-const getCleanedCliente = (clienteData: any, defaultUserId: string): ClienteData => {
-  const baseCliente = (typeof clienteData === 'object' && clienteData !== null) 
-    ? clienteData 
-    : {};
-
-  let telefones: Telefone[] = [];
-
-  if (Array.isArray(baseCliente.telefones) && baseCliente.telefones.length > 0) {
-    telefones = baseCliente.telefones;
-  } 
-  else if (typeof baseCliente.telefone === 'string' && baseCliente.telefone) {
-    telefones = [{ nome: 'Principal', numero: baseCliente.telefone, principal: true }];
-  }
-
-  return {
-    id: baseCliente.id || 'unknown-client-id',
-    userId: baseCliente.userId || defaultUserId,
-    nome: baseCliente.nome || 'Cliente Desconhecido',
-    telefones: telefones,
-    cpfCnpj: baseCliente.cpfCnpj || '',
-    email: baseCliente.email || '',
-    endereco: baseCliente.endereco || '',
-  };
-};
 
 
 export default function OrcamentoPage() {

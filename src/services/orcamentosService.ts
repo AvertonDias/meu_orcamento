@@ -11,6 +11,7 @@ import { db as dexieDB } from '@/lib/dexie';
 import type { Orcamento, ClienteData } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 import { auth } from '@/lib/firebase';
+import { getCleanedCliente } from '@/lib/utils';
 
 // --- Funções que interagem com o Dexie (local) ---
 
@@ -81,38 +82,29 @@ export const updateOrcamento = async (orcamentoId: string, orcamento: Partial<Or
     const existing = await dexieDB.orcamentos.get(orcamentoId);
     if (!existing) throw new Error("Orçamento não encontrado para atualização.");
     
-    // Merge existing data with the partial update
-    const combinedData = { ...existing.data, ...orcamento };
+    // Create a new clean data object by merging. The `orcamento` partial from the UI has precedence.
+    const mergedData = { ...existing.data, ...orcamento };
 
-    // Reconstruct the object to ensure a clean structure and remove any old flattened properties.
+    // Reconstruct the object to ensure a clean structure, removing any flattened properties
     const finalData: Orcamento = {
       id: orcamentoId,
       userId: existing.data.userId,
-      numeroOrcamento: combinedData.numeroOrcamento,
-      cliente: combinedData.cliente,
-      itens: combinedData.itens,
-      totalVenda: combinedData.totalVenda,
+      numeroOrcamento: mergedData.numeroOrcamento,
+      // The `orcamento` partial update should contain the full, correct client object after editing
+      // We use it as the source of truth, cleaning it for safety.
+      cliente: getCleanedCliente(mergedData.cliente, existing.data.userId), 
+      itens: mergedData.itens,
+      totalVenda: mergedData.totalVenda,
       dataCriacao: existing.data.dataCriacao, // Never update creation date
-      status: combinedData.status,
-      validadeDias: combinedData.validadeDias,
-      observacoes: combinedData.observacoes || '',
-      observacoesInternas: combinedData.observacoesInternas || '',
-      dataAceite: combinedData.dataAceite,
-      dataRecusa: combinedData.dataRecusa,
-      dataConclusao: combinedData.dataConclusao,
-      notificacaoVencimentoEnviada: combinedData.notificacaoVencimentoEnviada,
+      status: mergedData.status,
+      validadeDias: mergedData.validadeDias,
+      observacoes: mergedData.observacoes || '',
+      observacoesInternas: mergedData.observacoesInternas || '',
+      dataAceite: mergedData.dataAceite,
+      dataRecusa: mergedData.dataRecusa,
+      dataConclusao: mergedData.dataConclusao,
+      notificacaoVencimentoEnviada: mergedData.notificacaoVencimentoEnviada,
     };
-
-    // Final sanity check on the nested client object
-    if (finalData.cliente) {
-      finalData.cliente.cpfCnpj = finalData.cliente.cpfCnpj || '';
-      finalData.cliente.email = finalData.cliente.email || '';
-      finalData.cliente.endereco = finalData.cliente.endereco || '';
-    } else {
-        // If for some reason client is missing, create a placeholder to avoid errors
-        finalData.cliente = { id: '', userId: existing.data.userId, nome: 'Cliente não encontrado', telefones: [] };
-    }
-
 
     await dexieDB.orcamentos.put({
       ...existing,
@@ -139,24 +131,47 @@ export const updateOrcamentoStatus = async (
     const existing = await dexieDB.orcamentos.get(budgetId);
     if (!existing) throw new Error("Orçamento não encontrado.");
 
-    const updatedData = { ...existing.data, status, ...payload };
+    const mergedData = { ...existing.data, status, ...payload };
 
     if (status === 'Pendente') {
-        updatedData.dataAceite = null;
-        updatedData.dataRecusa = null;
-        updatedData.dataConclusao = null;
+        mergedData.dataAceite = null;
+        mergedData.dataRecusa = null;
+        mergedData.dataConclusao = null;
     } else if (status === 'Aceito') {
-        updatedData.dataRecusa = null;
-        updatedData.dataConclusao = null;
+        mergedData.dataRecusa = null;
+        mergedData.dataConclusao = null;
     } else if (status === 'Recusado') {
-        updatedData.dataAceite = null;
-        updatedData.dataConclusao = null;
+        mergedData.dataAceite = null;
+        mergedData.dataConclusao = null;
     }
+    
+    const clienteSource = (mergedData.cliente && typeof mergedData.cliente === 'object' && Object.keys(mergedData.cliente).length > 0)
+        ? mergedData.cliente
+        : mergedData;
+    const finalCliente = getCleanedCliente(clienteSource, existing.data.userId);
 
+    // Reconstruct to ensure clean data
+    const finalData: Orcamento = {
+        id: budgetId,
+        userId: existing.data.userId,
+        numeroOrcamento: mergedData.numeroOrcamento,
+        cliente: finalCliente,
+        itens: mergedData.itens,
+        totalVenda: mergedData.totalVenda,
+        dataCriacao: mergedData.dataCriacao,
+        status: mergedData.status,
+        validadeDias: mergedData.validadeDias,
+        observacoes: mergedData.observacoes || '',
+        observacoesInternas: mergedData.observacoesInternas || '',
+        dataAceite: mergedData.dataAceite,
+        dataRecusa: mergedData.dataRecusa,
+        dataConclusao: mergedData.dataConclusao,
+        notificacaoVencimentoEnviada: mergedData.notificacaoVencimentoEnviada,
+    };
 
     await dexieDB.orcamentos.put({
         ...existing,
-        data: updatedData,
+        data: finalData,
         syncStatus: 'pending',
     });
   } catch (error: any) {
