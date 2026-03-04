@@ -74,21 +74,15 @@ const getCleanedCliente = (clienteData: any, defaultUserId: string): ClienteData
 
   let telefones: Telefone[] = [];
 
-  // Verifica a estrutura nova primeiro
   if (Array.isArray(baseCliente.telefones) && baseCliente.telefones.length > 0) {
     telefones = baseCliente.telefones;
   } 
-  // Verifica a estrutura antiga (telefone como string) e a converte
   else if (typeof baseCliente.telefone === 'string' && baseCliente.telefone) {
     telefones = [{ nome: 'Principal', numero: baseCliente.telefone, principal: true }];
   }
 
-  // Remove o campo 'telefone' antigo para evitar inconsistências
-  const { telefone, ...restOfClienteData } = baseCliente;
-
   return {
-    ...restOfClienteData,
-    id: baseCliente.id || 'unknown',
+    id: baseCliente.id || 'unknown-client-id',
     userId: baseCliente.userId || defaultUserId,
     nome: baseCliente.nome || 'Cliente Desconhecido',
     telefones: telefones,
@@ -150,13 +144,20 @@ export default function OrcamentoPage() {
     }
   
     // Handle both wrapped and flat structures
-    const data = (o.data || o) as Partial<Orcamento> & { cliente?: any };
+    const data = (o.data || o) as Partial<Orcamento> & ClienteData;
+  
+    // Build client object: check for a nested `cliente` object first, 
+    // otherwise build it from the flat `data` object itself.
+    const clienteSource = (data.cliente && typeof data.cliente === 'object' && Object.keys(data.cliente).length > 0) 
+        ? data.cliente 
+        : data;
+    const cliente = getCleanedCliente(clienteSource, o.userId);
   
     const cleanBudget: Orcamento = {
-      id: o.id, // Always use the wrapper ID as the true source
+      id: o.id,
       userId: o.userId,
       numeroOrcamento: String(data.numeroOrcamento || 'N/A'),
-      cliente: getCleanedCliente(data.cliente, o.userId), // Use a função de limpeza
+      cliente: cliente, // Use the correctly constructed client
       itens: Array.isArray(data.itens) ? data.itens : [],
       totalVenda: typeof data.totalVenda === 'number' ? data.totalVenda : 0,
       dataCriacao: typeof data.dataCriacao === 'string' ? data.dataCriacao : new Date().toISOString(),

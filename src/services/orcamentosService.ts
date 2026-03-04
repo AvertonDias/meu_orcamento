@@ -81,21 +81,42 @@ export const updateOrcamento = async (orcamentoId: string, orcamento: Partial<Or
     const existing = await dexieDB.orcamentos.get(orcamentoId);
     if (!existing) throw new Error("Orçamento não encontrado para atualização.");
     
-    const updatedData = { ...existing.data, ...orcamento };
-    
-    // Garante que campos opcionais não sejam undefined
-    if (updatedData.cliente) {
-      updatedData.cliente.cpfCnpj = updatedData.cliente.cpfCnpj || '';
-      updatedData.cliente.email = updatedData.cliente.email || '';
-      updatedData.cliente.endereco = updatedData.cliente.endereco || '';
+    // Merge existing data with the partial update
+    const combinedData = { ...existing.data, ...orcamento };
+
+    // Reconstruct the object to ensure a clean structure and remove any old flattened properties.
+    const finalData: Orcamento = {
+      id: orcamentoId,
+      userId: existing.data.userId,
+      numeroOrcamento: combinedData.numeroOrcamento,
+      cliente: combinedData.cliente,
+      itens: combinedData.itens,
+      totalVenda: combinedData.totalVenda,
+      dataCriacao: existing.data.dataCriacao, // Never update creation date
+      status: combinedData.status,
+      validadeDias: combinedData.validadeDias,
+      observacoes: combinedData.observacoes || '',
+      observacoesInternas: combinedData.observacoesInternas || '',
+      dataAceite: combinedData.dataAceite,
+      dataRecusa: combinedData.dataRecusa,
+      dataConclusao: combinedData.dataConclusao,
+      notificacaoVencimentoEnviada: combinedData.notificacaoVencimentoEnviada,
+    };
+
+    // Final sanity check on the nested client object
+    if (finalData.cliente) {
+      finalData.cliente.cpfCnpj = finalData.cliente.cpfCnpj || '';
+      finalData.cliente.email = finalData.cliente.email || '';
+      finalData.cliente.endereco = finalData.cliente.endereco || '';
+    } else {
+        // If for some reason client is missing, create a placeholder to avoid errors
+        finalData.cliente = { id: '', userId: existing.data.userId, nome: 'Cliente não encontrado', telefones: [] };
     }
-    updatedData.observacoes = updatedData.observacoes || '';
-    updatedData.observacoesInternas = updatedData.observacoesInternas || '';
 
 
     await dexieDB.orcamentos.put({
       ...existing,
-      data: updatedData,
+      data: finalData,
       syncStatus: 'pending',
     });
   } catch (error: any) {
