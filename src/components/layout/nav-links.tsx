@@ -2,6 +2,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -24,20 +25,19 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
   const { requestPermission } = usePermissionDialog();
 
   const handleLinkClick = async (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    e.preventDefault();
+    // Apenas previne a navegação padrão se houver alterações
     if (isDirty && pathname !== href) {
-      const discardChanges = await requestPermission({
-        title: "Alterações não salvas",
-        description: "Deseja descartar as alterações e sair?",
-        actionLabel: "Sair",
-        cancelLabel: "Ficar"
-      });
-      if (discardChanges) {
-        setIsDirty(false);
-        router.push(href);
-      }
-    } else if (!isDirty) {
-      router.push(href);
+        e.preventDefault();
+        const discardChanges = await requestPermission({
+            title: "Alterações não salvas",
+            description: "Deseja descartar as alterações e sair?",
+            actionLabel: "Sair",
+            cancelLabel: "Ficar"
+        });
+        if (discardChanges) {
+            setIsDirty(false);
+            router.push(href);
+        }
     }
   };
 
@@ -49,20 +49,21 @@ export const NavLinks = ({ isCollapsed }: { isCollapsed: boolean }) => {
         return (
           <Tooltip key={item.href} delayDuration={isCollapsed ? 0 : 200}>
             <TooltipTrigger asChild>
-              <a
-                href={item.href}
-                onClick={(e) => handleLinkClick(e, item.href)}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg py-2 transition-all hover:text-primary outline-none w-full',
-                  isActive ? 'bg-muted text-primary font-medium' : 'text-muted-foreground',
-                  isCollapsed ? 'h-9 w-9 justify-center p-0' : 'px-3 justify-start'
-                )}
-              >
-                <item.icon className="h-5 w-5 shrink-0" />
-                <span className={cn("truncate", isCollapsed && "sr-only")}>
-                  {item.label}
-                </span>
-              </a>
+              <Link href={item.href} legacyBehavior passHref>
+                <a
+                  onClick={(e) => handleLinkClick(e, item.href)}
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg py-2 transition-all hover:text-primary outline-none w-full',
+                    isActive ? 'bg-muted text-primary font-medium' : 'text-muted-foreground',
+                    isCollapsed ? 'h-9 w-9 justify-center p-0' : 'px-3 justify-start'
+                  )}
+                >
+                  <item.icon className="h-5 w-5 shrink-0" />
+                  <span className={cn("truncate", isCollapsed && "sr-only")}>
+                    {item.label}
+                  </span>
+                </a>
+              </Link>
             </TooltipTrigger>
             
             <TooltipContent side="right" sideOffset={10}>
