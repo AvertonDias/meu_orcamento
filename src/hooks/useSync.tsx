@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { collection, getDocs, where, query } from 'firebase/firestore';
@@ -56,10 +56,16 @@ export function useSync() {
 
   const initialPullDone = useRef(false);
 
-  const orcamentosSalvos = useLiveQuery(
+  const orcamentosFromDexie = useLiveQuery(
     () => user ? dexieDB.orcamentos.where('userId').equals(user.uid).toArray() : [],
     [user]
-  )?.map(o => o.data);
+  );
+  
+  const orcamentosSalvos = useMemo(() => {
+    if (!orcamentosFromDexie) return undefined;
+    return orcamentosFromDexie.map(o => o.data);
+  }, [orcamentosFromDexie]);
+
 
   useEffect(() => {
     setIsClient(true);
@@ -110,63 +116,85 @@ export function useSync() {
   useEffect(() => {
     if (!orcamentosSalvos || !user) return;
   
-    const now = new Date();
-  
-    orcamentosSalvos.forEach(async orc => {
-      if (!orc) return;
-      if (orc.status !== 'Pendente') return;
-  
-      const validade = Number(orc.validadeDias);
-      if (!validade) return;
-  
-      const dataCriacao = parseISO(orc.dataCriacao);
-      const dataValidade = addDays(dataCriacao, validade);
-      
-      if (isPast(dataValidade)) {
-        await updateOrcamentoStatus(orc.id, 'Vencido', {});
-        return;
-      }
-  
-      const horas = differenceInHours(dataValidade, now);
-      if (horas > 0 && horas <= 24 && !orc.notificacaoVencimentoEnviada) {
+    const checkBudgets = async () => {
+      const now = new Date();
+      // Create a stable copy to iterate over, avoiding issues with re-renders.
+      const budgetsToCheck = [...orcamentosSalvos];
 
-        const toastAction = (
-          <Button 
-            variant="secondary" 
-            size="sm"
-            onClick={() => router.push(`/dashboard/orcamento?clienteId=${orc.cliente.id}`)}
-          >
-            Ver
-          </Button>
-        );
+      for (const orc of budgetsToCheck) {
+        if (!orc || orc.status !== 'Pendente') {
+          continue;
+        }
 
-        toast({
-          title: "Orçamento prestes a vencer!",
-          description: `O orçamento #${orc.numeroOrcamento} para ${orc.cliente.nome} de ${formatCurrency(orc.totalVenda)} está próximo de expirar.`,
-          duration: 15000,
-          action: toastAction,
-        });
+        const validade = Number(orc.validadeDias);
+        // Use `!= null` to check for both null and undefined, and handle 0 days validity correctly.
+        if (orc.validadeDias == null || isNaN(validade)) {
+            continue;
+        }
 
-        if (Capacitor.isNativePlatform()) {
-          try {
-            await LocalNotifications.schedule({
-              notifications: [
-                {
-                  id: new Date().getTime(),
-                  title: 'Orçamento quase vencendo',
-                  body: `Orçamento #${orc.numeroOrcamento} para ${orc.cliente.nome}`,
-                  schedule: { at: new Date(Date.now() + 1000) },
-                },
-              ],
+        const dataCriacao = parseISO(orc.dataCriacao);
+        const dataValidade = addDays(dataCriacao, validade);
+
+        // --- Check 1: Has the budget expired? ---
+        if (isPast(dataValidade)) {
+          // This budget has expired, update its status.
+          // We `await` this to reduce race conditions if multiple updates happen.
+          await updateOrcamentoStatus(orc.id, 'Vencido', {}).catch(err => {
+            console.error(`Failed to update budget ${orc.id} to 'Vencido'`, err);
+          });
+          // Once expired, we don't need to check for notifications, so we skip to the next budget.
+          continue; 
+        }
+
+        // --- Check 2: Is the budget about to expire? ---
+        if (!orc.notificacaoVencimentoEnviada) {
+          const horasParaVencer = differenceInHours(dataValidade, now);
+
+          if (horasParaVencer > 0 && horasParaVencer <= 24) {
+            const toastAction = (
+              <Button 
+                variant="secondary" 
+                size="sm"
+                onClick={() => router.push(`/dashboard/orcamento?clienteId=${orc.cliente.id}`)}
+              >
+                Ver
+              </Button>
+            );
+
+            toast({
+              title: "Orçamento prestes a vencer!",
+              description: `O orçamento #${orc.numeroOrcamento} para ${orc.cliente.nome} de ${formatCurrency(orc.totalVenda)} está próximo de expirar.`,
+              duration: 15000,
+              action: toastAction,
             });
-          } catch(e) {
-            console.error("Erro ao agendar notificação local:", e);
+
+            if (Capacitor.isNativePlatform()) {
+              try {
+                await LocalNotifications.schedule({
+                  notifications: [
+                    {
+                      id: new Date().getTime(),
+                      title: 'Orçamento quase vencendo',
+                      body: `Orçamento #${orc.numeroOrcamento} para ${orc.cliente.nome}`,
+                      schedule: { at: new Date(Date.now() + 1000) },
+                    },
+                  ],
+                });
+              } catch(e) {
+                console.error("Erro ao agendar notificação local:", e);
+              }
+            }
+            
+            // Mark as notified to prevent repeated notifications.
+            await updateOrcamento(orc.id, { notificacaoVencimentoEnviada: true }).catch(err => {
+              console.error(`Failed to mark budget ${orc.id} as notified`, err);
+            });
           }
         }
-        
-        await updateOrcamento(orc.id, { notificacaoVencimentoEnviada: true });
       }
-    });
+    };
+  
+    checkBudgets();
   }, [orcamentosSalvos, user, toast, router]);
 
 
