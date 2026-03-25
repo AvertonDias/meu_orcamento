@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -91,20 +92,18 @@ export function SyncStatusIndicator() {
       <div className="flex items-center justify-end gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="cursor-help inline-block">
-              <Badge
-                variant={status.variant}
-                className="flex items-center gap-2"
-              >
-                {status.icon}
-                <span className="hidden sm:inline">
-                  {status.text}
-                </span>
-                {status.pulse && (
-                  <span className="ml-1 h-2 w-2 rounded-full bg-yellow-400 animate-pulse"></span>
-                )}
-              </Badge>
-            </div>
+            <Badge
+              variant={status.variant}
+              className="flex items-center gap-2 cursor-help"
+            >
+              {status.icon}
+              <span className="hidden sm:inline">
+                {status.text}
+              </span>
+              {status.pulse && (
+                <span className="ml-1 h-2 w-2 rounded-full bg-yellow-400 animate-pulse"></span>
+              )}
+            </Badge>
           </TooltipTrigger>
           <TooltipContent>
             <p>{status.tooltip}</p>
