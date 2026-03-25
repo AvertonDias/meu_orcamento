@@ -3,6 +3,7 @@ import '@/lib/firebase'; // Garante a inicialização do Firebase no início
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { ExternalLink, MessageSquare } from 'lucide-react';
 
 import { Toaster } from '@/components/ui/toaster';
 import { UnifiedThemeProvider } from '@/contexts/unified-theme-provider';
@@ -65,12 +66,14 @@ export default function RootLayout({
                   </main>
                   <footer className="py-4 px-6 text-center text-sm text-muted-foreground border-t bg-background">
                     <div className="flex justify-center items-center gap-4 flex-wrap">
-                      <a href="https://aplicativos-ton.vercel.app/" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                      <a href="https://aplicativos-ton.vercel.app/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary transition-colors">
+                        <ExternalLink className="h-4 w-4" />
                         Conheça meus aplicativos
                       </a>
                       <span className="text-muted-foreground/50 hidden sm:inline">|</span>
-                      <a href="https://wa.me/5535991210466" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
-                        Suporte via WhatsApp
+                      <a href="https://wa.me/5535991210466?text=Olá!%20Preciso%20de%20ajuda%20com%20o%20aplicativo%20Meu%20Orçamento." target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary transition-colors">
+                        <MessageSquare className="h-4 w-4" />
+                        Suporte
                       </a>
                     </div>
                   </footer>
