@@ -56,9 +56,24 @@ export default function RootLayout({
           <TooltipProvider>
             <DirtyStateProvider>
               <PermissionDialogProvider>
-                <FirebaseAuthHandler />
-                <PwaRegistry />
-                {children}
+                <div className="flex flex-col min-h-screen">
+                  <main className="flex-1 flex flex-col">
+                    <FirebaseAuthHandler />
+                    <PwaRegistry />
+                    {children}
+                  </main>
+                  <footer className="py-4 px-6 text-center text-sm text-muted-foreground border-t bg-background">
+                    <div className="flex justify-center items-center gap-4 flex-wrap">
+                      <a href="https://aplicativos-ton.vercel.app/" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                        Conheça meus aplicativos
+                      </a>
+                      <span className="text-muted-foreground/50 hidden sm:inline">|</span>
+                      <a href="https://wa.me/5535991210466" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                        Suporte via WhatsApp
+                      </a>
+                    </div>
+                  </footer>
+                </div>
                 <Toaster />
               </PermissionDialogProvider>
             </DirtyStateProvider>

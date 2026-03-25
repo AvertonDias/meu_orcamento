@@ -180,7 +180,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
      LAYOUT
   ====================================================== */
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex flex-1 w-full">
 
       <DesktopSidebar
         isCollapsed={isSidebarCollapsed}

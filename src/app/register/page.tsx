@@ -138,7 +138,7 @@ export default function RegisterPage() {
           break;
         case 'auth/unauthorized-domain':
           title = "Domínio não autorizado";
-          description = `O domínio do aplicativo não está autorizado. Adicione-o no Console do Firebase em: Authentication > Configurações > Domínios autorizados. O domínio é: ${window.location.hostname}`;
+          description = `O domínio do aplicativo não está autorizado. Adicione-o no Console do Firebase em: Authentication > Configurações > Domínios autorizados. O domínio é: ${'\'\'\''}window.location.hostname{'\'\'\'}`;
           break;
         case 'auth/account-exists-with-different-credential':
           title = "Conta já existe";
@@ -164,7 +164,7 @@ export default function RegisterPage() {
 
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="flex flex-1 items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="flex justify-center items-center flex-col gap-2 mb-4">
