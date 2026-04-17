@@ -112,12 +112,11 @@ export default function LoginPage() {
 
       switch (error.code) {
         case 'auth/permission-denied':
-          title = "Permissão Negada no Firebase";
-          description = "Sua chave de API do Firebase pode estar suspensa ou incorreta. Verifique a configuração no arquivo 'src/lib/firebase.ts' e no seu console do Firebase.";
+          title = "Acesso Negado: Chave de API Suspensa";
+          description = "A chave de API do Firebase está suspensa. Isso é um problema de configuração no Google Cloud, geralmente ligado a um perfil de pagamentos pendente ou à API 'Identity Toolkit' desativada. Verifique seu perfil de pagamentos e as APIs ativadas no console do Google Cloud.";
           break;
         case 'auth/popup-closed-by-user':
         case 'auth/cancelled-popup-request':
-           // No toast notification for user-cancelled popups
            title = '';
            description = '';
            break;
@@ -127,7 +126,7 @@ export default function LoginPage() {
           break;
         case 'auth/unauthorized-domain':
           title = "Domínio não autorizado";
-          description = `O domínio do aplicativo não está autorizado. Adicione-o no Console do Firebase em: Authentication > Configurações > Domínios autorizados. O domínio é: ${'\'\'\''}window.location.hostname{'\'\'\'}`;
+          description = `O domínio do aplicativo não está autorizado. Adicione-o no Console do Firebase em: Authentication > Configurações > Domínios autorizados. O domínio é: ${window.location.hostname}`;
           break;
         case 'auth/account-exists-with-different-credential':
           title = "Conta já existe";
@@ -143,7 +142,7 @@ export default function LoginPage() {
           title,
           description,
           variant: "destructive",
-          duration: 9000,
+          duration: 12000,
         });
       }
     } finally {
