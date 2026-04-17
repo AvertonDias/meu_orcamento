@@ -111,6 +111,10 @@ export default function LoginPage() {
       let description = "Não foi possível completar o login com o Google.";
 
       switch (error.code) {
+        case 'auth/permission-denied':
+          title = "Permissão Negada no Firebase";
+          description = "Sua chave de API do Firebase pode estar suspensa ou incorreta. Verifique a configuração no arquivo 'src/lib/firebase.ts' e no seu console do Firebase.";
+          break;
         case 'auth/popup-closed-by-user':
         case 'auth/cancelled-popup-request':
            // No toast notification for user-cancelled popups

@@ -39,7 +39,9 @@ export default function FirebaseAuthHandler() {
     } catch (error: any) {
       console.error("Erro no redirecionamento do Google:", error);
       let errorMessage = "Não foi possível fazer login com o Google.";
-      if (error.code === 'auth/account-exists-with-different-credential') {
+      if (error.code === 'auth/permission-denied') {
+        errorMessage = "Permissão Negada no Firebase: Sua chave de API pode estar suspensa ou incorreta. Verifique suas configurações no Firebase Console.";
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
         errorMessage = 'Já existe uma conta com este e-mail. Tente fazer login com outro método.';
       } else if (error.code === 'auth/unauthorized-domain') {
           errorMessage = `O domínio '${window.location.hostname}' não está autorizado para autenticação. Por favor, adicione-o na lista de 'Domínios autorizados' do seu projeto no Firebase.`;
