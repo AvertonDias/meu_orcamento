@@ -6,12 +6,12 @@ import {
 } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDiKZq6bOkazeGAbh-bpjePrOeT5EhPX_0",
-  authDomain: "gutters-budget-pro.firebaseapp.com",
-  projectId: "gutters-budget-pro",
-  storageBucket: "gutters-budget-pro.appspot.com",
-  messagingSenderId: "766057124102",
-  appId: "1:766057124102:web:a8b2ed8d064964e4980e87"
+  apiKey: "COLE_A_NOVA_CHAVE_API_AQUI",
+  authDomain: "COLE_O_NOVO_AUTH_DOMAIN_AQUI",
+  projectId: "COLE_O_NOVO_PROJECT_ID_AQUI",
+  storageBucket: "COLE_O_NOVO_STORAGE_BUCKET_AQUI",
+  messagingSenderId: "COLE_O_NOVO_MESSAGING_SENDER_ID_AQUI",
+  appId: "COLE_O_NOVO_APP_ID_AQUI"
 };
 
 const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
