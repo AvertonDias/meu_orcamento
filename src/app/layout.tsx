@@ -3,7 +3,7 @@ import '@/lib/firebase'; // Garante a inicialização do Firebase no início
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { ExternalLink, MessageSquare } from 'lucide-react';
+import { ExternalLink, MessageCircle } from 'lucide-react';
 
 import { Toaster } from '@/components/ui/toaster';
 import { UnifiedThemeProvider } from '@/contexts/unified-theme-provider';
@@ -72,7 +72,7 @@ export default function RootLayout({
                       </a>
                       <span className="text-muted-foreground/50 hidden sm:inline">|</span>
                       <a href="https://wa.me/5535991210466?text=Olá!%20Preciso%20de%20ajuda%20com%20o%20aplicativo%20Meu%20Orçamento." target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary transition-colors">
-                        <MessageSquare className="h-4 w-4" />
+                        <MessageCircle className="h-4 w-4 text-green-500" />
                         Suporte
                       </a>
                     </div>
