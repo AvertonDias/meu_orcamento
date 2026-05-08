@@ -70,13 +70,14 @@ export interface Orcamento {
   itens: OrcamentoItem[];
   totalVenda: number;
   dataCriacao: string; // ISO Date String
-  status: 'Pendente' | 'Aceito' | 'Recusado' | 'Vencido' | 'Concluído';
+  status: 'Pendente' | 'Aceito' | 'Recusado' | 'Vencido' | 'Concluído' | 'Pago';
   validadeDias: string;
   observacoes?: string;
   observacoesInternas?: string; // Novo campo para anotações internas
   dataAceite: string | null; // ISO Date String
   dataRecusa: string | null; // ISO Date String
   dataConclusao: string | null;
+  dataPagamento?: string | null; // Data em que o Pix/Pagamento foi recebido
   notificacaoVencimentoEnviada?: boolean;
 }
 

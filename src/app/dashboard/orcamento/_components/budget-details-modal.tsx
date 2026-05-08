@@ -25,7 +25,7 @@ import { formatCurrency, formatNumber } from '@/lib/utils';
 import { type VariantProps } from 'class-variance-authority';
 import { Capacitor } from '@capacitor/core';
 import { Separator } from '@/components/ui/separator';
-import { Pencil, User, Calendar, Info } from 'lucide-react';
+import { Pencil, User, Calendar, Info, Banknote } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BudgetDetailsModalProps {
@@ -40,6 +40,7 @@ const getStatusVariant = (
 ): VariantProps<typeof badgeVariants>['variant'] => {
   if (status === 'Aceito') return 'success';
   if (status === 'Concluído') return 'default';
+  if (status === 'Pago') return 'success';
   if (status === 'Recusado') return 'destructive';
   if (status === 'Vencido') return 'warning';
   return 'secondary';
@@ -60,6 +61,7 @@ export function BudgetDetailsModal({
   const dataAceite = budget.dataAceite ? parseISO(budget.dataAceite) : null;
   const dataRecusa = budget.dataRecusa ? parseISO(budget.dataRecusa) : null;
   const dataConclusao = budget.dataConclusao ? parseISO(budget.dataConclusao) : null;
+  const dataPagamento = budget.dataPagamento ? parseISO(budget.dataPagamento) : null;
 
   const handleEditClick = () => {
     onOpenChange(false);
@@ -80,11 +82,18 @@ export function BudgetDetailsModal({
               <DialogTitle className="text-xl sm:text-2xl font-bold">
                 Orçamento Nº {budget.numeroOrcamento}
               </DialogTitle>
-              <Badge variant={getStatusVariant(budget.status)} className="text-sm">
-                {budget.status}
-              </Badge>
+              <div className="flex gap-2 flex-wrap">
+                <Badge variant={getStatusVariant(budget.status)} className="text-sm">
+                  {budget.status}
+                </Badge>
+                {budget.status === 'Pago' && (
+                  <Badge variant="outline" className="border-green-600 text-green-600 gap-1">
+                    <Banknote className="h-3 w-3" /> RECEBIDO
+                  </Badge>
+                )}
+              </div>
             </div>
-            {!['Aceito', 'Concluído'].includes(budget.status) && (
+            {!['Aceito', 'Concluído', 'Pago'].includes(budget.status) && (
               <Button
                 variant="outline"
                 size="icon"
@@ -129,20 +138,25 @@ export function BudgetDetailsModal({
               </div>
             </div>
 
-            {(dataAceite || dataConclusao || dataRecusa) && (
+            {(dataAceite || dataConclusao || dataRecusa || dataPagamento) && (
               <>
                 <Separator className="bg-border/50" />
                 <div className="flex items-start gap-3">
                   <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                  <div>
-                    {dataAceite && budget.status === 'Aceito' && (
+                  <div className="space-y-1">
+                    {dataAceite && (
                       <p className="text-sm font-semibold text-green-600">
                         Aceito em: {format(dataAceite, 'dd/MM/yyyy')}
                       </p>
                     )}
-                    {dataConclusao && budget.status === 'Concluído' && (
+                    {dataConclusao && (
                       <p className="text-sm font-semibold text-primary">
                         Concluído em: {format(dataConclusao, 'dd/MM/yyyy')}
+                      </p>
+                    )}
+                    {dataPagamento && (
+                      <p className="text-sm font-bold text-green-700 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded border border-green-200 inline-block">
+                        Pago em: {format(dataPagamento, 'dd/MM/yyyy')}
                       </p>
                     )}
                     {dataRecusa && budget.status === 'Recusado' && (

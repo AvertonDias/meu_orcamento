@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, {
@@ -140,6 +141,7 @@ export default function OrcamentoPage() {
         dataAceite: data.dataAceite ?? null,
         dataRecusa: data.dataRecusa ?? null,
         dataConclusao: data.dataConclusao ?? null,
+        dataPagamento: data.dataPagamento ?? null,
         notificacaoVencimentoEnviada: !!data.notificacaoVencimentoEnviada,
       };
       return cleanBudget;
@@ -169,7 +171,7 @@ export default function OrcamentoPage() {
 
   const [statusUpdateInfo, setStatusUpdateInfo] = useState<{
     budget: Orcamento;
-    status: 'Aceito' | 'Recusado' | 'Concluído';
+    status: 'Aceito' | 'Recusado' | 'Concluído' | 'Pago';
   } | null>(null);
 
 
@@ -343,7 +345,7 @@ export default function OrcamentoPage() {
 
   const handleUpdateStatus = async (
     budgetId: string,
-    status: 'Pendente' | 'Aceito' | 'Recusado' | 'Concluído'
+    status: 'Pendente' | 'Aceito' | 'Recusado' | 'Concluído' | 'Pago'
   ) => {
     try {
       if (!user || !orcamentosSalvos) return;
@@ -373,13 +375,13 @@ export default function OrcamentoPage() {
 
   const handleSaveStatusUpdate = async (
     budgetId: string,
-    status: 'Aceito' | 'Recusado' | 'Concluído',
+    status: 'Aceito' | 'Recusado' | 'Concluído' | 'Pago',
     date: Date
   ) => {
     try {
       if (!user || !orcamentosSalvos) return;
       
-      const payload: { dataAceite?: string | null, dataRecusa?: string | null, dataConclusao?: string | null } = {};
+      const payload: { dataAceite?: string | null, dataRecusa?: string | null, dataConclusao?: string | null, dataPagamento?: string | null } = {};
   
       if (status === 'Aceito') {
         payload.dataAceite = date.toISOString();
@@ -387,6 +389,8 @@ export default function OrcamentoPage() {
         payload.dataRecusa = date.toISOString();
       } else if (status === 'Concluído') {
         payload.dataConclusao = date.toISOString();
+      } else if (status === 'Pago') {
+        payload.dataPagamento = date.toISOString();
       }
       
       await updateOrcamentoStatus(budgetId, status, payload);

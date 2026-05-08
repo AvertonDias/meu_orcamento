@@ -23,7 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   FileText, Pencil, MessageCircle,
   CheckCircle2, XCircle, Trash2,
-  MoreVertical, FileSignature, RefreshCcw, CheckCheck, QrCode
+  MoreVertical, FileSignature, RefreshCcw, CheckCheck, QrCode, Banknote
 } from 'lucide-react';
 import { addDays, format, parseISO } from 'date-fns';
 import { formatCurrency, formatNumber } from '@/lib/utils';
@@ -48,7 +48,7 @@ interface BudgetListProps {
   empresa: EmpresaData | null;
   onUpdateStatus: (
     budgetId: string,
-    status: 'Pendente' | 'Aceito' | 'Recusado' | 'Concluído'
+    status: 'Pendente' | 'Aceito' | 'Recusado' | 'Concluído' | 'Pago'
   ) => Promise<void>;
   onDelete: (budgetId: string) => void;
   onEdit: (budget: Orcamento) => void;
@@ -130,6 +130,7 @@ export function BudgetList({
   ): VariantProps<typeof badgeVariants>['variant'] => {
     if (status === 'Aceito') return 'success';
     if (status === 'Concluído') return 'default';
+    if (status === 'Pago') return 'success';
     if (status === 'Recusado') return 'destructive';
     if (status === 'Vencido') return 'warning';
     return 'secondary';
@@ -172,7 +173,7 @@ export function BudgetList({
         orcamento: orcamento,
       });
     } else {
-      openWhatsApp(orcamento, phones[0].numero);
+      openWhatsApp(phones[0].numero);
     }
   };
 
@@ -251,14 +252,20 @@ export function BudgetList({
         {budgets.map(o => (
           <Card
             key={o.id}
-            className="hover:border-primary/50 transition-colors relative"
+            className="hover:border-primary/50 transition-colors relative overflow-hidden"
           >
+            {o.status === 'Pago' && (
+               <div className="absolute top-0 right-0 p-1 pr-10 z-0">
+                  <Badge variant="success" className="opacity-20 transform rotate-12 text-xl py-0 px-2 font-black border-2 border-green-600">PAGO</Badge>
+               </div>
+            )}
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute top-2 right-2 h-8 w-8"
+                  className="absolute top-2 right-2 h-8 w-8 z-10"
                   onClick={e => e.stopPropagation()}
                   aria-label="Ações do orçamento"
                 >
@@ -266,7 +273,7 @@ export function BudgetList({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" side="bottom" onClick={(e) => e.stopPropagation()}>
-                <DropdownMenuItem onClick={() => onEdit(o)} disabled={['Aceito', 'Concluído'].includes(o.status)}>
+                <DropdownMenuItem onClick={() => onEdit(o)} disabled={['Aceito', 'Concluído', 'Pago'].includes(o.status)}>
                   <Pencil className="mr-2 h-4 w-4" />
                   <span>Editar</span>
                 </DropdownMenuItem>
@@ -275,7 +282,7 @@ export function BudgetList({
                   <MessageCircle className="mr-2 h-4 w-4" /> Enviar WhatsApp
                 </DropdownMenuItem>
 
-                {['Aceito', 'Concluído'].includes(o.status) && (
+                {['Aceito', 'Concluído', 'Pago'].includes(o.status) && (
                   <DropdownMenuItem onClick={() => onShowPix(o)}>
                     <QrCode className="mr-2 h-4 w-4" /> Ver Pix
                   </DropdownMenuItem>
@@ -295,6 +302,9 @@ export function BudgetList({
                   <DropdownMenuSubTrigger><FileSignature className="mr-2 h-4 w-4" /> Alterar Status</DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent>
+                      <DropdownMenuItem onClick={() => onUpdateStatus(o.id, 'Pago')}>
+                        <Banknote className="mr-2 h-4 w-4 text-green-600" /> Confirmar Pagamento
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onUpdateStatus(o.id, 'Concluído')}>
                         <CheckCheck className="mr-2 h-4 w-4 text-primary" /> Marcar como Concluído
                       </DropdownMenuItem>
@@ -328,25 +338,47 @@ export function BudgetList({
                 </div>
                 <div className="flex items-center justify-between">
                    <p className="text-sm text-muted-foreground">Nº {o.numeroOrcamento}</p>
-                   {['Aceito', 'Concluído'].includes(o.status) && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-7 w-7 border-primary/30 text-primary hover:bg-primary/10"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onShowPix(o);
-                            }}
-                          >
-                            <QrCode className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Gerar QR Code Pix</p>
-                        </TooltipContent>
-                      </Tooltip>
+                   {['Aceito', 'Concluído', 'Pago'].includes(o.status) && (
+                      <div className="flex gap-2">
+                        {o.status !== 'Pago' && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-7 w-7 border-green-600/30 text-green-600 hover:bg-green-600/10"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onUpdateStatus(o.id, 'Pago');
+                                }}
+                              >
+                                <Banknote className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Confirmar Pagamento</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-7 w-7 border-primary/30 text-primary hover:bg-primary/10"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onShowPix(o);
+                              }}
+                            >
+                              <QrCode className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Gerar QR Code Pix</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                    )}
                 </div>
               </div>
@@ -354,7 +386,11 @@ export function BudgetList({
               <div className="flex items-end justify-between mt-2">
                 <div className="flex flex-col text-sm text-muted-foreground">
                     <span>Criação: {format(parseISO(o.dataCriacao), 'dd/MM/yy')}</span>
-                    <span>Venc.: {format(addDays(parseISO(o.dataCriacao), Number(o.validadeDias)), 'dd/MM/yy')}</span>
+                    {o.status === 'Pago' && o.dataPagamento ? (
+                       <span className="text-green-600 font-medium">Pago em: {format(parseISO(o.dataPagamento), 'dd/MM/yy')}</span>
+                    ) : (
+                       <span>Venc.: {format(addDays(parseISO(o.dataCriacao), Number(o.validadeDias)), 'dd/MM/yy')}</span>
+                    )}
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">Total</p>

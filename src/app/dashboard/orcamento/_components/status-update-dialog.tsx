@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -21,8 +22,8 @@ import { ptBR } from 'date-fns/locale';
 interface StatusUpdateDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  updateInfo: { budget: Orcamento; status: 'Aceito' | 'Recusado' | 'Concluído' } | null;
-  onSave: (budgetId: string, status: 'Aceito' | 'Recusado' | 'Concluído', date: Date) => Promise<void>;
+  updateInfo: { budget: Orcamento; status: 'Aceito' | 'Recusado' | 'Concluído' | 'Pago' } | null;
+  onSave: (budgetId: string, status: 'Aceito' | 'Recusado' | 'Concluído' | 'Pago', date: Date) => Promise<void>;
 }
 
 const statusConfig = {
@@ -40,6 +41,11 @@ const statusConfig = {
     title: 'Marcar Orçamento como Concluído',
     description: 'Selecione a data em que o serviço foi concluído.',
     dateField: 'dataConclusao',
+  },
+  Pago: {
+    title: 'Confirmar Recebimento do Pagamento',
+    description: 'Selecione a data em que o valor foi recebido em sua conta.',
+    dateField: 'dataPagamento',
   },
 };
 
@@ -64,7 +70,7 @@ export function StatusUpdateDialog({ isOpen, onOpenChange, updateInfo, onSave }:
     } else {
       setSelectedDate(new Date());
     }
-  }, [isOpen, updateInfo?.budget?.id]);
+  }, [isOpen, updateInfo?.budget?.id, updateInfo?.status]);
 
   const handleSave = async () => {
     if (!updateInfo || !selectedDate) {
@@ -78,16 +84,12 @@ export function StatusUpdateDialog({ isOpen, onOpenChange, updateInfo, onSave }:
   
     const { budget, status } = updateInfo;
   
-    // 🔴 VALIDAÇÃO CRÍTICA
     if (!budget?.id || typeof budget.id !== 'string') {
-      console.error("StatusUpdateDialog tentou salvar sem ID:", budget);
-      
       toast({
         title: 'Erro interno',
         description: 'Orçamento sem ID válido.',
         variant: 'destructive'
       });
-  
       return;
     }
   
@@ -105,30 +107,16 @@ export function StatusUpdateDialog({ isOpen, onOpenChange, updateInfo, onSave }:
     setIsSaving(true);
   
     try {
-  
-      console.log("Salvando status:", {
-        id: budget.id,
-        status,
-        date: selectedDate
-      });
-  
       await onSave(budget.id, status, selectedDate);
-  
       onOpenChange(false);
-  
     } catch (error: any) {
-  
       console.error("Erro ao salvar status:", error);
-  
       toast({
         title: 'Erro ao salvar',
         variant: 'destructive'
       });
-  
     } finally {
-  
       setIsSaving(false);
-  
     }
   };
 
@@ -161,7 +149,7 @@ export function StatusUpdateDialog({ isOpen, onOpenChange, updateInfo, onSave }:
         <DialogFooter>
           <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button type="button" onClick={handleSave} disabled={isSaving || !selectedDate}>
-            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Salvar'}
+            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Confirmar'}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { db as firestoreDB } from '@/lib/firebase';
@@ -42,10 +43,9 @@ export const addOrcamento = async (orcamento: Omit<Orcamento, 'id'>): Promise<st
     throw new Error('Dados do orçamento ou cliente inválidos.');
   }
 
-  // Se o cliente é novo (não tem ID), o ID será o do novo documento criado no addCliente
   const clienteData: ClienteData = {
     ...orcamento.cliente,
-    id: orcamento.cliente.id || uuidv4(), // Garante um ID se não houver
+    id: orcamento.cliente.id || uuidv4(), 
     userId: orcamento.userId,
     cpfCnpj: orcamento.cliente.cpfCnpj || '',
     email: orcamento.cliente.email || '',
@@ -60,6 +60,7 @@ export const addOrcamento = async (orcamento: Omit<Orcamento, 'id'>): Promise<st
     observacoes: orcamento.observacoes || '',
     observacoesInternas: orcamento.observacoesInternas || '',
     dataConclusao: null,
+    dataPagamento: null,
   };
 
   await dexieDB.orcamentos.put({
@@ -82,20 +83,16 @@ export const updateOrcamento = async (orcamentoId: string, orcamento: Partial<Or
     const existing = await dexieDB.orcamentos.get(orcamentoId);
     if (!existing) throw new Error("Orçamento não encontrado para atualização.");
     
-    // Create a new clean data object by merging. The `orcamento` partial from the UI has precedence.
     const mergedData = { ...existing.data, ...orcamento };
 
-    // Reconstruct the object to ensure a clean structure, removing any flattened properties
     const finalData: Orcamento = {
       id: orcamentoId,
       userId: existing.data.userId,
       numeroOrcamento: mergedData.numeroOrcamento,
-      // The `orcamento` partial update should contain the full, correct client object after editing
-      // We use it as the source of truth, cleaning it for safety.
       cliente: getCleanedCliente(mergedData.cliente, existing.data.userId), 
       itens: mergedData.itens,
       totalVenda: mergedData.totalVenda,
-      dataCriacao: existing.data.dataCriacao, // Never update creation date
+      dataCriacao: existing.data.dataCriacao, 
       status: mergedData.status,
       validadeDias: mergedData.validadeDias,
       observacoes: mergedData.observacoes || '',
@@ -103,6 +100,7 @@ export const updateOrcamento = async (orcamentoId: string, orcamento: Partial<Or
       dataAceite: mergedData.dataAceite,
       dataRecusa: mergedData.dataRecusa,
       dataConclusao: mergedData.dataConclusao,
+      dataPagamento: mergedData.dataPagamento,
       notificacaoVencimentoEnviada: mergedData.notificacaoVencimentoEnviada,
     };
 
@@ -137,12 +135,14 @@ export const updateOrcamentoStatus = async (
         mergedData.dataAceite = null;
         mergedData.dataRecusa = null;
         mergedData.dataConclusao = null;
+        mergedData.dataPagamento = null;
     } else if (status === 'Aceito') {
         mergedData.dataRecusa = null;
-        mergedData.dataConclusao = null;
+        // Não limpa conclusão ou pagamento caso já existam
     } else if (status === 'Recusado') {
         mergedData.dataAceite = null;
         mergedData.dataConclusao = null;
+        mergedData.dataPagamento = null;
     }
     
     const clienteSource = (mergedData.cliente && typeof mergedData.cliente === 'object' && Object.keys(mergedData.cliente).length > 0)
@@ -150,7 +150,6 @@ export const updateOrcamentoStatus = async (
         : mergedData;
     const finalCliente = getCleanedCliente(clienteSource, existing.data.userId);
 
-    // Reconstruct to ensure clean data
     const finalData: Orcamento = {
         id: budgetId,
         userId: existing.data.userId,
@@ -166,6 +165,7 @@ export const updateOrcamentoStatus = async (
         dataAceite: mergedData.dataAceite,
         dataRecusa: mergedData.dataRecusa,
         dataConclusao: mergedData.dataConclusao,
+        dataPagamento: mergedData.dataPagamento,
         notificacaoVencimentoEnviada: mergedData.notificacaoVencimentoEnviada,
     };
 
@@ -199,7 +199,6 @@ export const deleteOrcamento = async (orcamentoId: string) => {
 
 export const syncOrcamentoToFirestore = async (orcamentoData: Orcamento) => {
   const orcamentoDocRef = doc(firestoreDB, 'orcamentos', orcamentoData.id);
-  // Limpeza de valores undefined antes de enviar para o Firestore
   const cleanData = JSON.parse(JSON.stringify(orcamentoData, (key, value) => 
     (value === undefined ? null : value)
   ));
