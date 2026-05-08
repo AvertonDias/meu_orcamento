@@ -17,7 +17,6 @@ export interface EmpresaData {
   logo?: string;
   fcmToken?: string; 
   whatsappMessage?: string;
-  whatsappPixMessage?: string; // Nova mensagem personalizada para Pix
   chavePix?: string; // Chave Pix para recebimento (Legado)
   pixCidade?: string; // Cidade da conta Pix (Legado)
   chavesPix: PixKey[]; // Nova estrutura para múltiplas chaves

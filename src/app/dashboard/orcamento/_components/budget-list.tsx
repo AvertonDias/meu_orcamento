@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -22,7 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   FileText, Pencil, MessageCircle,
   CheckCircle2, XCircle, Trash2,
-  MoreVertical, FileSignature, RefreshCcw, CheckCheck, QrCode, Share2
+  MoreVertical, FileSignature, RefreshCcw, CheckCheck, QrCode
 } from 'lucide-react';
 import { addDays, format, parseISO } from 'date-fns';
 import { formatCurrency, formatNumber } from '@/lib/utils';
@@ -40,7 +41,6 @@ import {
 } from '@/components/ui/tooltip';
 import { type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
-import { generatePixPayload } from '@/lib/pix-utils';
 
 interface BudgetListProps {
   isLoading: boolean;
@@ -123,8 +123,7 @@ export function BudgetList({
     open: boolean;
     phones: Telefone[];
     orcamento: Orcamento | null;
-    type: 'budget' | 'pix';
-  }>({ open: false, phones: [], orcamento: null, type: 'budget' });
+  }>({ open: false, phones: [], orcamento: null });
 
   const getStatusVariant = (
     status: Orcamento['status']
@@ -137,60 +136,27 @@ export function BudgetList({
   };
 
   /* ---------------- WHATSAPP ---------------- */
-  const openWhatsApp = (orcamento: Orcamento, phone: string, type: 'budget' | 'pix') => {
+  const openWhatsApp = (orcamento: Orcamento, phone: string) => {
     const cleanPhone = `55${phone.replace(/\D/g, '')}`;
 
-    let text = '';
+    const defaultText = 'Olá {Nome do Cliente}!\n\nSegue seu orçamento {Nº do Orçamento}:\n\n{Detalhes do Orçamento}\n\nTOTAL: {Valor Total}\n\nQualquer dúvida, estou à disposição!\n\n{Nome da Empresa}';
+    
+    let text = empresa?.whatsappMessage || defaultText;
 
-    if (type === 'budget') {
-        const defaultText = 'Olá {Nome do Cliente}!\n\nSegue seu orçamento {Nº do Orçamento}:\n\n{Detalhes do Orçamento}\n\nTOTAL: {Valor Total}\n\nQualquer dúvida, estou à disposição!\n\n{Nome da Empresa}';
-        
-        text = empresa?.whatsappMessage || defaultText;
+    const detalhes = orcamento.itens.map(item => 
+      `- ${item.materialNome} (Qtd: ${formatNumber(item.quantidade, 2)} ${item.unidade})`
+    ).join('\n');
 
-        const detalhes = orcamento.itens.map(item => 
-          `- ${item.materialNome} (Qtd: ${formatNumber(item.quantidade, 2)} ${item.unidade})`
-        ).join('\n');
-
-        text = text.replace(/{Nome do Cliente}/g, orcamento.cliente.nome);
-        text = text.replace(/{Nº do Orçamento}/g, orcamento.numeroOrcamento);
-        text = text.replace(/{Detalhes do Orçamento}/g, detalhes);
-        text = text.replace(/{Valor Total}/g, formatCurrency(orcamento.totalVenda));
-        text = text.replace(/{Nome da Empresa}/g, empresa?.nome || 'Nossa Empresa');
-    } else {
-        const principalPix = empresa?.chavesPix?.find(k => k.principal) || empresa?.chavesPix?.[0];
-        const activeChave = principalPix?.chave || empresa?.chavePix;
-        const activeCidade = principalPix?.cidade || empresa?.pixCidade || 'CIDADE';
-
-        if (!activeChave) {
-            toast({ title: 'Chave Pix não configurada!', variant: 'destructive' });
-            return;
-        }
-
-        const defaultPixText = 'Olá {Nome do Cliente}!\n\nSegue o código Pix (Copia e Cola) para o pagamento do orçamento Nº {Nº do Orçamento}:\n\n{Código Pix}\n\nValor: {Valor Total}\n\n{Nome da Empresa}';
-        text = empresa?.whatsappPixMessage || defaultPixText;
-
-        const orcId = `ORC${orcamento.numeroOrcamento.replace(/[^0-9]/g, '')}`;
-
-        const payload = generatePixPayload({
-            chave: activeChave,
-            beneficiario: empresa?.nome || 'Empresa',
-            cidade: activeCidade,
-            valor: orcamento.totalVenda,
-            identificador: orcId,
-        });
-
-        text = text.replace(/{Nome do Cliente}/g, orcamento.cliente.nome);
-        text = text.replace(/{Nº do Orçamento}/g, orcamento.numeroOrcamento);
-        text = text.replace(/{Código Pix}/g, payload);
-        text = text.replace(/{Valor Total}/g, formatCurrency(orcamento.totalVenda));
-        text = text.replace(/{Nome da Empresa}/g, empresa?.nome || 'Nossa Empresa');
-    }
-
+    text = text.replace(/{Nome do Cliente}/g, orcamento.cliente.nome);
+    text = text.replace(/{Nº do Orçamento}/g, orcamento.numeroOrcamento);
+    text = text.replace(/{Detalhes do Orçamento}/g, detalhes);
+    text = text.replace(/{Valor Total}/g, formatCurrency(orcamento.totalVenda));
+    text = text.replace(/{Nome da Empresa}/g, empresa?.nome || 'Nossa Empresa');
 
     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`, '_blank');
   };
   
-  const sendWhatsApp = (orcamento: Orcamento, type: 'budget' | 'pix' = 'budget') => {
+  const sendWhatsApp = (orcamento: Orcamento) => {
     const phones = orcamento.cliente.telefones?.filter(t => t.numero) ?? [];
 
     if (phones.length === 0) {
@@ -204,18 +170,17 @@ export function BudgetList({
         open: true,
         phones,
         orcamento: orcamento,
-        type: type,
       });
     } else {
-      openWhatsApp(orcamento, phones[0].numero, type);
+      openWhatsApp(orcamento, phones[0].numero);
     }
   };
 
   const handleConfirmPhone = () => {
       if (phoneDialog.orcamento && selectedPhone) {
-          openWhatsApp(phoneDialog.orcamento, selectedPhone, phoneDialog.type);
+          openWhatsApp(phoneDialog.orcamento, selectedPhone);
       }
-      setPhoneDialog({ open: false, phones: [], orcamento: null, type: 'budget' });
+      setPhoneDialog({ open: false, phones: [], orcamento: null });
   }
 
 
@@ -276,7 +241,7 @@ export function BudgetList({
           </RadioGroup>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPhoneDialog({ open: false, phones: [], orcamento: null, type: 'budget' })}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setPhoneDialog({ open: false, phones: [], orcamento: null })}>Cancelar</Button>
             <Button onClick={handleConfirmPhone}>Confirmar Envio</Button>
           </DialogFooter>
         </DialogContent>
@@ -306,21 +271,9 @@ export function BudgetList({
                   <span>Editar</span>
                 </DropdownMenuItem>
                 
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger><MessageCircle className="mr-2 h-4 w-4" /> Enviar WhatsApp</DropdownMenuSubTrigger>
-                  <DropdownMenuPortal>
-                    <DropdownMenuSubContent>
-                      <DropdownMenuItem onClick={() => sendWhatsApp(o, 'budget')}>
-                        <FileText className="mr-2 h-4 w-4" /> Enviar Orçamento
-                      </DropdownMenuItem>
-                      {['Aceito', 'Concluído'].includes(o.status) && (
-                        <DropdownMenuItem onClick={() => sendWhatsApp(o, 'pix')}>
-                          <Share2 className="mr-2 h-4 w-4" /> Enviar Pix (Copia e Cola)
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuSubContent>
-                  </DropdownMenuPortal>
-                </DropdownMenuSub>
+                <DropdownMenuItem onClick={() => sendWhatsApp(o)}>
+                  <MessageCircle className="mr-2 h-4 w-4" /> Enviar WhatsApp
+                </DropdownMenuItem>
 
                 {['Aceito', 'Concluído'].includes(o.status) && (
                   <DropdownMenuItem onClick={() => onShowPix(o)}>

@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { generatePixPayload, getPixQRCodeUrl } from '@/lib/pix-utils';
 import { formatCurrency } from '@/lib/utils';
-import { Copy, Check, QrCode, MessageCircle, ArrowRightLeft } from 'lucide-react';
+import { Copy, Check, QrCode, ArrowRightLeft } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -88,30 +88,6 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
     }
   };
 
-  const handleSendWhatsApp = () => {
-    if (!orcamento || !pixData?.payload || !empresa) return;
-
-    const phones = orcamento.cliente.telefones?.filter(t => t.numero) ?? [];
-    if (phones.length === 0) {
-        toast({ title: 'Cliente sem telefone cadastrado.', variant: 'destructive' });
-        return;
-    }
-
-    const selectedPhone = phones.find(p => p.principal)?.numero || phones[0].numero;
-    const cleanPhone = `55${selectedPhone.replace(/\D/g, '')}`;
-
-    const defaultPixText = 'Olá {Nome do Cliente}!\n\nSegue o código Pix (Copia e Cola) para o pagamento do orçamento Nº {Nº do Orçamento}:\n\n{Código Pix}\n\nValor: {Valor Total}\n\n{Nome da Empresa}';
-    let text = empresa.whatsappPixMessage || defaultPixText;
-
-    text = text.replace(/{Nome do Cliente}/g, orcamento.cliente.nome);
-    text = text.replace(/{Nº do Orçamento}/g, orcamento.numeroOrcamento);
-    text = text.replace(/{Código Pix}/g, pixData.payload);
-    text = text.replace(/{Valor Total}/g, formatCurrency(orcamento.totalVenda));
-    text = text.replace(/{Nome da Empresa}/g, empresa.nome || 'Nossa Empresa');
-
-    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`, '_blank');
-  };
-
   if (!orcamento || !empresa) return null;
 
   const hasMultipleKeys = (empresa.chavesPix?.length || 0) > 1;
@@ -126,7 +102,7 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
             Pagamento via Pix
           </DialogTitle>
           <DialogDescription>
-            Mostre o QR Code ou envie o código para o cliente.
+            Mostre o QR Code ou copie o código para o cliente.
           </DialogDescription>
         </DialogHeader>
 
@@ -190,28 +166,18 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={handleCopy}
-                    >
-                        {copied ? (
-                        <Check className="h-4 w-4 mr-2 text-green-500" />
-                        ) : (
-                        <Copy className="h-4 w-4 mr-2" />
-                        )}
-                        {copied ? 'Copiado!' : 'Copiar'}
-                    </Button>
-                    <Button
-                        variant="default"
-                        className="w-full bg-green-600 hover:bg-green-700"
-                        onClick={handleSendWhatsApp}
-                    >
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        WhatsApp
-                    </Button>
-                  </div>
+                  <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={handleCopy}
+                  >
+                      {copied ? (
+                      <Check className="h-4 w-4 mr-2 text-green-500" />
+                      ) : (
+                      <Copy className="h-4 w-4 mr-2" />
+                      )}
+                      {copied ? 'Copiado!' : 'Copiar Código Pix'}
+                  </Button>
                 </div>
               </>
             ) : (
