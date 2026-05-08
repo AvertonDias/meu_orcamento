@@ -59,9 +59,9 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
     if (!activeChave) return null;
 
     try {
-      // O TxID agora inclui o prefixo 'orcamento.' seguido do número real do orçamento.
-      // O número real do orçamento já possui o formato '001-2024'.
-      const orcId = `orcamento.${orcamento.numeroOrcamento}`;
+      // TxID estritamente alfanumérico: orcamento + numero (removendo qualquer caractere especial)
+      const orcNumClean = orcamento.numeroOrcamento.replace(/[^a-zA-Z0-9]/g, '');
+      const orcId = `orcamento${orcNumClean}`;
 
       const payload = generatePixPayload({
         chave: activeChave,
@@ -83,7 +83,17 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
 
   const handleCopy = () => {
     if (pixData?.payload) {
-      navigator.clipboard.writeText(pixData.payload);
+      // Fallback para dispositivos onde o clipboard API pode não estar disponível
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(pixData.payload);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = pixData.payload;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
       setCopied(true);
       toast({ title: 'Código Pix copiado!' });
       setTimeout(() => setCopied(false), 2000);
