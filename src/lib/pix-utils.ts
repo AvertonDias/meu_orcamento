@@ -42,14 +42,17 @@ export function generatePixPayload({
   valor,
   identificador = '***',
 }: PixConfig): string {
-  // Limpeza dos dados conforme regras do BACEN
+  // Limpeza dos dados conforme regras estritas do BACEN
   const cleanChave = chave.trim();
+  
+  // Beneficiário: Sem acentos e sem caracteres especiais
   const cleanBeneficiario = beneficiario
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-    .replace(/[^a-zA-Z0-9\s]/g, '') // Remove caracteres especiais, mantém espaços
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9\s]/g, '')
     .substring(0, 25);
     
+  // Cidade: Sem acentos e apenas letras (alguns bancos rejeitam números aqui)
   const cleanCidade = cidade
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -58,11 +61,10 @@ export function generatePixPayload({
 
   const cleanValor = valor.toFixed(2);
   
-  // TxID (Identificador) - Alfanumérico com suporte a espaços conforme solicitado.
-  // O limite máximo é de 25 caracteres.
+  // TxID (Identificador) - ESTRITAMENTE ALFANUMÉRICO (Sem espaços, sem pontos, sem hifens)
+  // O padrão do BACEN exige que seja apenas [a-zA-Z0-9] para máxima compatibilidade.
   const cleanId = identificador
-    .replace(/[^a-zA-Z0-9\s]/g, '') // Remove tudo exceto letras, números e espaços
-    .replace(/\s+/g, ' ') // Evita múltiplos espaços seguidos
+    .replace(/[^a-zA-Z0-9]/g, '') // Remove TUDO que não for letra ou número
     .substring(0, 25) || '***';
 
   const payload = [
