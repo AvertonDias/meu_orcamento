@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import Link from 'next/link';
 
 interface PixModalProps {
   isOpen: boolean;
@@ -133,7 +134,11 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
             <p className="text-xs text-muted-foreground px-4">
               Vá em <strong>Configurações > Recebimento via Pix</strong>.
             </p>
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="mt-2 w-full">Entendi</Button>
+            <Button asChild variant="outline" className="mt-2 w-full">
+              <Link href="/dashboard/configuracoes" onClick={() => onOpenChange(false)}>
+                Configurar Agora
+              </Link>
+            </Button>
           </div>
         ) : valorRestanteReal <= 0.01 ? (
           <div className="py-8 text-center space-y-4">
