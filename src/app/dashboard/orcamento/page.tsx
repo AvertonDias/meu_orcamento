@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, {
@@ -229,7 +228,12 @@ export default function OrcamentoPage() {
     }
     
     if (statusFilter !== 'todos') {
-      list = list.filter(o => o.status === statusFilter);
+      if (statusFilter === 'Parcial') {
+        // Filtra orçamentos com pagamento iniciado mas não finalizado
+        list = list.filter(o => (o.valorPago || 0) > 0 && (o.valorPago || 0) < o.totalVenda);
+      } else {
+        list = list.filter(o => o.status === statusFilter);
+      }
     }
 
     if (searchTerm) {
@@ -628,4 +632,3 @@ export default function OrcamentoPage() {
     </div>
   );
 }
-
