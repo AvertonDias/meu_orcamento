@@ -42,6 +42,7 @@ import {
   RotateCcw,
   Info,
   QrCode,
+  Share2,
 } from 'lucide-react';
 
 import { useToast } from '@/hooks/use-toast';
@@ -79,6 +80,8 @@ const initialEmpresaState: Omit<EmpresaData, 'id' | 'userId'> = {
   logo: '',
   whatsappMessage:
     'Olá {Nome do Cliente}!\n\nSegue seu orçamento {Nº do Orçamento}:\n\n{Detalhes do Orçamento}\n\nTOTAL: {Valor Total}\n\nQualquer dúvida, estou à disposição!\n\n{Nome da Empresa}',
+  whatsappPixMessage: 
+    'Olá {Nome do Cliente}!\n\nSegue o código Pix (Copia e Cola) para o pagamento do orçamento Nº {Nº do Orçamento}:\n\n{Código Pix}\n\nValor: {Valor Total}\n\n{Nome da Empresa}',
   chavePix: '',
   pixCidade: '',
 };
@@ -95,6 +98,7 @@ export default function ConfiguracoesPage() {
 
   const [initialData, setInitialData] = useState<string>('');
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
+  const pixMessageInputRef = useRef<HTMLTextAreaElement>(null);
 
   const { isDirty, setIsDirty } = useDirtyState();
 
@@ -296,8 +300,8 @@ export default function ConfiguracoesPage() {
     toast({ title: 'Logo removido' });
   };
 
-  const handleAddTagToMessage = (tag: string) => {
-    const input = messageInputRef.current;
+  const handleAddTagToMessage = (tag: string, target: 'budget' | 'pix') => {
+    const input = target === 'budget' ? messageInputRef.current : pixMessageInputRef.current;
     if (!input || !empresa) return;  
   
     const start = input.selectionStart;
@@ -306,7 +310,11 @@ export default function ConfiguracoesPage() {
   
     const newMessage = text.substring(0, start) + tag + text.substring(end);
   
-    setEmpresa({ ...empresa, whatsappMessage: newMessage });
+    if (target === 'budget') {
+        setEmpresa({ ...empresa, whatsappMessage: newMessage });
+    } else {
+        setEmpresa({ ...empresa, whatsappPixMessage: newMessage });
+    }
   
     setTimeout(() => {
       input.focus();
@@ -314,9 +322,13 @@ export default function ConfiguracoesPage() {
     }, 0);
   };
   
-  const handleResetMessage = () => {
+  const handleResetMessage = (target: 'budget' | 'pix') => {
     if (!empresa) return;
-    setEmpresa({ ...empresa, whatsappMessage: initialEmpresaState.whatsappMessage });
+    if (target === 'budget') {
+        setEmpresa({ ...empresa, whatsappMessage: initialEmpresaState.whatsappMessage });
+    } else {
+        setEmpresa({ ...empresa, whatsappPixMessage: initialEmpresaState.whatsappPixMessage });
+    }
     toast({ title: 'Mensagem restaurada para o padrão.' });
   };
 
@@ -638,47 +650,92 @@ export default function ConfiguracoesPage() {
           </CardContent>
         </Card>
 
-        {/* Mensagem WhatsApp */}
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <MessageSquare size={20} />
-                    Mensagem Padrão do WhatsApp
-                </CardTitle>
-                <CardDescription>
-                    Personalize o texto enviado ao compartilhar um orçamento.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                 <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <Label htmlFor="whatsappMessage">Texto da Mensagem</Label>
-                      <Button type="button" variant="outline" size="sm" onClick={handleResetMessage}>
-                          <RotateCcw className="mr-2 h-4 w-4" /> Restaurar Padrão
-                      </Button>
-                    </div>
-                    <Textarea
-                        id="whatsappMessage"
-                        name="whatsappMessage"
-                        ref={messageInputRef}
-                        value={empresa.whatsappMessage || ''}
-                        onChange={handleChange}
-                        rows={8}
-                        placeholder="Olá {Nome do Cliente}! Segue seu orçamento..."
-                    />
-                 </div>
-                 <div>
-                    <p className="text-sm text-muted-foreground">Tags disponíveis (clique para adicionar):</p>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                        <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Nome do Cliente}')} className="cursor-pointer">Nome do Cliente</Badge>
-                        <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Nº do Orçamento}')} className="cursor-pointer">Nº do Orçamento</Badge>
-                        <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Detalhes do Orçamento}')} className="cursor-pointer">Detalhes do Orçamento</Badge>
-                        <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Valor Total}')} className="cursor-pointer">Valor Total</Badge>
-                        <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Nome da Empresa}')} className="cursor-pointer">Nome da Empresa</Badge>
-                    </div>
-                 </div>
-            </CardContent>
-        </Card>
+        {/* Mensagens WhatsApp */}
+        <div className="grid md:grid-cols-2 gap-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                        <MessageSquare size={18} />
+                        Mensagem do Orçamento
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                        Texto enviado ao compartilhar um orçamento novo.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <Label htmlFor="whatsappMessage" className="text-xs">Texto da Mensagem</Label>
+                          <Button type="button" variant="ghost" size="sm" onClick={() => handleResetMessage('budget')} className="h-6 text-[10px]">
+                              <RotateCcw className="mr-1 h-3 w-3" /> Padrão
+                          </Button>
+                        </div>
+                        <Textarea
+                            id="whatsappMessage"
+                            name="whatsappMessage"
+                            ref={messageInputRef}
+                            value={empresa.whatsappMessage || ''}
+                            onChange={handleChange}
+                            rows={6}
+                            className="text-sm"
+                            placeholder="Olá {Nome do Cliente}! Segue seu orçamento..."
+                        />
+                     </div>
+                     <div>
+                        <p className="text-[10px] text-muted-foreground mb-1 uppercase font-bold">Tags disponíveis:</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                            <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Nome do Cliente}', 'budget')} className="cursor-pointer text-[10px] h-5">{'{Cliente}'}</Badge>
+                            <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Nº do Orçamento}', 'budget')} className="cursor-pointer text-[10px] h-5">{'{Nº}'}</Badge>
+                            <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Detalhes do Orçamento}', 'budget')} className="cursor-pointer text-[10px] h-5">{'{Itens}'}</Badge>
+                            <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Valor Total}', 'budget')} className="cursor-pointer text-[10px] h-5">{'{Total}'}</Badge>
+                            <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Nome da Empresa}', 'budget')} className="cursor-pointer text-[10px] h-5">{'{Empresa}'}</Badge>
+                        </div>
+                     </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                        <Share2 size={18} />
+                        Mensagem do Pix
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                        Texto enviado ao compartilhar o código Pix Copia e Cola.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <Label htmlFor="whatsappPixMessage" className="text-xs">Texto da Mensagem</Label>
+                          <Button type="button" variant="ghost" size="sm" onClick={() => handleResetMessage('pix')} className="h-6 text-[10px]">
+                              <RotateCcw className="mr-1 h-3 w-3" /> Padrão
+                          </Button>
+                        </div>
+                        <Textarea
+                            id="whatsappPixMessage"
+                            name="whatsappPixMessage"
+                            ref={pixMessageInputRef}
+                            value={empresa.whatsappPixMessage || ''}
+                            onChange={handleChange}
+                            rows={6}
+                            className="text-sm"
+                            placeholder="Olá {Nome do Cliente}! Segue o código Pix..."
+                        />
+                     </div>
+                     <div>
+                        <p className="text-[10px] text-muted-foreground mb-1 uppercase font-bold">Tags disponíveis:</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                            <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Nome do Cliente}', 'pix')} className="cursor-pointer text-[10px] h-5">{'{Cliente}'}</Badge>
+                            <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Código Pix}', 'pix')} className="cursor-pointer text-[10px] h-5 font-bold border-primary/50">{'{CÓDIGO PIX}'}</Badge>
+                            <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Valor Total}', 'pix')} className="cursor-pointer text-[10px] h-5">{'{Total}'}</Badge>
+                            <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Nº do Orçamento}', 'pix')} className="cursor-pointer text-[10px] h-5">{'{Nº}'}</Badge>
+                            <Badge variant="secondary" onClick={() => handleAddTagToMessage('{Nome da Empresa}', 'pix')} className="cursor-pointer text-[10px] h-5">{'{Empresa}'}</Badge>
+                        </div>
+                     </div>
+                </CardContent>
+            </Card>
+        </div>
 
         {/* Conta e Aparência */}
         <div className="grid md:grid-cols-2 gap-6">
@@ -722,7 +779,7 @@ export default function ConfiguracoesPage() {
                 <ThemeToggle />
               </div>
             </CardContent>
-          </div>
+          </Card>
         </div>
 
         {/* Salvar */}

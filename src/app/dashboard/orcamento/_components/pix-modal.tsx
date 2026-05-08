@@ -14,8 +14,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { generatePixPayload, getPixQRCodeUrl } from '@/lib/pix-utils';
-import { formatCurrency } from '@/lib/utils';
-import { Copy, Check, QrCode } from 'lucide-react';
+import { formatCurrency, formatNumber } from '@/lib/utils';
+import { Copy, Check, QrCode, MessageCircle } from 'lucide-react';
+import { Label } from '@/components/ui/label';
 
 interface PixModalProps {
   isOpen: boolean;
@@ -57,6 +58,31 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
       toast({ title: 'Código Pix copiado!' });
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleSendWhatsApp = () => {
+    if (!orcamento || !pixData?.payload || !empresa) return;
+
+    const phones = orcamento.cliente.telefones?.filter(t => t.numero) ?? [];
+    if (phones.length === 0) {
+        toast({ title: 'Cliente sem telefone cadastrado.', variant: 'destructive' });
+        return;
+    }
+
+    // Usa o principal ou o primeiro disponível
+    const selectedPhone = phones.find(p => p.principal)?.numero || phones[0].numero;
+    const cleanPhone = `55${selectedPhone.replace(/\D/g, '')}`;
+
+    const defaultPixText = 'Olá {Nome do Cliente}!\n\nSegue o código Pix (Copia e Cola) para o pagamento do orçamento Nº {Nº do Orçamento}:\n\n{Código Pix}\n\nValor: {Valor Total}\n\n{Nome da Empresa}';
+    let text = empresa.whatsappPixMessage || defaultPixText;
+
+    text = text.replace(/{Nome do Cliente}/g, orcamento.cliente.nome);
+    text = text.replace(/{Nº do Orçamento}/g, orcamento.numeroOrcamento);
+    text = text.replace(/{Código Pix}/g, pixData.payload);
+    text = text.replace(/{Valor Total}/g, formatCurrency(orcamento.totalVenda));
+    text = text.replace(/{Nome da Empresa}/g, empresa.nome || 'Nossa Empresa');
+
+    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   if (!orcamento || !empresa) return null;
@@ -101,25 +127,38 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
               />
             </div>
 
-            <div className="w-full space-y-2">
-              <Label className="text-xs text-muted-foreground uppercase tracking-wider">
-                Código Copia e Cola
-              </Label>
-              <div className="flex items-center gap-2 p-2 bg-muted rounded-md border text-[10px] font-mono break-all line-clamp-2 overflow-hidden">
-                {pixData.payload}
+            <div className="w-full space-y-3">
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
+                  Código Copia e Cola
+                </Label>
+                <div className="flex items-center gap-2 p-2 bg-muted rounded-md border text-[10px] font-mono break-all line-clamp-2 overflow-hidden">
+                  {pixData.payload}
+                </div>
               </div>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={handleCopy}
-              >
-                {copied ? (
-                  <Check className="h-4 w-4 mr-2 text-green-500" />
-                ) : (
-                  <Copy className="h-4 w-4 mr-2" />
-                )}
-                {copied ? 'Copiado!' : 'Copiar Código Pix'}
-              </Button>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleCopy}
+                >
+                    {copied ? (
+                    <Check className="h-4 w-4 mr-2 text-green-500" />
+                    ) : (
+                    <Copy className="h-4 w-4 mr-2" />
+                    )}
+                    {copied ? 'Copiado!' : 'Copiar'}
+                </Button>
+                <Button
+                    variant="default"
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    onClick={handleSendWhatsApp}
+                >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    WhatsApp
+                </Button>
+              </div>
             </div>
           </div>
         ) : (
