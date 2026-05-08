@@ -20,7 +20,6 @@ import {
   TrendingUp, 
   Clock, 
   CheckCircle2, 
-  Search, 
   Loader2,
   BarChart3,
   Lightbulb,
@@ -29,7 +28,6 @@ import {
   Zap,
   CalendarDays
 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -79,7 +77,6 @@ const chartConfig = {
 export default function FinanceiroPage() {
   const [user, loadingAuth] = useAuthState(auth);
   const [mounted, setMounted] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('all');
 
   useEffect(() => {
@@ -134,17 +131,6 @@ export default function FinanceiroPage() {
     );
   }, [orcamentosFiltradosPeriodo]);
 
-  // Filtragem por busca (para o gráfico)
-  const orcamentosFiltradosBusca = useMemo(() => {
-    if (!searchTerm) return orcamentosBase;
-    const s = searchTerm.toLowerCase();
-    return orcamentosBase.filter(
-      o =>
-        o.cliente.nome.toLowerCase().includes(s) ||
-        o.numeroOrcamento.toLowerCase().includes(s)
-    );
-  }, [orcamentosBase, searchTerm]);
-
   // Dados para o gráfico (Evolução 12 meses OU Dias do mês)
   const chartData = useMemo(() => {
     if (!mounted) return [];
@@ -163,7 +149,7 @@ export default function FinanceiroPage() {
         });
       }
 
-      orcamentosFiltradosBusca.forEach(orc => {
+      orcamentosBase.forEach(orc => {
         const dataOrc = parseISO(orc.dataCriacao);
         const total = orc.totalVenda || 0;
         const pago = orc.valorPago || 0;
@@ -196,7 +182,7 @@ export default function FinanceiroPage() {
         timestamp: startOfDay(d)
       }));
 
-      orcamentosFiltradosBusca.forEach(orc => {
+      orcamentosBase.forEach(orc => {
         const dataOrc = parseISO(orc.dataCriacao);
         if (formatDate(dataOrc, 'yyyy-MM') === selectedPeriod) {
            const dayIndex = dataOrc.getDate() - 1;
@@ -208,7 +194,7 @@ export default function FinanceiroPage() {
       });
       return data;
     }
-  }, [orcamentosFiltradosBusca, mounted, selectedPeriod]);
+  }, [orcamentosBase, mounted, selectedPeriod]);
 
   if (!mounted || loadingAuth) {
     return (
@@ -311,15 +297,6 @@ export default function FinanceiroPage() {
                     : 'Acompanhamento diário das vendas e recebimentos do mês.'}
                 </CardDescription>
               </div>
-            </div>
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Filtrar por cliente..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
             </div>
           </div>
         </CardHeader>
