@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import type { Orcamento, EmpresaData, ClienteData, Telefone } from '@/lib/types';
 import {
   Card, CardContent
@@ -23,7 +24,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   FileText, Pencil, MessageCircle,
   CheckCircle2, XCircle, Trash2,
-  MoreVertical, FileSignature, RefreshCcw, CheckCheck, QrCode, Banknote, RotateCcw
+  MoreVertical, FileSignature, RefreshCcw, CheckCheck, QrCode, Banknote, RotateCcw,
+  Building, ArrowRight
 } from 'lucide-react';
 import { addDays, format, parseISO } from 'date-fns';
 import { formatCurrency, formatNumber } from '@/lib/utils';
@@ -216,6 +218,32 @@ export function BudgetList({
 
   /* ---------------- EMPTY ---------------- */
   if (!budgets.length) {
+    const isCompanyIncomplete = !empresa?.nome || !empresa?.endereco || !empresa?.telefones?.some(t => t.numero.trim());
+
+    if (isCompanyIncomplete && !clienteFiltrado) {
+      return (
+        <Card className="border-dashed border-2 bg-muted/20">
+          <CardContent className="pt-10 pb-10 flex flex-col items-center text-center space-y-4">
+            <div className="bg-primary/10 p-4 rounded-full">
+              <Building className="h-10 w-10 text-primary" />
+            </div>
+            <div className="space-y-2 max-w-md">
+              <h3 className="text-xl font-bold">Seja bem-vindo(a)!</h3>
+              <p className="text-muted-foreground">
+                Para começar a criar orçamentos profissionais, precisamos primeiro dos dados da sua empresa (nome, endereço e telefone).
+              </p>
+            </div>
+            <Button asChild size="lg" className="mt-4">
+              <Link href="/dashboard/configuracoes">
+                Completar Dados da Empresa
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      );
+    }
+
     return (
       <Card>
         <CardContent>
@@ -465,4 +493,3 @@ export function BudgetList({
     </>
   );
 }
-
