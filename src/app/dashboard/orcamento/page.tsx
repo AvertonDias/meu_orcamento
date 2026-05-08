@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, {
@@ -98,7 +97,6 @@ export default function OrcamentoPage() {
   const orcamentosSalvos = useLiveQuery(
     () => {
       if (!user?.uid) return [];
-      // Ordena por data de criação (mais novos primeiro) diretamente na query
       return db.orcamentos
         .where('userId')
         .equals(user.uid)
@@ -108,15 +106,10 @@ export default function OrcamentoPage() {
     [user?.uid]
   )?.map(o => {
     if (!o || typeof o.id !== 'string' || !o.id) {
-      console.warn("Invalid Dexie record found and skipped:", o);
       return null;
     }
   
-    // Handle both wrapped and flat structures
     const data = (o.data || o) as Partial<Orcamento> & ClienteData;
-  
-    // Build client object: check for a nested `cliente` object first, 
-    // otherwise build it from the flat `data` object itself.
     const clienteSource = (data.cliente && typeof data.cliente === 'object' && Object.keys(data.cliente).length > 0) 
         ? data.cliente 
         : data;
@@ -126,10 +119,11 @@ export default function OrcamentoPage() {
       id: o.id,
       userId: o.userId,
       numeroOrcamento: String(data.numeroOrcamento || 'N/A'),
-      cliente: cliente, // Use the correctly constructed client
+      cliente: cliente,
       itens: Array.isArray(data.itens) ? data.itens : [],
       totalVenda: typeof data.totalVenda === 'number' ? data.totalVenda : 0,
-      dataCriacao: typeof data.dataCriacao === 'string' ? data.dataCriacao : new Date().toISOString(),
+      // Fallback para string vazia para evitar problemas de hidratação com new Date()
+      dataCriacao: typeof data.dataCriacao === 'string' ? data.dataCriacao : '',
       status: data.status || 'Pendente',
       validadeDias: String(data.validadeDias || '0'),
       observacoes: String(data.observacoes || ''),
@@ -140,7 +134,7 @@ export default function OrcamentoPage() {
       notificacaoVencimentoEnviada: !!data.notificacaoVencimentoEnviada,
     };
     return cleanBudget;
-  }).filter((o): o is Orcamento => o !== null);
+  }).filter((o): o is Orcamento => o !== null && o.dataCriacao !== '');
 
 
   const empresaArr = useLiveQuery(
@@ -244,8 +238,8 @@ export default function OrcamentoPage() {
   // =========================
 
   const handleEditBudget = (budget: Orcamento) => {
-    setViewingBudget(null); // Fecha o modal de detalhes
-    setEditingBudget(budget); // Abre o modal de edição
+    setViewingBudget(null);
+    setEditingBudget(budget);
   };
 
   const openCompanyWhatsApp = (orcamento: Orcamento, phone: string) => {
@@ -294,7 +288,6 @@ export default function OrcamentoPage() {
   
     let finalClientData: ClienteData = data.cliente;
   
-    // Se o cliente é novo (não tem ID) e o usuário optou por salvar
     if (!data.cliente.id && saveNewClient) {
       const { id, userId, ...newClientPayload } = data.cliente;
       try {
@@ -304,7 +297,7 @@ export default function OrcamentoPage() {
       } catch (error) {
         console.error("Erro ao salvar novo cliente:", error);
         toast({ title: 'Erro ao salvar o novo cliente', variant: 'destructive' });
-        return; // Aborta se não conseguir salvar o cliente
+        return;
       }
     }
     
@@ -314,7 +307,6 @@ export default function OrcamentoPage() {
       ...data,
       userId: user.uid,
       numeroOrcamento: numero,
-      // Usa o cliente final (novo ou existente)
       cliente: { ...finalClientData, userId: user.uid }, 
     };
 
@@ -359,7 +351,7 @@ export default function OrcamentoPage() {
       if (budgetToUpdate) {
         setStatusUpdateInfo({ budget: budgetToUpdate, status });
       } else {
-        throw new Error("Não foi possível localizar o orçamento para alterar o status. Tente sincronizar os dados.");
+        throw new Error("Não foi possível localizar o orçamento.");
       }
     } catch (error: any) {
       toast({
@@ -393,7 +385,6 @@ export default function OrcamentoPage() {
       const budget = orcamentosSalvos.find(o => o.id === budgetId);
     
       if (status === 'Aceito' && budget) {
-        // Atualiza estoque e coleta alertas
         const lowStockAlerts: string[] = [];
         for (const item of budget.itens) {
           if (!item.materialId.startsWith('avulso-')) {
@@ -408,7 +399,6 @@ export default function OrcamentoPage() {
           }
         }
         
-        // Exibe alertas de estoque baixo
         if (lowStockAlerts.length > 0) {
           toast({
             title: "Aviso de Estoque Baixo",
@@ -418,7 +408,6 @@ export default function OrcamentoPage() {
           });
         }
     
-        // Envia notificação para a empresa
         const companyPhones = empresa?.telefones?.filter(t => t.numero) ?? [];
         if (companyPhones.length === 1) {
           openCompanyWhatsApp(budget, companyPhones[0].numero);
@@ -454,9 +443,6 @@ export default function OrcamentoPage() {
     setStatusFilter('todos');
   };
 
-  // =========================
-  // RENDER
-  // =========================
   return (
     <div className="container mx-auto p-4 space-y-6">
       <Card>

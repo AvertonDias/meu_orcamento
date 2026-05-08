@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -16,30 +15,23 @@ import { ptBR } from 'date-fns/locale';
 
 export function SyncStatusIndicator() {
   const { isOnline, isSyncing, pendingCount, errorCount, lastSync, forceSync } = useSync();
-  const [isClient, setIsClient] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
+    setMounted(true);
   }, []);
 
-  if (!isClient) {
-    // Render a simple, non-interactive placeholder on the server to prevent hydration errors.
+  // Enquanto não estiver montado no cliente, renderizamos um placeholder neutro
+  // que será idêntico no Servidor e no Cliente (primeira passagem).
+  if (!mounted) {
     return (
-      <div className="flex items-center justify-end gap-2 h-7">
-        <div className="flex items-center gap-2 rounded-full border border-transparent bg-secondary text-secondary-foreground px-2.5 py-0.5 text-xs font-semibold">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="hidden sm:inline">
-                Carregando...
-            </span>
-        </div>
-        <div className="h-7 w-7 inline-flex items-center justify-center">
-            <RefreshCcw className="h-4 w-4" />
-        </div>
+      <div className="flex items-center justify-end gap-2 h-7" aria-hidden="true">
+        <div className="w-24 h-6 bg-muted animate-pulse rounded-full" />
+        <div className="w-7 h-7 bg-muted animate-pulse rounded-md" />
       </div>
     );
   }
   
-  // After hydration, render the actual status
   const getStatus = () => {
     if (errorCount > 0) {
       return {
