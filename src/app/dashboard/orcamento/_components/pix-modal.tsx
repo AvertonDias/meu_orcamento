@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
@@ -15,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { generatePixPayload, getPixQRCodeUrl } from '@/lib/pix-utils';
 import { formatCurrency } from '@/lib/utils';
-import { Copy, Check, QrCode, ArrowRightLeft } from 'lucide-react';
+import { Copy, Check, QrCode, ArrowRightLeft, AlertTriangle } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -83,7 +82,6 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
 
   const handleCopy = () => {
     if (pixData?.payload) {
-      // Fallback para dispositivos onde o clipboard API pode não estar disponível
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(pixData.payload);
       } else {
@@ -100,10 +98,11 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
     }
   };
 
-  if (!orcamento || !empresa) return null;
+  // Se não houver orçamento, não renderiza nada (proteção básica de estado)
+  if (!orcamento) return null;
 
-  const hasMultipleKeys = (empresa.chavesPix?.length || 0) > 1;
-  const hasPixConfig = (empresa.chavesPix && empresa.chavesPix.some(k => k.chave.trim())) || empresa.chavePix;
+  const hasMultipleKeys = (empresa?.chavesPix?.length || 0) > 1;
+  const hasPixConfig = empresa && ((empresa.chavesPix && empresa.chavesPix.some(k => k.chave.trim())) || empresa.chavePix);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -114,18 +113,26 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
             Pagamento via Pix
           </DialogTitle>
           <DialogDescription>
-            Mostre o QR Code ou copie o código para o cliente.
+            {hasPixConfig 
+              ? "Mostre o QR Code ou copie o código para o cliente."
+              : "Configurações pendentes."}
           </DialogDescription>
         </DialogHeader>
 
-        {!hasPixConfig ? (
-          <div className="py-6 text-center space-y-4">
-            <p className="text-sm text-destructive font-medium">
+        {!empresa || !hasPixConfig ? (
+          <div className="py-8 text-center space-y-4">
+            <div className="flex justify-center">
+              <AlertTriangle className="h-12 w-12 text-yellow-500" />
+            </div>
+            <p className="text-sm font-medium">
               Chave Pix não configurada!
             </p>
-            <p className="text-xs text-muted-foreground">
-              Vá em Configurações para cadastrar sua chave.
+            <p className="text-xs text-muted-foreground px-4">
+              Para gerar cobranças via Pix, você precisa cadastrar sua chave em <strong>Configurações > Recebimento via Pix</strong>.
             </p>
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="mt-2">
+              Entendi
+            </Button>
           </div>
         ) : (
           <div className="flex flex-col items-center space-y-4 py-2">
