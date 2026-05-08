@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
@@ -139,8 +140,13 @@ const parseCurrency = (value: string) =>
 ======================= */
 
 export default function ConversoesPage() {
-  const [user] = useAuthState(auth);
+  const [user, loadingAuth] = useAuthState(auth);
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [peso, setPeso] = useState('');
   const [largura, setLargura] = useState('');
@@ -163,27 +169,12 @@ export default function ConversoesPage() {
     useState<MaterialItem | null>(null);
   const [isUpdateConfirmOpen, setIsUpdateConfirmOpen] = useState(false);
 
-  const fetchMateriais = useCallback(async () => {
-    if (!user) return;
-    try {
-      // a busca agora é feita pelo useLiveQuery
-    } catch {
-      toast({
-        title: 'Erro ao carregar materiais',
-        variant: 'destructive'
-      });
-    }
-  }, [user, toast]);
-
   useEffect(() => {
-    fetchMateriais();
-  }, [fetchMateriais]);
-  
-  useEffect(() => {
+    if (!mounted) return;
     const units = Object.keys(CONVERSION_FACTORS[convType]);
     setFromUnit(units[0] as Unit);
     setToUnit(units[1] as Unit);
-  }, [convType]);
+  }, [convType, mounted]);
 
   /* =======================
      CÁLCULO CALHA
@@ -306,6 +297,14 @@ export default function ConversoesPage() {
   /* =======================
      RENDER
   ======================= */
+
+  if (!mounted) {
+    return (
+      <div className="container mx-auto p-4 md:p-6 flex h-[80vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">

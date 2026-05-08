@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { FormEvent, useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -796,7 +797,7 @@ export default function ConfiguracoesPage() {
                 <ThemeToggle />
               </div>
             </CardContent>
-          </Card>
+          </div>
         </div>
 
         <div className="flex justify-end">

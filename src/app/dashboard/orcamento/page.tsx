@@ -18,7 +18,7 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Loader2 } from 'lucide-react';
 import { PwaInstallButton } from '@/components/pwa-install-button';
 
 import { useToast } from '@/hooks/use-toast';
@@ -455,6 +455,15 @@ export default function OrcamentoPage() {
     setSearchTerm('');
     setStatusFilter('todos');
   };
+
+  // Previne Hydration Error retornando um loader simples até que o cliente esteja pronto
+  if (!mounted) {
+    return (
+      <div className="container mx-auto p-4 flex h-[80vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4 space-y-6">

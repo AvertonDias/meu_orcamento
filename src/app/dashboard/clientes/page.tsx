@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
@@ -11,7 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
-import { Users, Search } from 'lucide-react';
+import { Users, Search, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
@@ -412,6 +413,14 @@ export default function ClientesPage() {
   /* -------------------------------------------------------------------------- */
   /* UI                                                                         */
   /* -------------------------------------------------------------------------- */
+
+  if (!mounted) {
+    return (
+      <div className="container mx-auto p-6 flex h-[80vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">

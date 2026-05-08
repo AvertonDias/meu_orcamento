@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, FormEvent, useMemo, useEffect } from 'react';
@@ -246,6 +247,14 @@ export default function MateriaisPage() {
   /* ===============================
      RENDER
   ================================ */
+
+  if (!mounted) {
+    return (
+      <div className="container mx-auto p-4 md:p-6 flex h-[80vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
