@@ -24,7 +24,7 @@ import { formatCurrency, formatNumber } from '@/lib/utils';
 import { type VariantProps } from 'class-variance-authority';
 import { Capacitor } from '@capacitor/core';
 import { Separator } from '@/components/ui/separator';
-import { Pencil, User, Calendar, Info, Banknote } from 'lucide-react';
+import { Pencil, User, Calendar, Info, Banknote, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BudgetDetailsModalProps {
@@ -62,6 +62,10 @@ export function BudgetDetailsModal({
   const dataConclusao = budget.dataConclusao ? parseISO(budget.dataConclusao) : null;
   const dataPagamento = budget.dataPagamento ? parseISO(budget.dataPagamento) : null;
 
+  const valorPago = budget.valorPago || 0;
+  const quitado = valorPago >= budget.totalVenda;
+  const saldoDevedor = budget.totalVenda - valorPago;
+
   const handleEditClick = () => {
     onOpenChange(false);
     onEdit(budget);
@@ -85,21 +89,25 @@ export function BudgetDetailsModal({
                 <Badge variant={getStatusVariant(budget.status)} className="text-sm">
                   {budget.status}
                 </Badge>
-                {dataPagamento && (
-                  <Badge variant="outline" className="border-green-600 text-green-600 gap-1">
-                    <Banknote className="h-3 w-3" /> RECEBIDO
+                {quitado ? (
+                  <Badge variant="success" className="gap-1">
+                    <CheckCircle2 className="h-3 w-3" /> QUITADO
                   </Badge>
-                )}
+                ) : valorPago > 0 ? (
+                  <Badge variant="outline" className="border-blue-500 text-blue-500 gap-1">
+                    <Banknote className="h-3 w-3" /> PAGO PARCIAL ({Math.round((valorPago / budget.totalVenda) * 100)}%)
+                  </Badge>
+                ) : null}
               </div>
             </div>
-            {!['Concluído', 'Pago'].includes(budget.status) && (
+            {!quitado && budget.status !== 'Recusado' && (
               <Button
                 variant="outline"
                 size="icon"
                 onClick={handleEditClick}
                 className="shrink-0 h-10 w-10 border-primary text-primary hover:bg-primary hover:text-white"
               >
-                <Pencil className="h-5 w-5" />
+                < Pencil className="h-5 w-5" />
               </Button>
             )}
           </div>
@@ -154,8 +162,11 @@ export function BudgetDetailsModal({
                       </p>
                     )}
                     {dataPagamento && (
-                      <p className="text-sm font-bold text-green-700 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded border border-green-200 inline-block">
-                        Pago em: {format(dataPagamento, 'dd/MM/yyyy')}
+                      <p className={cn(
+                        "text-sm font-bold px-2 py-0.5 rounded border inline-block",
+                        quitado ? "text-green-700 bg-green-50 border-green-200" : "text-blue-700 bg-blue-50 border-blue-200"
+                      )}>
+                        {quitado ? 'Quitado em: ' : 'Última entrada: '} {format(dataPagamento, 'dd/MM/yyyy')}
                       </p>
                     )}
                     {dataRecusa && budget.status === 'Recusado' && (
@@ -168,6 +179,35 @@ export function BudgetDetailsModal({
               </>
             )}
           </div>
+
+          {/* Seção de Financeiro (Saldo) */}
+          {valorPago > 0 && (
+             <div className="bg-card border rounded-xl p-4 space-y-3">
+                <h3 className="text-sm font-bold uppercase text-muted-foreground flex items-center gap-2">
+                    <Banknote className="h-4 w-4" /> Situação Financeira
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-0.5">
+                        <p className="text-xs text-muted-foreground">Já Recebido</p>
+                        <p className="text-lg font-bold text-green-600">{formatCurrency(valorPago)}</p>
+                    </div>
+                    <div className="space-y-0.5">
+                        <p className="text-xs text-muted-foreground">Saldo Restante</p>
+                        <p className={cn("text-lg font-bold", quitado ? "text-muted-foreground" : "text-destructive")}>
+                            {quitado ? "R$ 0,00" : formatCurrency(saldoDevedor)}
+                        </p>
+                    </div>
+                </div>
+                {!quitado && (
+                   <div className="w-full bg-muted rounded-full h-2 mt-2">
+                        <div 
+                            className="bg-green-500 h-2 rounded-full transition-all" 
+                            style={{ width: `${(valorPago / budget.totalVenda) * 100}%` }}
+                        />
+                   </div>
+                )}
+             </div>
+          )}
 
           {/* Seção de Itens e Serviços */}
           <div className="space-y-3">

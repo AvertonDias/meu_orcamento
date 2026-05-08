@@ -59,21 +59,28 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
     if (!activeChave) return null;
 
     try {
-      // Identificador estritamente sem espaços para evitar erro nos bancos
+      // Identificador estritamente alfanumérico para compatibilidade máxima
       const orcNumClean = orcamento.numeroOrcamento.replace(/[^a-zA-Z0-9]/g, '');
       const orcId = `orc${orcNumClean}`;
+
+      // Calcula o valor a cobrar (Saldo restante)
+      const valorRestante = orcamento.totalVenda - (orcamento.valorPago || 0);
+      
+      // Se o orçamento já estiver pago, não gera o Pix ou gera com valor 0 (que não faz sentido, então retornamos null)
+      if (valorRestante <= 0.01) return null;
 
       const payload = generatePixPayload({
         chave: activeChave,
         beneficiario: empresa.nome,
         cidade: activeCidade,
-        valor: orcamento.totalVenda,
+        valor: valorRestante,
         identificador: orcId,
       });
 
       return {
         payload,
         qrCodeUrl: getPixQRCodeUrl(payload),
+        valorACobrar: valorRestante
       };
     } catch (e) {
       console.error('Erro ao gerar payload Pix:', e);
@@ -99,11 +106,11 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
     }
   };
 
-  // Se não houver orçamento, não renderiza nada (proteção básica de estado)
   if (!orcamento) return null;
 
   const hasMultipleKeys = (empresa?.chavesPix?.length || 0) > 1;
   const hasPixConfig = empresa && ((empresa.chavesPix && empresa.chavesPix.some(k => k.chave.trim())) || empresa.chavePix);
+  const valorRestante = orcamento.totalVenda - (orcamento.valorPago || 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -115,7 +122,7 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
           </DialogTitle>
           <DialogDescription>
             {hasPixConfig 
-              ? "Mostre o QR Code ou copie o código para o cliente."
+              ? (valorRestante <= 0 ? "Orçamento já quitado." : "Mostre o QR Code ou copie o código para o cliente.")
               : "Configurações pendentes."}
           </DialogDescription>
         </DialogHeader>
@@ -134,6 +141,18 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
             <Button variant="outline" onClick={() => onOpenChange(false)} className="mt-2">
               Entendi
             </Button>
+          </div>
+        ) : valorRestante <= 0.01 ? (
+          <div className="py-8 text-center space-y-4">
+            <div className="flex justify-center">
+              <Check className="h-16 w-16 text-green-500 border-4 border-green-500 rounded-full p-2" />
+            </div>
+            <p className="text-lg font-bold text-green-600">
+              PAGAMENTO QUITADO
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Este orçamento já foi totalmente pago.
+            </p>
           </div>
         ) : (
           <div className="flex flex-col items-center space-y-4 py-2">
@@ -159,10 +178,15 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
             )}
 
             <div className="text-center">
-              <p className="text-[10px] text-muted-foreground uppercase">Valor a pagar</p>
+              <p className="text-[10px] text-muted-foreground uppercase">Saldo a pagar (restante)</p>
               <p className="text-xl font-bold text-primary">
-                {formatCurrency(orcamento.totalVenda)}
+                {formatCurrency(valorRestante)}
               </p>
+              {orcamento.valorPago > 0 && (
+                <p className="text-[10px] text-green-600">
+                  Já recebido: {formatCurrency(orcamento.valorPago)}
+                </p>
+              )}
             </div>
 
             {pixData ? (

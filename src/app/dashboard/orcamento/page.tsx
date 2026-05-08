@@ -133,6 +133,7 @@ export default function OrcamentoPage() {
         cliente: cliente,
         itens: Array.isArray(data.itens) ? data.itens : [],
         totalVenda: typeof data.totalVenda === 'number' ? data.totalVenda : 0,
+        valorPago: typeof data.valorPago === 'number' ? data.valorPago : 0,
         dataCriacao: typeof data.dataCriacao === 'string' ? data.dataCriacao : '',
         status: data.status || 'Pendente',
         validadeDias: String(data.validadeDias || '0'),
@@ -376,12 +377,16 @@ export default function OrcamentoPage() {
   const handleSaveStatusUpdate = async (
     budgetId: string,
     status: 'Aceito' | 'Recusado' | 'Concluído' | 'Pago',
-    date: Date
+    date: Date,
+    valorPagoAdicional?: number
   ) => {
     try {
       if (!user || !orcamentosSalvos) return;
       
-      const payload: { dataAceite?: string | null, dataRecusa?: string | null, dataConclusao?: string | null, dataPagamento?: string | null } = {};
+      const budget = orcamentosSalvos.find(o => o.id === budgetId);
+      if (!budget) return;
+
+      const payload: any = {};
   
       if (status === 'Aceito') {
         payload.dataAceite = date.toISOString();
@@ -389,14 +394,21 @@ export default function OrcamentoPage() {
         payload.dataRecusa = date.toISOString();
       } else if (status === 'Concluído') {
         payload.dataConclusao = date.toISOString();
-      } else if (status === 'Pago') {
+      } else if (status === 'Pago' && valorPagoAdicional !== undefined) {
+        const novoValorPago = (budget.valorPago || 0) + valorPagoAdicional;
+        payload.valorPago = novoValorPago;
         payload.dataPagamento = date.toISOString();
+
+        // Se o valor total foi atingido, status vira "Pago". Caso contrário, mantém o status atual (Aceito/Concluído)
+        if (novoValorPago >= budget.totalVenda) {
+            status = 'Pago';
+        } else {
+            status = budget.status; // Mantém status original
+        }
       }
       
       await updateOrcamentoStatus(budgetId, status, payload);
   
-      const budget = orcamentosSalvos.find(o => o.id === budgetId);
-    
       if (status === 'Aceito' && budget) {
         const lowStockAlerts: string[] = [];
         for (const item of budget.itens) {
@@ -431,7 +443,7 @@ export default function OrcamentoPage() {
       }
     
       toast({
-        title: `Status alterado para: ${status}`,
+        title: valorPagoAdicional !== undefined ? `Pagamento de ${formatCurrency(valorPagoAdicional)} registrado!` : `Status alterado para: ${status}`,
       });
     } catch(error: any) {
       toast({

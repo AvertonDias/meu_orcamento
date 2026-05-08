@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -248,154 +249,165 @@ export function BudgetList({
       </Dialog>
 
       <div className="space-y-4">
-        {budgets.map(o => (
-          <Card
-            key={o.id}
-            className="hover:border-primary/50 transition-colors relative overflow-hidden"
-          >
-            {o.dataPagamento && (
-               <div className="absolute top-0 right-0 p-1 pr-10 z-0 pointer-events-none">
-                  <Badge variant="success" className="opacity-20 transform rotate-12 text-xl py-0 px-2 font-black border-2 border-green-600">PAGO</Badge>
-               </div>
-            )}
+        {budgets.map(o => {
+          const valorPago = o.valorPago || 0;
+          const quitado = valorPago >= o.totalVenda;
+          const parcial = valorPago > 0 && !quitado;
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-2 right-2 h-8 w-8 z-10"
-                  onClick={e => e.stopPropagation()}
-                  aria-label="Ações do orçamento"
-                >
-                  <MoreVertical className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" side="bottom" onClick={(e) => e.stopPropagation()}>
-                <DropdownMenuItem onClick={() => onEdit(o)} disabled={['Concluído', 'Pago'].includes(o.status)}>
-                  <Pencil className="mr-2 h-4 w-4" />
-                  <span>Editar</span>
-                </DropdownMenuItem>
-                
-                <DropdownMenuItem onClick={() => sendWhatsApp(o)}>
-                  <MessageCircle className="mr-2 h-4 w-4" /> Enviar WhatsApp
-                </DropdownMenuItem>
-
-                {['Aceito', 'Concluído', 'Pago'].includes(o.status) && (
-                  <DropdownMenuItem onClick={() => onShowPix(o)}>
-                    <QrCode className="mr-2 h-4 w-4" /> Ver Pix
-                  </DropdownMenuItem>
-                )}
-
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger><FileText className="mr-2 h-4 w-4" /> Gerar PDF</DropdownMenuSubTrigger>
-                  <DropdownMenuPortal>
-                    <DropdownMenuSubContent>
-                      <DropdownMenuItem onClick={() => onGeneratePDF(o, 'client')}>PDF do Cliente</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onGeneratePDF(o, 'internal')}>PDF Interno (custos)</DropdownMenuItem>
-                    </DropdownMenuSubContent>
-                  </DropdownMenuPortal>
-                </DropdownMenuSub>
-                <DropdownMenuSeparator />
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger><FileSignature className="mr-2 h-4 w-4" /> Alterar Status</DropdownMenuSubTrigger>
-                  <DropdownMenuPortal>
-                    <DropdownMenuSubContent>
-                      <DropdownMenuItem onClick={() => onUpdateStatus(o.id, 'Concluído')}>
-                        <CheckCheck className="mr-2 h-4 w-4 text-primary" /> Marcar como Concluído
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onUpdateStatus(o.id, 'Aceito')}>
-                        <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" /> Marcar como Aceito
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onUpdateStatus(o.id, 'Recusado')}>
-                        <XCircle className="mr-2 h-4 w-4 text-red-500" /> Marcar como Recusado
-                      </DropdownMenuItem>
-                       {o.status !== 'Pendente' && <DropdownMenuSeparator />}
-                       {o.status !== 'Pendente' && (
-                          <DropdownMenuItem onClick={() => onUpdateStatus(o.id, 'Pendente')}>
-                            <RefreshCcw className="mr-2 h-4 w-4" /> Reverter para Pendente
-                          </DropdownMenuItem>
-                       )}
-                    </DropdownMenuSubContent>
-                  </DropdownMenuPortal>
-                </DropdownMenuSub>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setBudgetToDelete(o)}>
-                  <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <CardContent className="p-4 cursor-pointer flex flex-col justify-between min-h-[110px]" onClick={() => onViewDetails(o)}>
-              <div className="flex-1 space-y-1 pr-10">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-lg font-semibold text-primary truncate" title={o.cliente.nome}>{o.cliente.nome}</h3>
-                  <Badge variant={getStatusVariant(o.status)}>{o.status}</Badge>
+          return (
+            <Card
+              key={o.id}
+              className="hover:border-primary/50 transition-colors relative overflow-hidden"
+            >
+              {quitado && (
+                <div className="absolute top-0 right-0 p-1 pr-10 z-0 pointer-events-none">
+                    <Badge variant="success" className="opacity-20 transform rotate-12 text-xl py-0 px-2 font-black border-2 border-green-600">PAGO</Badge>
                 </div>
-                <div className="flex items-center justify-between">
-                   <p className="text-sm text-muted-foreground">Nº {o.numeroOrcamento}</p>
-                   {['Aceito', 'Concluído', 'Pago'].includes(o.status) && (
-                      <div className="flex gap-2">
-                        {!o.dataPagamento && (
+              )}
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8 z-10"
+                    onClick={e => e.stopPropagation()}
+                    aria-label="Ações do orçamento"
+                  >
+                    <MoreVertical className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" side="bottom" onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenuItem onClick={() => onEdit(o)} disabled={['Concluído', 'Pago'].includes(o.status)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    <span>Editar</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem onClick={() => sendWhatsApp(o)}>
+                    <MessageCircle className="mr-2 h-4 w-4" /> Enviar WhatsApp
+                  </DropdownMenuItem>
+
+                  {['Aceito', 'Concluído', 'Pago'].includes(o.status) && (
+                    <DropdownMenuItem onClick={() => onShowPix(o)}>
+                      <QrCode className="mr-2 h-4 w-4" /> Ver Pix
+                    </DropdownMenuItem>
+                  )}
+
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger><FileText className="mr-2 h-4 w-4" /> Gerar PDF</DropdownMenuSubTrigger>
+                    <DropdownMenuPortal>
+                      <DropdownMenuSubContent>
+                        <DropdownMenuItem onClick={() => onGeneratePDF(o, 'client')}>PDF do Cliente</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onGeneratePDF(o, 'internal')}>PDF Interno (custos)</DropdownMenuItem>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuPortal>
+                  </DropdownMenuSub>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger><FileSignature className="mr-2 h-4 w-4" /> Alterar Status</DropdownMenuSubTrigger>
+                    <DropdownMenuPortal>
+                      <DropdownMenuSubContent>
+                        <DropdownMenuItem onClick={() => onUpdateStatus(o.id, 'Concluído')}>
+                          <CheckCheck className="mr-2 h-4 w-4 text-primary" /> Marcar como Concluído
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onUpdateStatus(o.id, 'Aceito')}>
+                          <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" /> Marcar como Aceito
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onUpdateStatus(o.id, 'Recusado')}>
+                          <XCircle className="mr-2 h-4 w-4 text-red-500" /> Marcar como Recusado
+                        </DropdownMenuItem>
+                         {o.status !== 'Pendente' && <DropdownMenuSeparator />}
+                         {o.status !== 'Pendente' && (
+                            <DropdownMenuItem onClick={() => onUpdateStatus(o.id, 'Pendente')}>
+                              <RefreshCcw className="mr-2 h-4 w-4" /> Reverter para Pendente
+                            </DropdownMenuItem>
+                         )}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuPortal>
+                  </DropdownMenuSub>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setBudgetToDelete(o)}>
+                    <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <CardContent className="p-4 cursor-pointer flex flex-col justify-between min-h-[110px]" onClick={() => onViewDetails(o)}>
+                <div className="flex-1 space-y-1 pr-10">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-lg font-semibold text-primary truncate" title={o.cliente.nome}>{o.cliente.nome}</h3>
+                    <Badge variant={getStatusVariant(o.status)}>{o.status}</Badge>
+                    {parcial && (
+                      <Badge variant="outline" className="border-blue-500 text-blue-500 animate-pulse">
+                        PAGO {Math.round((valorPago / o.totalVenda) * 100)}%
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between">
+                     <p className="text-sm text-muted-foreground">Nº {o.numeroOrcamento}</p>
+                     {['Aceito', 'Concluído', 'Pago'].includes(o.status) && (
+                        <div className="flex gap-2">
+                          {!quitado && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-7 w-7 border-green-600/30 text-green-600 hover:bg-green-600/10"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onUpdateStatus(o.id, 'Pago');
+                                  }}
+                                >
+                                  <Banknote className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Confirmar Recebimento</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
                                 variant="outline"
                                 size="icon"
-                                className="h-7 w-7 border-green-600/30 text-green-600 hover:bg-green-600/10"
+                                className="h-7 w-7 border-primary/30 text-primary hover:bg-primary/10"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  onUpdateStatus(o.id, 'Pago');
+                                  onShowPix(o);
                                 }}
                               >
-                                <Banknote className="h-4 w-4" />
+                                <QrCode className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Confirmar Pagamento</p>
+                              <p>Gerar QR Code Pix</p>
                             </TooltipContent>
                           </Tooltip>
-                        )}
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-7 w-7 border-primary/30 text-primary hover:bg-primary/10"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onShowPix(o);
-                              }}
-                            >
-                              <QrCode className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Gerar QR Code Pix</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                   )}
+                        </div>
+                     )}
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex items-end justify-between mt-2">
-                <div className="flex flex-col text-sm text-muted-foreground">
-                    <span>Criação: {format(parseISO(o.dataCriacao), 'dd/MM/yy')}</span>
-                    {o.dataPagamento ? (
-                       <span className="text-green-600 font-medium">Pago em: {format(parseISO(o.dataPagamento), 'dd/MM/yy')}</span>
-                    ) : (
-                       <span>Venc.: {format(addDays(parseISO(o.dataCriacao), Number(o.validadeDias)), 'dd/MM/yy')}</span>
-                    )}
+                
+                <div className="flex items-end justify-between mt-2">
+                  <div className="flex flex-col text-sm text-muted-foreground">
+                      <span>Criação: {format(parseISO(o.dataCriacao), 'dd/MM/yy')}</span>
+                      {valorPago > 0 && (
+                        <span className="text-green-600 font-medium">
+                          Recebido: {formatCurrency(valorPago)}
+                        </span>
+                      )}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Total</p>
+                    <AdjustmentBadge orcamento={o} />
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Total</p>
-                  <AdjustmentBadge orcamento={o} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       <AlertDialog open={!!budgetToDelete} onOpenChange={() => setBudgetToDelete(null)}>

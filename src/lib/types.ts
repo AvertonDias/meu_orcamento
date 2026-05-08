@@ -69,6 +69,7 @@ export interface Orcamento {
   cliente: ClienteData;
   itens: OrcamentoItem[];
   totalVenda: number;
+  valorPago?: number; // Valor total já recebido (soma das entradas)
   dataCriacao: string; // ISO Date String
   status: 'Pendente' | 'Aceito' | 'Recusado' | 'Vencido' | 'Concluído' | 'Pago';
   validadeDias: string;
@@ -77,7 +78,7 @@ export interface Orcamento {
   dataAceite: string | null; // ISO Date String
   dataRecusa: string | null; // ISO Date String
   dataConclusao: string | null;
-  dataPagamento?: string | null; // Data em que o Pix/Pagamento foi recebido
+  dataPagamento?: string | null; // Data do último pagamento recebido
   notificacaoVencimentoEnviada?: boolean;
 }
 

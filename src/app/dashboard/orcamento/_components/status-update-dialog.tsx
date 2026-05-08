@@ -12,18 +12,21 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { Calendar } from '@/components/ui/calendar';
 import { parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { maskCurrency, formatCurrency } from '@/lib/utils';
 
 interface StatusUpdateDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   updateInfo: { budget: Orcamento; status: 'Aceito' | 'Recusado' | 'Concluído' | 'Pago' } | null;
-  onSave: (budgetId: string, status: 'Aceito' | 'Recusado' | 'Concluído' | 'Pago', date: Date) => Promise<void>;
+  onSave: (budgetId: string, status: 'Aceito' | 'Recusado' | 'Concluído' | 'Pago', date: Date, valorPago?: number) => Promise<void>;
 }
 
 const statusConfig = {
@@ -43,8 +46,8 @@ const statusConfig = {
     dateField: 'dataConclusao',
   },
   Pago: {
-    title: 'Confirmar Recebimento do Pagamento',
-    description: 'Selecione a data em que o valor foi recebido em sua conta.',
+    title: 'Confirmar Recebimento',
+    description: 'Registre o valor recebido e a data do pagamento.',
     dateField: 'dataPagamento',
   },
 };
@@ -52,6 +55,7 @@ const statusConfig = {
 
 export function StatusUpdateDialog({ isOpen, onOpenChange, updateInfo, onSave }: StatusUpdateDialogProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [valorRecebidoStr, setValorRecebidoStr] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
@@ -69,6 +73,11 @@ export function StatusUpdateDialog({ isOpen, onOpenChange, updateInfo, onSave }:
       setSelectedDate(parseISO(budgetDateField));
     } else {
       setSelectedDate(new Date());
+    }
+
+    if (updateInfo.status === 'Pago') {
+      const saldoRestante = updateInfo.budget.totalVenda - (updateInfo.budget.valorPago || 0);
+      setValorRecebidoStr(maskCurrency(saldoRestante.toFixed(2)));
     }
   }, [isOpen, updateInfo?.budget?.id, updateInfo?.status]);
 
@@ -103,11 +112,20 @@ export function StatusUpdateDialog({ isOpen, onOpenChange, updateInfo, onSave }:
       });
       return;
     }
+
+    let valorPago: number | undefined;
+    if (status === 'Pago') {
+      valorPago = parseFloat(valorRecebidoStr.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+      if (valorPago <= 0) {
+        toast({ title: 'Valor inválido', description: 'O valor recebido deve ser maior que zero.', variant: 'destructive' });
+        return;
+      }
+    }
   
     setIsSaving(true);
   
     try {
-      await onSave(budget.id, status, selectedDate);
+      await onSave(budget.id, status, selectedDate, valorPago);
       onOpenChange(false);
     } catch (error: any) {
       console.error("Erro ao salvar status:", error);
@@ -136,16 +154,35 @@ export function StatusUpdateDialog({ isOpen, onOpenChange, updateInfo, onSave }:
             Orçamento Nº {budget.numeroOrcamento}. {config.description}
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4 flex justify-center">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={setSelectedDate}
-            initialFocus
-            locale={ptBR}
-            disabled={(date) => date > new Date()}
-          />
+
+        <div className="space-y-4 py-4">
+          {updateInfo.status === 'Pago' && (
+            <div className="space-y-2">
+              <Label htmlFor="valor-recebido">Valor Recebido (R$)</Label>
+              <Input
+                id="valor-recebido"
+                value={valorRecebidoStr}
+                onChange={(e) => setValorRecebidoStr(maskCurrency(e.target.value))}
+                className="text-lg font-bold"
+              />
+              <p className="text-xs text-muted-foreground">
+                Total do orçamento: {formatCurrency(budget.totalVenda)} | Já pago: {formatCurrency(budget.valorPago || 0)}
+              </p>
+            </div>
+          )}
+
+          <div className="flex justify-center">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              initialFocus
+              locale={ptBR}
+              disabled={(date) => date > new Date()}
+            />
+          </div>
         </div>
+
         <DialogFooter>
           <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button type="button" onClick={handleSave} disabled={isSaving || !selectedDate}>
