@@ -204,6 +204,7 @@ export default function ClientesPage() {
           Recusado: 0,
           Vencido: 0,
           Concluído: 0,
+          Pago: 0,
           Total: 0,
         };
       }

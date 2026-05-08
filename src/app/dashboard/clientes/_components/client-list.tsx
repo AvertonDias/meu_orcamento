@@ -29,7 +29,7 @@ import { maskTelefone } from '@/lib/utils';
 /* TIPOS                                                                       */
 /* -------------------------------------------------------------------------- */
 
-export type OrcamentoStatus = 'Pendente' | 'Aceito' | 'Recusado' | 'Vencido' | 'Concluído';
+export type OrcamentoStatus = 'Pendente' | 'Aceito' | 'Recusado' | 'Vencido' | 'Concluído' | 'Pago';
 
 export interface BudgetCounts {
   Pendente: number;
@@ -37,6 +37,7 @@ export interface BudgetCounts {
   Recusado: number;
   Vencido: number;
   Concluído: number;
+  Pago: number;
   Total: number;
 }
 
@@ -57,6 +58,7 @@ const getStatusBadgeVariant = (
 ): VariantProps<typeof badgeVariants>['variant'] => {
   switch (status) {
     case 'Aceito':
+    case 'Pago':
       return 'success';
     case 'Concluído':
       return 'default';
@@ -88,6 +90,7 @@ const BudgetBadges = memo(
       'Pendente',
       'Aceito',
       'Concluído',
+      'Pago',
       'Recusado',
       'Vencido',
     ];
