@@ -132,7 +132,7 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
             </div>
             <p className="text-sm font-medium">Chave Pix não configurada!</p>
             <p className="text-xs text-muted-foreground px-4">
-              Vá em <strong>Configurações > Recebimento via Pix</strong>.
+              Vá em <strong>Configurações &gt; Recebimento via Pix</strong>.
             </p>
             <Button asChild variant="outline" className="mt-2 w-full">
               <Link href="/dashboard/configuracoes" onClick={() => onOpenChange(false)}>
