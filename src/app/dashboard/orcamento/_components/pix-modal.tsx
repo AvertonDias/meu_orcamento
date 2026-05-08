@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import type { Orcamento, EmpresaData } from '@/lib/types';
 import {
   Dialog,
@@ -15,8 +15,15 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { generatePixPayload, getPixQRCodeUrl } from '@/lib/pix-utils';
 import { formatCurrency } from '@/lib/utils';
-import { Copy, Check, QrCode, MessageCircle } from 'lucide-react';
+import { Copy, Check, QrCode, MessageCircle, ArrowRightLeft } from 'lucide-react';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface PixModalProps {
   isOpen: boolean;
@@ -27,22 +34,31 @@ interface PixModalProps {
 
 export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalProps) {
   const { toast } = useToast();
-  const [copied, setCopied] = React.useState(false);
+  const [copied, setCopied] = useState(false);
+  const [selectedKeyIndex, setSelectedKeyIndex] = useState<string>('0');
+
+  // Reseta para a chave principal ao abrir
+  useEffect(() => {
+    if (isOpen && empresa?.chavesPix) {
+      const principalIndex = empresa.chavesPix.findIndex(k => k.principal);
+      setSelectedKeyIndex(principalIndex >= 0 ? String(principalIndex) : '0');
+    }
+  }, [isOpen, empresa]);
 
   const pixData = useMemo(() => {
     if (!orcamento || !empresa) return null;
 
-    // Tenta encontrar a chave principal
-    const principalPix = empresa.chavesPix?.find(k => k.principal) || empresa.chavesPix?.[0];
+    const keys = empresa.chavesPix || [];
+    const index = parseInt(selectedKeyIndex, 10);
+    const activeKey = keys[index] || keys[0];
     
-    // Fallback para campos legados se a nova estrutura estiver vazia
-    const activeChave = principalPix?.chave || empresa.chavePix;
-    const activeCidade = principalPix?.cidade || empresa.pixCidade || 'CIDADE';
+    // Fallback para campos legados
+    const activeChave = activeKey?.chave || empresa.chavePix;
+    const activeCidade = activeKey?.cidade || empresa.pixCidade || 'CIDADE';
 
     if (!activeChave) return null;
 
     try {
-      // Cria um identificador amigável para o extrato (ex: ORC0012026)
       const orcId = `ORC${orcamento.numeroOrcamento.replace(/[^0-9]/g, '')}`;
 
       const payload = generatePixPayload({
@@ -61,7 +77,7 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
       console.error('Erro ao gerar payload Pix:', e);
       return null;
     }
-  }, [orcamento, empresa]);
+  }, [orcamento, empresa, selectedKeyIndex]);
 
   const handleCopy = () => {
     if (pixData?.payload) {
@@ -81,7 +97,6 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
         return;
     }
 
-    // Usa o principal ou o primeiro disponível
     const selectedPhone = phones.find(p => p.principal)?.numero || phones[0].numero;
     const cleanPhone = `55${selectedPhone.replace(/\D/g, '')}`;
 
@@ -99,7 +114,7 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
 
   if (!orcamento || !empresa) return null;
 
-  // Verifica se existe alguma chave configurada
+  const hasMultipleKeys = (empresa.chavesPix?.length || 0) > 1;
   const hasPixConfig = (empresa.chavesPix && empresa.chavesPix.some(k => k.chave.trim())) || empresa.chavePix;
 
   return (
@@ -111,7 +126,7 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
             Pagamento via Pix
           </DialogTitle>
           <DialogDescription>
-            Apresente este QR Code para o cliente ou envie o código "Copia e Cola".
+            Mostre o QR Code ou envie o código para o cliente.
           </DialogDescription>
         </DialogHeader>
 
@@ -121,64 +136,87 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
               Chave Pix não configurada!
             </p>
             <p className="text-xs text-muted-foreground">
-              Vá em Configurações para cadastrar sua chave e gerar QR Codes automaticamente.
+              Vá em Configurações para cadastrar sua chave.
             </p>
           </div>
-        ) : pixData ? (
-          <div className="flex flex-col items-center space-y-6 py-4">
+        ) : (
+          <div className="flex flex-col items-center space-y-4 py-2">
+            
+            {hasMultipleKeys && (
+              <div className="w-full space-y-1.5">
+                <Label className="text-xs flex items-center gap-1">
+                  <ArrowRightLeft className="h-3 w-3" /> Alterar Chave Pix
+                </Label>
+                <Select value={selectedKeyIndex} onValueChange={setSelectedKeyIndex}>
+                  <SelectTrigger className="h-9 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {empresa.chavesPix.map((key, index) => (
+                      <SelectItem key={index} value={String(index)}>
+                        {key.chave} {key.principal ? '(Principal)' : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">Valor a pagar</p>
-              <p className="text-2xl font-bold text-primary">
+              <p className="text-[10px] text-muted-foreground uppercase">Valor a pagar</p>
+              <p className="text-xl font-bold text-primary">
                 {formatCurrency(orcamento.totalVenda)}
               </p>
             </div>
 
-            <div className="bg-white p-2 rounded-lg border shadow-sm">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={pixData.qrCodeUrl}
-                alt="QR Code Pix"
-                className="w-56 h-56"
-              />
-            </div>
-
-            <div className="w-full space-y-3">
-              <div className="space-y-1">
-                <Label className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
-                  Código Copia e Cola
-                </Label>
-                <div className="flex items-center gap-2 p-2 bg-muted rounded-md border text-[10px] font-mono break-all line-clamp-2 overflow-hidden">
-                  {pixData.payload}
+            {pixData ? (
+              <>
+                <div className="bg-white p-2 rounded-lg border shadow-sm">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={pixData.qrCodeUrl}
+                    alt="QR Code Pix"
+                    className="w-48 h-48"
+                  />
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleCopy}
-                >
-                    {copied ? (
-                    <Check className="h-4 w-4 mr-2 text-green-500" />
-                    ) : (
-                    <Copy className="h-4 w-4 mr-2" />
-                    )}
-                    {copied ? 'Copiado!' : 'Copiar'}
-                </Button>
-                <Button
-                    variant="default"
-                    className="w-full bg-green-600 hover:bg-green-700"
-                    onClick={handleSendWhatsApp}
-                >
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    WhatsApp
-                </Button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="py-6 text-center">
-            <p className="text-sm text-destructive">Erro ao gerar código Pix.</p>
+
+                <div className="w-full space-y-3">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
+                      Código Copia e Cola
+                    </Label>
+                    <div className="flex items-center gap-2 p-2 bg-muted rounded-md border text-[10px] font-mono break-all line-clamp-2 overflow-hidden">
+                      {pixData.payload}
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={handleCopy}
+                    >
+                        {copied ? (
+                        <Check className="h-4 w-4 mr-2 text-green-500" />
+                        ) : (
+                        <Copy className="h-4 w-4 mr-2" />
+                        )}
+                        {copied ? 'Copiado!' : 'Copiar'}
+                    </Button>
+                    <Button
+                        variant="default"
+                        className="w-full bg-green-600 hover:bg-green-700"
+                        onClick={handleSendWhatsApp}
+                    >
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        WhatsApp
+                    </Button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-destructive">Erro ao gerar código.</p>
+            )}
           </div>
         )}
 

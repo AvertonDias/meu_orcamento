@@ -144,7 +144,6 @@ export function BudgetList({
     let text = '';
 
     if (type === 'budget') {
-        // Mensagem Padrão de Orçamento
         const defaultText = 'Olá {Nome do Cliente}!\n\nSegue seu orçamento {Nº do Orçamento}:\n\n{Detalhes do Orçamento}\n\nTOTAL: {Valor Total}\n\nQualquer dúvida, estou à disposição!\n\n{Nome da Empresa}';
         
         text = empresa?.whatsappMessage || defaultText;
@@ -159,8 +158,6 @@ export function BudgetList({
         text = text.replace(/{Valor Total}/g, formatCurrency(orcamento.totalVenda));
         text = text.replace(/{Nome da Empresa}/g, empresa?.nome || 'Nossa Empresa');
     } else {
-        // Mensagem de Pix
-        // Tenta encontrar a chave principal
         const principalPix = empresa?.chavesPix?.find(k => k.principal) || empresa?.chavesPix?.[0];
         const activeChave = principalPix?.chave || empresa?.chavePix;
         const activeCidade = principalPix?.cidade || empresa?.pixCidade || 'CIDADE';
@@ -173,7 +170,6 @@ export function BudgetList({
         const defaultPixText = 'Olá {Nome do Cliente}!\n\nSegue o código Pix (Copia e Cola) para o pagamento do orçamento Nº {Nº do Orçamento}:\n\n{Código Pix}\n\nValor: {Valor Total}\n\n{Nome da Empresa}';
         text = empresa?.whatsappPixMessage || defaultPixText;
 
-        // TxID customizado para o WhatsApp
         const orcId = `ORC${orcamento.numeroOrcamento.replace(/[^0-9]/g, '')}`;
 
         const payload = generatePixPayload({
@@ -261,7 +257,6 @@ export function BudgetList({
   /* ---------------- RENDER ---------------- */
   return (
     <>
-      {/* Dialog telefone */}
       <Dialog open={phoneDialog.open} onOpenChange={(o) => setPhoneDialog(p => ({ ...p, open: o }))}>
         <DialogContent>
           <DialogHeader>
