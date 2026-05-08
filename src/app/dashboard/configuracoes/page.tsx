@@ -797,7 +797,7 @@ export default function ConfiguracoesPage() {
                 <ThemeToggle />
               </div>
             </CardContent>
-          </div>
+          </Card>
         </div>
 
         <div className="flex justify-end">
