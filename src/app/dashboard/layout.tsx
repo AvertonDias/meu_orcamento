@@ -27,6 +27,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [user, loadingAuth] = useAuthState(auth);
+  const [mounted, setMounted] = useState(false);
   
   const { requestPermission } = usePermissionDialog();
   const { isDirty, setIsDirty } = useDirtyState();
@@ -34,6 +35,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   
   // Inicializa sincronização offline/online
   useSync();
+
+  // Garante hidratação segura
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   /* =====================================================
      ANDROID – BOTÃO VOLTAR
@@ -150,7 +156,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
      AUTH & SETUP
   ====================================================== */
   useEffect(() => {
-    if (loadingAuth) {
+    if (!mounted || loadingAuth) {
       return;
     }
     if (!user) {
@@ -160,15 +166,14 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
     if (!oneTimeSetupDone.current) {
       requestAppPermissions();
-      // requestForToken(); // Habilitar se o FCM estiver totalmente configurado
       oneTimeSetupDone.current = true;
     }
-  }, [user, loadingAuth, router]);
+  }, [user, loadingAuth, router, mounted]);
 
   /* =====================================================
-     LOADING
+     LOADING / HYDRATION GATE
   ====================================================== */
-  if (loadingAuth || !user) {
+  if (!mounted || loadingAuth || !user) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

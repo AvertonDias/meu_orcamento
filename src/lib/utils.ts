@@ -12,6 +12,12 @@ export function cn(...inputs: ClassValue[]) {
 /* ===========================
    Formatação de valores
 =========================== */
+/**
+ * Normaliza espaços em branco e caracteres especiais para evitar erros de hidratação
+ * entre o servidor e o cliente.
+ */
+const normalizeString = (str: string) => str.replace(/\u00A0/g, ' ').trim();
+
 export function formatCurrency(
   value: number | null | undefined,
   showSymbol: boolean = true
@@ -27,7 +33,9 @@ export function formatCurrency(
     maximumFractionDigits: 2,
   }).format(value);
 
-  return showSymbol ? formatted : formatted.replace("R$", "").trim();
+  // Normaliza o output para evitar erros de hidratação (R$ 1,00 vs R$1,00 com espaços diferentes)
+  const result = showSymbol ? formatted : formatted.replace("R$", "").trim();
+  return normalizeString(result);
 }
 
 export function formatSmallValueCurrency(
@@ -37,12 +45,14 @@ export function formatSmallValueCurrency(
   const safeValue =
     value === null || value === undefined || Number.isNaN(value) ? 0 : value;
 
-  return new Intl.NumberFormat("pt-BR", {
+  const formatted = new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   }).format(safeValue);
+  
+  return normalizeString(formatted);
 }
 
 export function formatNumber(
@@ -53,10 +63,12 @@ export function formatNumber(
     return "0";
   }
 
-  return new Intl.NumberFormat("pt-BR", {
+  const formatted = new Intl.NumberFormat("pt-BR", {
     minimumFractionDigits: decimalPlaces,
     maximumFractionDigits: decimalPlaces,
   }).format(value);
+  
+  return normalizeString(formatted);
 }
 
 

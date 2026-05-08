@@ -95,6 +95,8 @@ export default function FinanceiroPage() {
 
   // Opções do seletor (Últimos 12 meses)
   const periodOptions = useMemo(() => {
+    if (!mounted) return [];
+    
     const options = [{ label: 'Todo o Período', value: 'all' }];
     const now = new Date();
     for (let i = 0; i < 12; i++) {
@@ -105,7 +107,7 @@ export default function FinanceiroPage() {
       });
     }
     return options;
-  }, []);
+  }, [mounted]);
 
   // Filtragem de orçamentos por período para os CARDS
   const orcamentosFiltradosPeriodo = useMemo(() => {
