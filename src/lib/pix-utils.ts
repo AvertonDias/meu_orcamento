@@ -42,18 +42,26 @@ export function generatePixPayload({
   valor,
   identificador = '***',
 }: PixConfig): string {
-  // Limpeza dos dados
+  // Limpeza dos dados conforme regras do BACEN
   const cleanChave = chave.trim();
   const cleanBeneficiario = beneficiario
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .replace(/[^a-zA-Z0-9\s]/g, '') // Remove caracteres especiais
     .substring(0, 25);
+    
   const cleanCidade = cidade
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z\s]/g, '')
     .substring(0, 15);
+
   const cleanValor = valor.toFixed(2);
-  const cleanId = identificador.replace(/\s/g, '').substring(0, 25) || '***';
+  
+  // TxID (Identificador) deve ser alfanumérico e sem espaços para ser compatível com a maioria dos bancos
+  const cleanId = identificador
+    .replace(/[^a-zA-Z0-9]/g, '') 
+    .substring(0, 25) || '***';
 
   const payload = [
     formatField('00', '01'), // Payload Format Indicator

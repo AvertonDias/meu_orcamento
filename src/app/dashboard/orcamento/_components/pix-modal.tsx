@@ -14,7 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { generatePixPayload, getPixQRCodeUrl } from '@/lib/pix-utils';
-import { formatCurrency, formatNumber } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { Copy, Check, QrCode, MessageCircle } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 
@@ -33,12 +33,15 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
     if (!orcamento || !empresa?.chavePix) return null;
 
     try {
+      // Cria um identificador amigável para o extrato (ex: ORC0012026)
+      const orcId = `ORC${orcamento.numeroOrcamento.replace(/[^0-9]/g, '')}`;
+
       const payload = generatePixPayload({
         chave: empresa.chavePix,
         beneficiario: empresa.nome,
         cidade: empresa.pixCidade || 'CIDADE',
         valor: orcamento.totalVenda,
-        identificador: orcamento.numeroOrcamento.replace(/\D/g, ''),
+        identificador: orcId,
       });
 
       return {

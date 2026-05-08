@@ -168,12 +168,15 @@ export function BudgetList({
         const defaultPixText = 'Olá {Nome do Cliente}!\n\nSegue o código Pix (Copia e Cola) para o pagamento do orçamento Nº {Nº do Orçamento}:\n\n{Código Pix}\n\nValor: {Valor Total}\n\n{Nome da Empresa}';
         text = empresa?.whatsappPixMessage || defaultPixText;
 
+        // TxID customizado para o WhatsApp
+        const orcId = `ORC${orcamento.numeroOrcamento.replace(/[^0-9]/g, '')}`;
+
         const payload = generatePixPayload({
             chave: empresa.chavePix,
             beneficiario: empresa.nome,
             cidade: empresa.pixCidade || 'CIDADE',
             valor: orcamento.totalVenda,
-            identificador: orcamento.numeroOrcamento.replace(/\D/g, ''),
+            identificador: orcId,
         });
 
         text = text.replace(/{Nome do Cliente}/g, orcamento.cliente.nome);
