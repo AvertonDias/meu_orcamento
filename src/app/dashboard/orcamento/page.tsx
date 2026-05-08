@@ -94,7 +94,7 @@ export default function OrcamentoPage() {
     [user?.uid]
   )?.map(c => c.data);
 
-  const orcamentosSalvos = useLiveQuery(
+  const orcamentosSalvosRaw = useLiveQuery(
     () => {
       if (!user?.uid) return [];
       return db.orcamentos
@@ -104,37 +104,42 @@ export default function OrcamentoPage() {
         .sortBy('data.dataCriacao');
     },
     [user?.uid]
-  )?.map(o => {
-    if (!o || typeof o.id !== 'string' || !o.id) {
-      return null;
-    }
-  
-    const data = (o.data || o) as Partial<Orcamento> & ClienteData;
-    const clienteSource = (data.cliente && typeof data.cliente === 'object' && Object.keys(data.cliente).length > 0) 
-        ? data.cliente 
-        : data;
-    const cliente = getCleanedCliente(clienteSource, o.userId);
-  
-    const cleanBudget: Orcamento = {
-      id: o.id,
-      userId: o.userId,
-      numeroOrcamento: String(data.numeroOrcamento || 'N/A'),
-      cliente: cliente,
-      itens: Array.isArray(data.itens) ? data.itens : [],
-      totalVenda: typeof data.totalVenda === 'number' ? data.totalVenda : 0,
-      // Fallback para string vazia para evitar problemas de hidratação com new Date()
-      dataCriacao: typeof data.dataCriacao === 'string' ? data.dataCriacao : '',
-      status: data.status || 'Pendente',
-      validadeDias: String(data.validadeDias || '0'),
-      observacoes: String(data.observacoes || ''),
-      observacoesInternas: String(data.observacoesInternas || ''),
-      dataAceite: data.dataAceite ?? null,
-      dataRecusa: data.dataRecusa ?? null,
-      dataConclusao: data.dataConclusao ?? null,
-      notificacaoVencimentoEnviada: !!data.notificacaoVencimentoEnviada,
-    };
-    return cleanBudget;
-  }).filter((o): o is Orcamento => o !== null && o.dataCriacao !== '');
+  );
+
+  const orcamentosSalvos = useMemo(() => {
+    if (!orcamentosSalvosRaw) return undefined;
+
+    return orcamentosSalvosRaw.map(o => {
+      if (!o || typeof o.id !== 'string' || !o.id) {
+        return null;
+      }
+    
+      const data = (o.data || o) as Partial<Orcamento> & ClienteData;
+      const clienteSource = (data.cliente && typeof data.cliente === 'object' && Object.keys(data.cliente).length > 0) 
+          ? data.cliente 
+          : data;
+      const cliente = getCleanedCliente(clienteSource, o.userId);
+    
+      const cleanBudget: Orcamento = {
+        id: o.id,
+        userId: o.userId,
+        numeroOrcamento: String(data.numeroOrcamento || 'N/A'),
+        cliente: cliente,
+        itens: Array.isArray(data.itens) ? data.itens : [],
+        totalVenda: typeof data.totalVenda === 'number' ? data.totalVenda : 0,
+        dataCriacao: typeof data.dataCriacao === 'string' ? data.dataCriacao : '',
+        status: data.status || 'Pendente',
+        validadeDias: String(data.validadeDias || '0'),
+        observacoes: String(data.observacoes || ''),
+        observacoesInternas: String(data.observacoesInternas || ''),
+        dataAceite: data.dataAceite ?? null,
+        dataRecusa: data.dataRecusa ?? null,
+        dataConclusao: data.dataConclusao ?? null,
+        notificacaoVencimentoEnviada: !!data.notificacaoVencimentoEnviada,
+      };
+      return cleanBudget;
+    }).filter((o): o is Orcamento => o !== null && o.dataCriacao !== '');
+  }, [orcamentosSalvosRaw, user?.uid]);
 
 
   const empresaArr = useLiveQuery(
@@ -149,12 +154,11 @@ export default function OrcamentoPage() {
   // =========================
   // STATE UI
   // =========================
-  const [clienteFiltrado, setClienteFiltrado] =
-    useState<ClienteData | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const [clienteFiltrado, setClienteFiltrado] = useState<ClienteData | null>(null);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [editingBudget, setEditingBudget] =
-    useState<Orcamento | null>(null);
+  const [editingBudget, setEditingBudget] = useState<Orcamento | null>(null);
   const [viewingBudget, setViewingBudget] = useState<Orcamento | null>(null);
   const [statusFilter, setStatusFilter] = useState('todos');
   const [pixBudget, setPixBudget] = useState<Orcamento | null>(null);
@@ -179,12 +183,17 @@ export default function OrcamentoPage() {
     ) => void;
   }>(null);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const isLoading =
+    !mounted ||
     loadingAuth ||
     !materiais ||
     !clientes ||
     !orcamentosSalvos ||
-    empresa === undefined;
+    empresaArr === undefined;
 
   // =========================
   // FILTRO POR CLIENTE (URL)

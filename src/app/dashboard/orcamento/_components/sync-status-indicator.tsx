@@ -21,8 +21,8 @@ export function SyncStatusIndicator() {
     setMounted(true);
   }, []);
 
-  // Enquanto não estiver montado no cliente, renderizamos um placeholder neutro
-  // que será idêntico no Servidor e no Cliente (primeira passagem).
+  // O componente renderiza um placeholder neutro que é idêntico no Servidor e no Cliente (primeira passagem).
+  // Isso evita o erro de hidratação do React.
   if (!mounted) {
     return (
       <div className="flex items-center justify-end gap-2 h-7" aria-hidden="true">
