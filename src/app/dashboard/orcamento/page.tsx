@@ -458,6 +458,19 @@ export default function OrcamentoPage() {
     await handleSaveStatusUpdate(budgetId, 'Pago', new Date(), amount);
   };
 
+  const handleRevertPayment = async (budgetId: string) => {
+    try {
+      if (!user) return;
+      await updateOrcamento(budgetId, {
+        valorPago: 0,
+        dataPagamento: null,
+      });
+      toast({ title: 'Pagamentos zerados com sucesso.' });
+    } catch (e) {
+      toast({ title: 'Erro ao zerar pagamentos', variant: 'destructive' });
+    }
+  };
+
 
   const handleGerarPDF = (
     orc: Orcamento,
@@ -533,6 +546,7 @@ export default function OrcamentoPage() {
         clienteFiltrado={clienteFiltrado}
         onViewDetails={setViewingBudget}
         onShowPix={setPixBudget}
+        onRevertPayment={handleRevertPayment}
       />
 
        {clientes && materiais && (
@@ -614,3 +628,4 @@ export default function OrcamentoPage() {
     </div>
   );
 }
+

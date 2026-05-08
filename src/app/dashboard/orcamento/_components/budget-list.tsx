@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -22,7 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   FileText, Pencil, MessageCircle,
   CheckCircle2, XCircle, Trash2,
-  MoreVertical, FileSignature, RefreshCcw, CheckCheck, QrCode, Banknote
+  MoreVertical, FileSignature, RefreshCcw, CheckCheck, QrCode, Banknote, RotateCcw
 } from 'lucide-react';
 import { addDays, format, parseISO } from 'date-fns';
 import { formatCurrency, formatNumber } from '@/lib/utils';
@@ -55,6 +56,7 @@ interface BudgetListProps {
   clienteFiltrado: ClienteData | null;
   onGeneratePDF: (budget: Orcamento, type: 'client' | 'internal') => void;
   onShowPix: (budget: Orcamento) => void;
+  onRevertPayment: (budgetId: string) => void;
 }
 
 /* ---------------- BADGE DE AJUSTE ---------------- */
@@ -111,11 +113,13 @@ export function BudgetList({
   clienteFiltrado,
   onGeneratePDF,
   onShowPix,
+  onRevertPayment,
 }: BudgetListProps) {
 
   const { toast } = useToast();
   const [selectedPhone, setSelectedPhone] = useState('');
   const [budgetToDelete, setBudgetToDelete] = useState<Orcamento | null>(null);
+  const [budgetToRevertPayment, setBudgetToRevertPayment] = useState<Orcamento | null>(null);
 
 
   const [phoneDialog, setPhoneDialog] = useState<{
@@ -190,6 +194,13 @@ export function BudgetList({
       setBudgetToDelete(null);
     }
   };
+
+  const handleRevertPaymentConfirm = () => {
+    if (budgetToRevertPayment) {
+      onRevertPayment(budgetToRevertPayment.id);
+      setBudgetToRevertPayment(null);
+    }
+  }
 
 
   /* ---------------- LOADING ---------------- */
@@ -291,6 +302,12 @@ export function BudgetList({
                   {['Aceito', 'Concluído', 'Pago'].includes(o.status) && (
                     <DropdownMenuItem onClick={() => onShowPix(o)}>
                       <QrCode className="mr-2 h-4 w-4" /> Ver Pix
+                    </DropdownMenuItem>
+                  )}
+
+                  {valorPago > 0 && (
+                    <DropdownMenuItem onClick={() => setBudgetToRevertPayment(o)} className="text-amber-600">
+                      <RotateCcw className="mr-2 h-4 w-4" /> Zerar Pagamentos
                     </DropdownMenuItem>
                   )}
 
@@ -428,6 +445,24 @@ export function BudgetList({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={!!budgetToRevertPayment} onOpenChange={() => setBudgetToRevertPayment(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Zerar pagamentos?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Isso removerá o registro de todos os valores já recebidos para este orçamento (Nº {budgetToRevertPayment?.numeroOrcamento}). O saldo voltará ao valor total.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRevertPaymentConfirm} className="bg-amber-600 hover:bg-amber-700">
+              Confirmar Estorno
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
+
