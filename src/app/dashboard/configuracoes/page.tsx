@@ -41,6 +41,7 @@ import {
   MessageSquare,
   RotateCcw,
   Info,
+  QrCode,
 } from 'lucide-react';
 
 import { useToast } from '@/hooks/use-toast';
@@ -78,6 +79,8 @@ const initialEmpresaState: Omit<EmpresaData, 'id' | 'userId'> = {
   logo: '',
   whatsappMessage:
     'Olá {Nome do Cliente}!\n\nSegue seu orçamento {Nº do Orçamento}:\n\n{Detalhes do Orçamento}\n\nTOTAL: {Valor Total}\n\nQualquer dúvida, estou à disposição!\n\n{Nome da Empresa}',
+  chavePix: '',
+  pixCidade: '',
 };
 
 /* =======================
@@ -295,7 +298,7 @@ export default function ConfiguracoesPage() {
 
   const handleAddTagToMessage = (tag: string) => {
     const input = messageInputRef.current;
-    if (!input || !empresa) return;
+    if (!input || !empresa) return;  
   
     const start = input.selectionStart;
     const end = input.selectionEnd;
@@ -594,6 +597,47 @@ export default function ConfiguracoesPage() {
           </CardContent>
         </Card>
 
+        {/* Configurações Pix */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <QrCode size={20} />
+              Recebimento via Pix
+            </CardTitle>
+            <CardDescription>
+              Configure sua chave Pix para gerar QR Codes de pagamento nos orçamentos aceitos.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="chavePix">Chave Pix</Label>
+                <Input
+                  id="chavePix"
+                  name="chavePix"
+                  placeholder="E-mail, CPF, CNPJ, Celular ou Aleatória"
+                  value={empresa.chavePix || ''}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pixCidade">Cidade (da conta bancária)</Label>
+                <Input
+                  id="pixCidade"
+                  name="pixCidade"
+                  placeholder="Ex: São Paulo"
+                  value={empresa.pixCidade || ''}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              <Info size={12} className="inline mr-1" />
+              O padrão Pix exige que o nome da cidade esteja correto para que o QR Code seja válido.
+            </p>
+          </CardContent>
+        </Card>
+
         {/* Mensagem WhatsApp */}
         <Card>
             <CardHeader>
@@ -678,7 +722,7 @@ export default function ConfiguracoesPage() {
                 <ThemeToggle />
               </div>
             </CardContent>
-          </Card>
+          </div>
         </div>
 
         {/* Salvar */}

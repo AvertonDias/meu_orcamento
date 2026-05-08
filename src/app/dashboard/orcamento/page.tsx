@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, {
@@ -58,6 +59,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { formatCurrency, formatNumber, getCleanedCliente } from '@/lib/utils';
 import { BudgetDetailsModal } from './_components/budget-details-modal';
 import { StatusUpdateDialog } from './_components/status-update-dialog';
+import { PixModal } from './_components/pix-modal';
 
 
 export default function OrcamentoPage() {
@@ -161,6 +163,7 @@ export default function OrcamentoPage() {
     useState<Orcamento | null>(null);
   const [viewingBudget, setViewingBudget] = useState<Orcamento | null>(null);
   const [statusFilter, setStatusFilter] = useState('todos');
+  const [pixBudget, setPixBudget] = useState<Orcamento | null>(null);
 
   const [statusUpdateInfo, setStatusUpdateInfo] = useState<{
     budget: Orcamento;
@@ -506,6 +509,7 @@ export default function OrcamentoPage() {
         onUpdateStatus={handleUpdateStatus}
         clienteFiltrado={clienteFiltrado}
         onViewDetails={setViewingBudget}
+        onShowPix={setPixBudget}
       />
 
        {clientes && materiais && (
@@ -547,6 +551,13 @@ export default function OrcamentoPage() {
           onSave={handleSaveStatusUpdate}
         />
       )}
+
+      <PixModal
+        isOpen={!!pixBudget}
+        onOpenChange={(open) => !open && setPixBudget(null)}
+        orcamento={pixBudget}
+        empresa={empresa || null}
+      />
 
       <BudgetPDFs
         ref={budgetPdfRef}

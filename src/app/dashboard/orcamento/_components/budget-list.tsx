@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -22,7 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   FileText, Pencil, MessageCircle,
   CheckCircle2, XCircle, Trash2,
-  MoreVertical, FileSignature, RefreshCcw, CheckCheck
+  MoreVertical, FileSignature, RefreshCcw, CheckCheck, QrCode
 } from 'lucide-react';
 import { addDays, format, parseISO } from 'date-fns';
 import { formatCurrency, formatNumber } from '@/lib/utils';
@@ -54,6 +55,7 @@ interface BudgetListProps {
   onViewDetails: (budget: Orcamento) => void;
   clienteFiltrado: ClienteData | null;
   onGeneratePDF: (budget: Orcamento, type: 'client' | 'internal') => void;
+  onShowPix: (budget: Orcamento) => void;
 }
 
 /* ---------------- BADGE DE AJUSTE ---------------- */
@@ -109,6 +111,7 @@ export function BudgetList({
   onViewDetails,
   clienteFiltrado,
   onGeneratePDF,
+  onShowPix,
 }: BudgetListProps) {
 
   const { toast } = useToast();
@@ -276,6 +279,11 @@ export function BudgetList({
                 <DropdownMenuItem onClick={() => sendWhatsApp(o)}>
                   <MessageCircle className="mr-2 h-4 w-4" /> Enviar WhatsApp
                 </DropdownMenuItem>
+                {o.status === 'Aceito' && (
+                  <DropdownMenuItem onClick={() => onShowPix(o)}>
+                    <QrCode className="mr-2 h-4 w-4" /> Ver Pix
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger><FileText className="mr-2 h-4 w-4" /> Gerar PDF</DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
@@ -321,7 +329,29 @@ export function BudgetList({
                   <h3 className="text-lg font-semibold text-primary truncate" title={o.cliente.nome}>{o.cliente.nome}</h3>
                   <Badge variant={getStatusVariant(o.status)}>{o.status}</Badge>
                 </div>
-                <p className="text-sm text-muted-foreground">Nº {o.numeroOrcamento}</p>
+                <div className="flex items-center justify-between">
+                   <p className="text-sm text-muted-foreground">Nº {o.numeroOrcamento}</p>
+                   {o.status === 'Aceito' && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-7 w-7 border-primary/30 text-primary hover:bg-primary/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onShowPix(o);
+                            }}
+                          >
+                            <QrCode className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Gerar QR Code Pix</p>
+                        </TooltipContent>
+                      </Tooltip>
+                   )}
+                </div>
               </div>
               
               <div className="flex items-end justify-between mt-2">

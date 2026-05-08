@@ -11,6 +11,8 @@ export interface EmpresaData {
   logo?: string;
   fcmToken?: string; 
   whatsappMessage?: string;
+  chavePix?: string; // Chave Pix para recebimento
+  pixCidade?: string; // Cidade da conta Pix (obrigatório no padrão Pix)
 }
 
 export interface Telefone {
