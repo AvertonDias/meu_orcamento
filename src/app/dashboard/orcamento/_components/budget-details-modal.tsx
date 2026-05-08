@@ -25,7 +25,8 @@ import { formatCurrency, formatNumber } from '@/lib/utils';
 import { type VariantProps } from 'class-variance-authority';
 import { Capacitor } from '@capacitor/core';
 import { Separator } from '@/components/ui/separator';
-import { Pencil } from 'lucide-react';
+import { Pencil, User, Calendar, Info } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface BudgetDetailsModalProps {
   isOpen: boolean;
@@ -56,191 +57,236 @@ export function BudgetDetailsModal({
   const totalEditado = Math.abs(subtotal - budget.totalVenda) > 0.01;
   const ajuste = budget.totalVenda - subtotal;
 
-  const dataAceite = budget.dataAceite
-    ? parseISO(budget.dataAceite)
-    : null;
-
-  const dataRecusa = budget.dataRecusa
-    ? parseISO(budget.dataRecusa)
-    : null;
-    
-  const dataConclusao = budget.dataConclusao
-    ? parseISO(budget.dataConclusao)
-    : null;
+  const dataAceite = budget.dataAceite ? parseISO(budget.dataAceite) : null;
+  const dataRecusa = budget.dataRecusa ? parseISO(budget.dataRecusa) : null;
+  const dataConclusao = budget.dataConclusao ? parseISO(budget.dataConclusao) : null;
 
   const handleEditClick = () => {
-    onOpenChange(false); // fecha detalhes
-    onEdit(budget);     // pede ao pai para abrir edição
+    onOpenChange(false);
+    onEdit(budget);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-3xl w-[95vw] h-[90vh] flex flex-col p-0"
+        className="max-w-3xl w-[95vw] h-[90vh] flex flex-col p-0 overflow-hidden"
         onPointerDownOutside={e => {
           if (Capacitor.isNativePlatform()) e.preventDefault();
         }}
       >
-        <DialogHeader className="p-6 pb-4">
-          <DialogTitle className="text-2xl flex items-center gap-3 pr-20">
-            Orçamento Nº {budget.numeroOrcamento}
-            <Badge
-              variant={getStatusVariant(budget.status)}
-              className="text-base"
-            >
-              {budget.status}
-            </Badge>
-          </DialogTitle>
+        <DialogHeader className="p-6 pb-2 shrink-0">
+          <div className="flex items-start justify-between gap-4 pr-10">
+            <div className="space-y-1">
+              <DialogTitle className="text-xl sm:text-2xl font-bold">
+                Orçamento Nº {budget.numeroOrcamento}
+              </DialogTitle>
+              <Badge variant={getStatusVariant(budget.status)} className="text-sm">
+                {budget.status}
+              </Badge>
+            </div>
+            {!['Aceito', 'Concluído'].includes(budget.status) && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleEditClick}
+                className="shrink-0 h-10 w-10 border-primary text-primary hover:bg-primary hover:text-white"
+              >
+                <Pencil className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
         </DialogHeader>
 
-        {!['Aceito', 'Concluído'].includes(budget.status) && (
-          <div className="absolute top-4 right-14 z-10">
-            <Button
-              variant="default"
-              size="icon"
-              onClick={handleEditClick}
-              aria-label="Editar orçamento"
-            >
-              <Pencil className="h-5 w-5" />
-            </Button>
-          </div>
-        )}
-
-        <div className="flex-1 overflow-y-auto px-6 space-y-4">
-          {/* Informações Gerais */}
-          <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[auto_1fr_auto_1fr] gap-x-4 gap-y-1 text-sm p-4 border rounded-lg">
-            <div className="font-medium text-muted-foreground col-span-full sm:col-span-1">
-              Cliente:
-            </div>
-            <div className="font-semibold col-span-full sm:col-span-3">
-              {budget.cliente.nome}
-            </div>
-
-            <div className="font-medium text-muted-foreground">Criação:</div>
-            <div className="font-semibold">
-              {format(dataCriacao, 'dd/MM/yyyy')}
-            </div>
-
-            <div className="font-medium text-muted-foreground">Validade:</div>
-            <div className="font-semibold">
-              {format(dataValidade, 'dd/MM/yyyy')}
-            </div>
-
-            {budget.status === 'Aceito' && dataAceite && (
-              <div className="col-span-full sm:col-span-2">
-                <p className="font-semibold text-green-600">
-                  Aceito em: {format(dataAceite, 'dd/MM/yyyy')}
-                </p>
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-6">
+          {/* Card de Informações do Cliente e Datas */}
+          <div className="bg-muted/30 border rounded-xl p-4 space-y-4">
+            <div className="flex items-start gap-3">
+              <User className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Cliente</p>
+                <p className="font-semibold text-lg leading-tight">{budget.cliente.nome}</p>
               </div>
-            )}
+            </div>
             
-            {budget.status === 'Concluído' && dataConclusao && (
-              <div className="col-span-full sm:col-span-2">
-                <p className="font-semibold text-primary">
-                  Concluído em: {format(dataConclusao, 'dd/MM/yyyy')}
-                </p>
-              </div>
-            )}
+            <Separator className="bg-border/50" />
 
-            {budget.status === 'Recusado' && dataRecusa && (
-              <div className="col-span-full sm:col-span-2">
-                <p className="font-semibold text-destructive">
-                  Recusado em: {format(dataRecusa, 'dd/MM/yyyy')}
-                </p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-start gap-3">
+                <Calendar className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Criação</p>
+                  <p className="font-medium">{format(dataCriacao, 'dd/MM/yyyy')}</p>
+                </div>
               </div>
-            )}
+              <div className="flex items-start gap-3">
+                <Calendar className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Validade</p>
+                  <p className="font-medium text-orange-600 dark:text-orange-400">
+                    {format(dataValidade, 'dd/MM/yyyy')}
+                  </p>
+                </div>
+              </div>
+            </div>
 
+            {(dataAceite || dataConclusao || dataRecusa) && (
+              <>
+                <Separator className="bg-border/50" />
+                <div className="flex items-start gap-3">
+                  <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <div>
+                    {dataAceite && budget.status === 'Aceito' && (
+                      <p className="text-sm font-semibold text-green-600">
+                        Aceito em: {format(dataAceite, 'dd/MM/yyyy')}
+                      </p>
+                    )}
+                    {dataConclusao && budget.status === 'Concluído' && (
+                      <p className="text-sm font-semibold text-primary">
+                        Concluído em: {format(dataConclusao, 'dd/MM/yyyy')}
+                      </p>
+                    )}
+                    {dataRecusa && budget.status === 'Recusado' && (
+                      <p className="text-sm font-semibold text-destructive">
+                        Recusado em: {format(dataRecusa, 'dd/MM/yyyy')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Itens */}
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Itens e Serviços</h3>
-            <div className="border rounded-md">
+          {/* Seção de Itens e Serviços */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              Itens e Serviços
+              <Badge variant="secondary" className="font-normal">{budget.itens.length}</Badge>
+            </h3>
+            
+            {/* Versão MOBILE (Cards) */}
+            <div className="md:hidden space-y-3">
+              {budget.itens.map(item => (
+                <div key={item.id} className="border rounded-xl p-4 bg-card shadow-sm space-y-2">
+                  <p className="font-semibold text-primary text-sm sm:text-base">{item.materialNome}</p>
+                  <div className="flex justify-between items-end">
+                    <div className="text-sm text-muted-foreground">
+                      <span>{formatNumber(item.quantidade, 2)} {item.unidade}</span>
+                      <span className="mx-2">×</span>
+                      <span>{formatCurrency(item.precoVenda / item.quantidade)}</span>
+                    </div>
+                    <p className="font-bold text-base">{formatCurrency(item.precoVenda)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Versão DESKTOP (Tabela) */}
+            <div className="hidden md:block border rounded-xl overflow-hidden">
               <Table>
-                <TableHeader>
+                <TableHeader className="bg-muted/50">
                   <TableRow>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead className="text-right">Qtd.</TableHead>
-                    <TableHead className="text-right">Vl. Unit.</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="font-bold">Descrição</TableHead>
+                    <TableHead className="text-right font-bold">Qtd.</TableHead>
+                    <TableHead className="text-right font-bold">Vl. Unit.</TableHead>
+                    <TableHead className="text-right font-bold">Total</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {budget.itens.map(item => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium max-w-[300px]">
                         {item.materialNome}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right whitespace-nowrap">
                         {formatNumber(item.quantidade, 2)} {item.unidade}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right whitespace-nowrap">
                         {formatCurrency(item.precoVenda / item.quantidade)}
                       </TableCell>
-                      <TableCell className="text-right font-semibold">
+                      <TableCell className="text-right font-semibold whitespace-nowrap">
                         {formatCurrency(item.precoVenda)}
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
-                <TableFooter>
-                  {totalEditado && [
-                    <TableRow key="subtotal">
-                      <TableCell colSpan={3} className="text-right">
-                        Subtotal
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(subtotal)}
-                      </TableCell>
-                    </TableRow>,
-                    <TableRow key="ajuste">
-                      <TableCell colSpan={3} className="text-right">
-                        {ajuste > 0 ? 'Acréscimo' : 'Desconto'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(ajuste)}
-                      </TableCell>
-                    </TableRow>,
-                  ]}
-                  <TableRow className="text-lg bg-muted/50">
-                    <TableCell colSpan={3} className="text-right font-bold">
-                      TOTAL
-                    </TableCell>
-                    <TableCell className="text-right font-bold">
-                      {formatCurrency(budget.totalVenda)}
-                    </TableCell>
-                  </TableRow>
-                </TableFooter>
               </Table>
+            </div>
+
+            {/* Resumo de Valores */}
+            <div className="bg-muted/20 border rounded-xl p-4 space-y-2">
+              {totalEditado && (
+                <>
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Subtotal</span>
+                    <span>{formatCurrency(subtotal)}</span>
+                  </div>
+                  <div className={cn(
+                    "flex justify-between text-sm",
+                    ajuste > 0 ? "text-green-600" : "text-destructive"
+                  )}>
+                    <span>{ajuste > 0 ? 'Acréscimo' : 'Desconto'}</span>
+                    <span>{formatCurrency(ajuste)}</span>
+                  </div>
+                  <Separator className="my-2" />
+                </>
+              )}
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-bold">TOTAL</span>
+                <span className="text-2xl font-black text-primary">
+                  {formatCurrency(budget.totalVenda)}
+                </span>
+              </div>
             </div>
           </div>
 
-          {(budget.observacoes || budget.observacoesInternas) && <Separator />}
-
-          <div className="space-y-4 text-sm">
-            {budget.observacoes && (
-              <div>
-                <h4 className="font-semibold text-muted-foreground mb-1">
-                  Observações (para o cliente)
-                </h4>
-                <p className="whitespace-pre-wrap p-3 bg-muted/50 rounded-md">
-                  {budget.observacoes}
-                </p>
-              </div>
-            )}
-            {budget.observacoesInternas && (
-              <div>
-                <h4 className="font-semibold text-muted-foreground mb-1">
-                  Anotações Internas (confidencial)
-                </h4>
-                <p className="whitespace-pre-wrap p-3 bg-muted/50 rounded-md">
-                  {budget.observacoesInternas}
-                </p>
-              </div>
-            )}
-          </div>
+          {/* Observações */}
+          {(budget.observacoes || budget.observacoesInternas) && (
+            <div className="space-y-4 pt-2">
+              {budget.observacoes && (
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-tight">
+                    Observações para o Cliente
+                  </h4>
+                  <div className="text-sm bg-muted/40 p-3 rounded-lg border italic text-foreground/80 whitespace-pre-wrap">
+                    {budget.observacoes}
+                  </div>
+                </div>
+              )}
+              {budget.observacoesInternas && (
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-amber-600 dark:text-amber-400 uppercase tracking-tight flex items-center gap-1">
+                    <Lock className="h-3 w-3" /> Anotações Internas (Confidencial)
+                  </h4>
+                  <div className="text-sm bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg border border-amber-200 dark:border-amber-900/50 text-foreground/80 whitespace-pre-wrap">
+                    {budget.observacoesInternas}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Ícone de cadeado para as anotações internas
+function Lock(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
   );
 }
