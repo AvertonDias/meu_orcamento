@@ -63,6 +63,13 @@ import {
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
+interface ChartDataItem {
+  label: string;
+  recebido: number;
+  aReceber: number;
+  timestamp: Date;
+}
+
 const chartConfig = {
   recebido: {
     label: "Recebido",
@@ -138,7 +145,7 @@ export default function FinanceiroPage() {
     if (!mounted) return [];
     
     if (selectedPeriod === 'all') {
-      const months = [];
+      const months: ChartDataItem[] = [];
       const now = new Date();
       
       for (let i = 11; i >= 0; i--) {
@@ -177,7 +184,7 @@ export default function FinanceiroPage() {
       const end = endOfMonth(start);
       const days = eachDayOfInterval({ start, end });
       
-      const data = days.map(d => ({
+      const data: ChartDataItem[] = days.map(d => ({
         label: formatDate(d, 'dd'),
         recebido: 0,
         aReceber: 0,
