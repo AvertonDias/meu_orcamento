@@ -5,7 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/dexie';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
-import { formatCurrency, formatNumber } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import type { Orcamento } from '@/lib/types';
 
 import {
@@ -16,24 +16,17 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { 
   Banknote, 
   TrendingUp, 
   Clock, 
   CheckCircle2, 
   Search, 
-  Wallet,
   Loader2,
-  BarChart3
+  BarChart3,
+  Lightbulb,
+  ShieldCheck,
+  PiggyBank,
+  Zap
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { 
@@ -43,7 +36,6 @@ import {
   XAxis, 
   YAxis,
   ResponsiveContainer,
-  Tooltip as RechartsTooltip
 } from 'recharts';
 import { 
   ChartConfig, 
@@ -111,7 +103,7 @@ export default function FinanceiroPage() {
     );
   }, [orcamentos]);
 
-  // Filtragem para o gráfico e para a tabela
+  // Filtragem para o gráfico
   const orcamentosFiltrados = useMemo(() => {
     if (!searchTerm) return orcamentos;
     const s = searchTerm.toLowerCase();
@@ -296,73 +288,74 @@ export default function FinanceiroPage() {
         </CardContent>
       </Card>
 
-      {/* TABELA DETALHADA (OPCIONAL/CONSULTA) */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Listagem de Saldos</CardTitle>
-          <CardDescription>Acompanhe o progresso de pagamento de cada cliente.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {orcamentosFiltrados.length === 0 ? (
-            <div className="py-8 text-center text-muted-foreground">
-              <Wallet className="mx-auto h-10 w-10 opacity-20 mb-2" />
-              <p>Nenhum registro encontrado.</p>
+      {/* DICAS FINANCEIRAS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Lightbulb className="text-amber-500 h-5 w-5" />
+              Dicas de Gestão
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-3">
+              <div className="mt-1 bg-amber-100 dark:bg-amber-900/30 p-2 rounded-full h-fit">
+                <ShieldCheck className="h-4 w-4 text-amber-600" />
+              </div>
+              <div>
+                <p className="font-bold text-sm">Peça sempre um Sinal</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Solicitar 50% de entrada garante a compra dos materiais e cobre seus custos iniciais, além de firmar o compromisso do cliente.
+                </p>
+              </div>
             </div>
-          ) : (
-            <div className="border rounded-md overflow-hidden">
-              <Table>
-                <TableHeader className="bg-muted/50">
-                  <TableRow>
-                    <TableHead>Cliente / Orçamento</TableHead>
-                    <TableHead className="text-right">Vl. Total</TableHead>
-                    <TableHead className="text-right">Recebido</TableHead>
-                    <TableHead className="text-right">Saldo</TableHead>
-                    <TableHead className="w-[150px]">Progresso</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {orcamentosFiltrados.map((orc) => {
-                    const total = orc.totalVenda || 0;
-                    const pago = orc.valorPago || 0;
-                    const saldo = total - pago;
-                    const porcentagem = total > 0 ? (pago / total) * 100 : 0;
-                    const quitado = pago >= total && total > 0;
+            <div className="flex gap-3">
+              <div className="mt-1 bg-blue-100 dark:bg-blue-900/30 p-2 rounded-full h-fit">
+                <Zap className="h-4 w-4 text-blue-600" />
+              </div>
+              <div>
+                <p className="font-bold text-sm">Mantenha os Status em Dia</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Atualize orçamentos para 'Aceito' ou 'Concluído' assim que ocorrer a mudança. Isso mantém sua projeção financeira (A Receber) sempre real.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-                    return (
-                      <TableRow key={orc.id}>
-                        <TableCell>
-                          <div className="flex flex-col">
-                            <span className="font-semibold text-primary">{orc.cliente.nome}</span>
-                            <span className="text-[10px] text-muted-foreground uppercase">Nº {orc.numeroOrcamento} • {orc.status}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          {formatCurrency(total)}
-                        </TableCell>
-                        <TableCell className="text-right text-green-600 font-semibold">
-                          {formatCurrency(pago)}
-                        </TableCell>
-                        <TableCell className={`text-right font-semibold ${quitado ? 'text-muted-foreground' : 'text-amber-600'}`}>
-                          {quitado ? 'R$ 0,00' : formatCurrency(saldo)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-[10px] font-bold">
-                              <span>{Math.round(porcentagem)}%</span>
-                              {quitado && <Badge variant="success" className="h-4 text-[8px] px-1 py-0">QUITADO</Badge>}
-                            </div>
-                            <Progress value={porcentagem} className="h-1.5" />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <PiggyBank className="text-green-500 h-5 w-5" />
+              Saúde do seu Negócio
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-3">
+              <div className="mt-1 bg-green-100 dark:bg-green-900/30 p-2 rounded-full h-fit">
+                <TrendingUp className="h-4 w-4 text-green-600" />
+              </div>
+              <div>
+                <p className="font-bold text-sm">Planeje seu Fluxo de Caixa</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Use o valor 'A Receber' para planejar o pagamento de fornecedores e evitar retiradas maiores do que o seu lucro real.
+                </p>
+              </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <div className="flex gap-3">
+              <div className="mt-1 bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full h-fit">
+                <PiggyBank className="h-4 w-4 text-purple-600" />
+              </div>
+              <div>
+                <p className="font-bold text-sm">Reserva de Emergência</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Tente separar 10% de cada serviço recebido em uma conta separada para cobrir manutenções de ferramentas ou períodos com menos serviços.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
