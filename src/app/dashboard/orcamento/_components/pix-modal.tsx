@@ -58,9 +58,9 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
     if (!activeChave) return null;
 
     try {
-      // O TxID agora é o número real do orçamento. 
-      // O utilitário generatePixPayload se encarrega de limpar traços ou espaços.
-      const orcId = orcamento.numeroOrcamento;
+      // O TxID agora inclui o prefixo 'orcamento' seguido do número real do orçamento.
+      // O utilitário generatePixPayload se encarrega de limpar caracteres não permitidos (acentos, espaços, traços).
+      const orcId = `orcamento${orcamento.numeroOrcamento}`;
 
       const payload = generatePixPayload({
         chave: activeChave,
