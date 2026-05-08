@@ -28,7 +28,7 @@ import {
   Building, ArrowRight
 } from 'lucide-react';
 import { addDays, format, parseISO } from 'date-fns';
-import { formatCurrency, formatNumber } from '@/lib/utils';
+import { formatCurrency, formatNumber, cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -42,7 +42,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { type VariantProps } from 'class-variance-authority';
-import { cn } from '@/lib/utils';
 
 interface BudgetListProps {
   isLoading: boolean;
@@ -301,7 +300,12 @@ export function BudgetList({
             >
               {quitado && (
                 <div className="absolute top-0 right-0 p-1 pr-10 z-0 pointer-events-none">
-                    <Badge variant="success" className="opacity-20 transform rotate-12 text-xl py-0 px-2 font-black border-2 border-green-600">PAGO</Badge>
+                    <Badge 
+                      variant="success" 
+                      className="opacity-20 transform rotate-12 text-xl py-0 px-2 font-black border-2 border-green-600 dark:text-white dark:border-white dark:bg-transparent"
+                    >
+                      PAGO
+                    </Badge>
                 </div>
               )}
 
