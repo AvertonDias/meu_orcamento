@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import type { ClienteData, Telefone, Orcamento } from '@/lib/types';
 
 import {
@@ -43,39 +43,7 @@ import {
   ContactImportModals,
   type SelectedContactDetails,
 } from './_components/contact-import-modals';
-import { findDuplicateClient } from '@/lib/utils';
-
-// =================================================================
-// HELPERS
-// =================================================================
-
-const getCleanedCliente = (clienteData: any, defaultUserId: string): ClienteData => {
-  const baseCliente = (typeof clienteData === 'object' && clienteData !== null) 
-    ? clienteData 
-    : {};
-
-  let telefones: Telefone[] = [];
-
-  if (Array.isArray(baseCliente.telefones) && baseCliente.telefones.length > 0) {
-    telefones = baseCliente.telefones;
-  } 
-  else if (typeof baseCliente.telefone === 'string' && baseCliente.telefone) {
-    telefones = [{ nome: 'Principal', numero: baseCliente.telefone, principal: true }];
-  }
-
-  const { telefone, ...restOfClienteData } = baseCliente;
-
-  return {
-    ...restOfClienteData,
-    id: baseCliente.id || 'unknown-client-id',
-    userId: baseCliente.userId || defaultUserId,
-    nome: baseCliente.nome || 'Cliente Desconhecido',
-    telefones: telefones,
-    cpfCnpj: baseCliente.cpfCnpj || '',
-    email: baseCliente.email || '',
-    endereco: baseCliente.endereco || '',
-  };
-};
+import { findDuplicateClient, getCleanedCliente } from '@/lib/utils';
 
 /**
  * Converte o modelo de dados do formulário (ClientFormValues)
@@ -109,6 +77,11 @@ export default function ClientesPage() {
   const [user, loadingAuth] = useAuthState(auth);
   const router = useRouter();
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   /* -------------------------------------------------------------------------- */
   /* DADOS OFFLINE (DEXIE)                                                       */
@@ -146,7 +119,7 @@ export default function ClientesPage() {
         cliente: getCleanedCliente(data.cliente, o.userId),
         itens: Array.isArray(data.itens) ? data.itens : [],
         totalVenda: typeof data.totalVenda === 'number' ? data.totalVenda : 0,
-        dataCriacao: typeof data.dataCriacao === 'string' ? data.dataCriacao : new Date().toISOString(),
+        dataCriacao: typeof data.dataCriacao === 'string' ? data.dataCriacao : '',
         status: data.status || 'Pendente',
         validadeDias: String(data.validadeDias || '0'),
         observacoes: String(data.observacoes || ''),
@@ -157,10 +130,10 @@ export default function ClientesPage() {
         notificacaoVencimentoEnviada: !!data.notificacaoVencimentoEnviada,
     };
     return cleanBudget;
-  }).filter((o): o is Orcamento => o !== null);
+  }).filter((o): o is Orcamento => o !== null && o.dataCriacao !== '');
 
   const isLoadingData =
-    loadingAuth || clientes === undefined || orcamentos === undefined;
+    !mounted || loadingAuth || clientes === undefined || orcamentos === undefined;
 
   /* -------------------------------------------------------------------------- */
   /* STATES                                                                     */
@@ -201,7 +174,7 @@ export default function ClientesPage() {
 
     return clientes
       .filter(c => {
-        if (!c.id) return false; // Garante que clientes sem ID sejam filtrados
+        if (!c.id) return false; 
         if (!normalizedSearch) return true;
 
         const nome = c.nome.toLowerCase();

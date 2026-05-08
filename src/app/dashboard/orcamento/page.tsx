@@ -66,6 +66,11 @@ export default function OrcamentoPage() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const clienteIdParam = searchParams.get('clienteId');
 
@@ -154,7 +159,6 @@ export default function OrcamentoPage() {
   // =========================
   // STATE UI
   // =========================
-  const [mounted, setMounted] = useState(false);
   const [clienteFiltrado, setClienteFiltrado] = useState<ClienteData | null>(null);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -183,10 +187,6 @@ export default function OrcamentoPage() {
     ) => void;
   }>(null);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const isLoading =
     !mounted ||
     loadingAuth ||
@@ -199,7 +199,7 @@ export default function OrcamentoPage() {
   // FILTRO POR CLIENTE (URL)
   // =========================
   useEffect(() => {
-    if (!clienteIdParam || !clientes) {
+    if (!mounted || !clienteIdParam || !clientes) {
       setClienteFiltrado(null);
       return;
     }
@@ -208,7 +208,7 @@ export default function OrcamentoPage() {
       c => c.id === clienteIdParam
     );
     setClienteFiltrado(cliente || null);
-  }, [clienteIdParam, clientes]);
+  }, [clienteIdParam, clientes, mounted]);
 
 
   // =========================

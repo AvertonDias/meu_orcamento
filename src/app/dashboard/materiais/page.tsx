@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, FormEvent, useMemo } from 'react';
+import React, { useState, FormEvent, useMemo, useEffect } from 'react';
 import type { MaterialItem } from '@/lib/types';
 
 import {
@@ -99,6 +99,11 @@ const normalizeString = (str: string) =>
 export default function MateriaisPage() {
   const [user, loadingAuth] = useAuthState(auth);
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [activeTab, setActiveTab] = useState<'item' | 'servico'>('item');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -111,7 +116,7 @@ export default function MateriaisPage() {
     [user]
   )?.map(m => m.data);
 
-  const isLoadingData = loadingAuth || materiais === undefined;
+  const isLoadingData = !mounted || loadingAuth || materiais === undefined;
 
   const [newItem, setNewItem] = useState({ ...initialNewItemState });
 

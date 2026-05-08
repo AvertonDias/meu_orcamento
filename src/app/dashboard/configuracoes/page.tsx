@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { FormEvent, useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -92,6 +91,7 @@ export default function ConfiguracoesPage() {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
+  const [mounted, setMounted] = useState(false);
   const [initialData, setInitialData] = useState<string>('');
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -102,7 +102,11 @@ export default function ConfiguracoesPage() {
     [user]
   );
 
-  const isLoadingData = loadingAuth || empresaDexieArr === undefined;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isLoadingData = !mounted || loadingAuth || empresaDexieArr === undefined;
   
   const empresaDexie = useMemo(() => {
       if (isLoadingData || !empresaDexieArr) return undefined;
@@ -125,7 +129,6 @@ export default function ConfiguracoesPage() {
     if (empresaDexie?.data) {
       const dataFromDb = empresaDexie.data;
       
-      // Lógica de Migração do Pix
       const migratedChavesPix: PixKey[] = Array.isArray(dataFromDb.chavesPix) && dataFromDb.chavesPix.length > 0
         ? dataFromDb.chavesPix
         : (dataFromDb.chavePix 
@@ -145,6 +148,7 @@ export default function ConfiguracoesPage() {
         ...initialEmpresaState,
         id: user.uid,
         userId: user.uid,
+        chavesPix: initialEmpresaState.chavesPix,
       };
     } else {
       return;
@@ -160,7 +164,7 @@ export default function ConfiguracoesPage() {
   ======================= */
   
   useEffect(() => {
-    if (initialData) {
+    if (initialData && empresa) {
       const currentData = JSON.stringify(empresa);
       setIsDirty(currentData !== initialData);
     }
