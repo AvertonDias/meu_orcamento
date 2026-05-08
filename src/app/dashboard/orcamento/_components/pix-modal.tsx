@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { generatePixPayload, getPixQRCodeUrl } from '@/lib/pix-utils';
 import { formatCurrency, maskCurrency } from '@/lib/utils';
-import { Copy, Check, QrCode, ArrowRightLeft, AlertTriangle, Loader2, Banknote } from 'lucide-react';
+import { Copy, Check, QrCode, AlertTriangle } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import {
@@ -30,15 +30,13 @@ interface PixModalProps {
   onOpenChange: (open: boolean) => void;
   orcamento: Orcamento | null;
   empresa: EmpresaData | null;
-  onConfirmPayment: (budgetId: string, amount: number) => Promise<void>;
 }
 
-export function PixModal({ isOpen, onOpenChange, orcamento, empresa, onConfirmPayment }: PixModalProps) {
+export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalProps) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [selectedKeyIndex, setSelectedKeyIndex] = useState<string>('0');
   const [editableAmountStr, setEditableAmountStr] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
 
   // Reseta estados ao abrir
   useEffect(() => {
@@ -104,20 +102,6 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa, onConfirmPa
       setCopied(true);
       toast({ title: 'Código Pix copiado!' });
       setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const handleConfirmRecebimento = async () => {
-    if (!orcamento || numericValue <= 0) return;
-
-    setIsSaving(true);
-    try {
-      await onConfirmPayment(orcamento.id, numericValue);
-      onOpenChange(false);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -209,24 +193,15 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa, onConfirmPa
                   />
                 </div>
 
-                <div className="w-full space-y-2">
+                <div className="w-full">
                   <Button
                       variant="outline"
                       size="sm"
-                      className="w-full h-8 text-xs"
+                      className="w-full h-10"
                       onClick={handleCopy}
                   >
-                      {copied ? <Check className="h-3 w-3 mr-2 text-green-500" /> : <Copy className="h-3 w-3 mr-2" />}
+                      {copied ? <Check className="h-4 w-4 mr-2 text-green-500" /> : <Copy className="h-4 w-4 mr-2" />}
                       {copied ? 'Copiado!' : 'Copiar Código Pix'}
-                  </Button>
-
-                  <Button
-                    className="w-full bg-green-600 hover:bg-green-700"
-                    onClick={handleConfirmRecebimento}
-                    disabled={isSaving}
-                  >
-                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Banknote className="h-4 w-4 mr-2" />}
-                    Confirmar Recebimento
                   </Button>
                 </div>
               </>
@@ -238,7 +213,7 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa, onConfirmPa
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} className="w-full">
-            Cancelar
+            Fechar
           </Button>
         </DialogFooter>
       </DialogContent>

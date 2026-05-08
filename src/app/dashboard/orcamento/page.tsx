@@ -598,7 +598,6 @@ export default function OrcamentoPage() {
         onOpenChange={(open) => !open && setPixBudget(null)}
         orcamento={pixBudget}
         empresa={empresa || null}
-        onConfirmPayment={handleConfirmPixPayment}
       />
 
       <BudgetPDFs
