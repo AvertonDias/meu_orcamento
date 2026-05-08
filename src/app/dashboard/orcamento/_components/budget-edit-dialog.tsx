@@ -34,6 +34,16 @@ import {
   TableFooter,
 } from '@/components/ui/table';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Loader2,
   PlusCircle,
   Trash2,
@@ -141,6 +151,7 @@ export function BudgetEditDialog({
   const [isMaterialPopoverOpen, setIsMaterialPopoverOpen] = useState(false);
 
   const [itemToEdit, setItemToEdit] = useState<OrcamentoItem | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
   const [isTotalLocked, setIsTotalLocked] = useState(true);
   const [manualTotal, setManualTotal] = useState<number | null>(null);
@@ -494,7 +505,7 @@ export function BudgetEditDialog({
                         <Button variant="ghost" size="icon" onClick={() => setItemToEdit(item)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => setEditingBudgetItens(prev => prev.filter(i => i.id !== item.id))}>
+                        <Button variant="ghost" size="icon" onClick={() => setItemToDelete(item.id)}>
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
@@ -532,7 +543,7 @@ export function BudgetEditDialog({
                                       <Button variant="ghost" size="icon" onClick={() => setItemToEdit(item)}>
                                           <Pencil className="h-4 w-4" />
                                       </Button>
-                                      <Button variant="ghost" size="icon" onClick={() => setEditingBudgetItens(prev => prev.filter(i => i.id !== item.id))}>
+                                      <Button variant="ghost" size="icon" onClick={() => setItemToDelete(item.id)}>
                                           <Trash2 className="h-4 w-4 text-destructive" />
                                       </Button>
                                     </div>
@@ -720,7 +731,35 @@ export function BudgetEditDialog({
           }}
         />
       )}
+
+      {/* Confirmação de Exclusão de Item */}
+      <AlertDialog 
+        open={!!itemToDelete} 
+        onOpenChange={(open) => !open && setItemToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover Item?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você tem certeza que deseja remover este item do orçamento? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                if (itemToDelete) {
+                  setEditingBudgetItens(prev => prev.filter(i => i.id !== itemToDelete));
+                  setItemToDelete(null);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sim, Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
-

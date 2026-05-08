@@ -26,6 +26,17 @@ import {
 } from '@/components/ui/alert';
 
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+
+import {
   Building,
   Save,
   CheckCircle,
@@ -97,6 +108,19 @@ export default function ConfiguracoesPage() {
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
 
   const { isDirty, setIsDirty } = useDirtyState();
+
+  // Estado para diálogos de confirmação de exclusão
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    description: '',
+    onConfirm: () => {},
+  });
 
   const empresaDexieArr = useLiveQuery(
     () => (user ? db.empresa.where('id').equals(user.uid).toArray() : []),
@@ -249,13 +273,19 @@ export default function ConfiguracoesPage() {
       return;
     }
 
-    const telefones = empresa.telefones.filter((_, i) => i !== index);
-
-    if (!telefones.some(t => t.principal)) {
-      telefones[0].principal = true;
-    }
-
-    setEmpresa({ ...empresa, telefones });
+    setDeleteConfirm({
+      isOpen: true,
+      title: 'Remover Telefone?',
+      description: 'Você tem certeza que deseja remover este telefone de contato?',
+      onConfirm: () => {
+        const telefones = empresa.telefones.filter((_, i) => i !== index);
+        if (!telefones.some(t => t.principal)) {
+          telefones[0].principal = true;
+        }
+        setEmpresa({ ...empresa, telefones });
+        setDeleteConfirm(prev => ({ ...prev, isOpen: false }));
+      }
+    });
   };
 
   /* PIX HANDLERS */
@@ -296,13 +326,19 @@ export default function ConfiguracoesPage() {
       return;
     }
 
-    const chavesPix = empresa.chavesPix.filter((_, i) => i !== index);
-
-    if (!chavesPix.some(k => k.principal)) {
-      chavesPix[0].principal = true;
-    }
-
-    setEmpresa({ ...empresa, chavesPix });
+    setDeleteConfirm({
+      isOpen: true,
+      title: 'Remover Chave Pix?',
+      description: 'Você tem certeza que deseja remover esta chave Pix das opções de recebimento?',
+      onConfirm: () => {
+        const chavesPix = empresa.chavesPix.filter((_, i) => i !== index);
+        if (!chavesPix.some(k => k.principal)) {
+          chavesPix[0].principal = true;
+        }
+        setEmpresa({ ...empresa, chavesPix });
+        setDeleteConfirm(prev => ({ ...prev, isOpen: false }));
+      }
+    });
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -341,8 +377,16 @@ export default function ConfiguracoesPage() {
 
   const removeLogo = () => {
     if (!empresa) return;
-    setEmpresa({ ...empresa, logo: '' });
-    toast({ title: 'Logo removido' });
+    setDeleteConfirm({
+      isOpen: true,
+      title: 'Remover Logo?',
+      description: 'Deseja remover a imagem da logomarca da sua empresa?',
+      onConfirm: () => {
+        setEmpresa({ ...empresa, logo: '' });
+        toast({ title: 'Logo removido' });
+        setDeleteConfirm(prev => ({ ...prev, isOpen: false }));
+      }
+    });
   };
 
   const handleAddTagToMessage = (tag: string) => {
@@ -617,6 +661,7 @@ export default function ConfiguracoesPage() {
                         onClick={() => removeTelefone(index)}
                         disabled={empresa.telefones.length <= 1}
                         className="absolute top-2 right-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        title="Remover telefone"
                       >
                         <Trash2 size={16} />
                       </Button>
@@ -693,6 +738,7 @@ export default function ConfiguracoesPage() {
                     onClick={() => removePixKey(index)}
                     disabled={empresa.chavesPix.length <= 1}
                     className="absolute top-2 right-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    title="Remover chave Pix"
                   >
                     <Trash2 size={16} />
                   </Button>
@@ -811,6 +857,30 @@ export default function ConfiguracoesPage() {
           </Button>
         </div>
       </form>
+
+      {/* Diálogo de Confirmação de Exclusão */}
+      <AlertDialog 
+        open={deleteConfirm.isOpen} 
+        onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, isOpen: open }))}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{deleteConfirm.title}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteConfirm.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={deleteConfirm.onConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Confirmar Exclusão
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
