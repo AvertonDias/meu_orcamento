@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, {
@@ -399,11 +398,10 @@ export default function OrcamentoPage() {
         payload.valorPago = novoValorPago;
         payload.dataPagamento = date.toISOString();
 
-        // Se o valor total foi atingido, status vira "Pago". Caso contrário, mantém o status atual (Aceito/Concluído)
         if (novoValorPago >= budget.totalVenda) {
             status = 'Pago';
         } else {
-            status = budget.status; // Mantém status original
+            status = budget.status; 
         }
       }
       
@@ -454,6 +452,10 @@ export default function OrcamentoPage() {
     }
   };
 
+  const handleConfirmPixPayment = async (budgetId: string, amount: number) => {
+    await handleSaveStatusUpdate(budgetId, 'Pago', new Date(), amount);
+  };
+
 
   const handleGerarPDF = (
     orc: Orcamento,
@@ -468,7 +470,6 @@ export default function OrcamentoPage() {
     setStatusFilter('todos');
   };
 
-  // Previne Hydration Error retornando um loader simples até que o cliente esteja pronto
   if (!mounted) {
     return (
       <div className="container mx-auto p-4 flex h-[80vh] items-center justify-center">
@@ -577,6 +578,7 @@ export default function OrcamentoPage() {
         onOpenChange={(open) => !open && setPixBudget(null)}
         orcamento={pixBudget}
         empresa={empresa || null}
+        onConfirmPayment={handleConfirmPixPayment}
       />
 
       <BudgetPDFs
