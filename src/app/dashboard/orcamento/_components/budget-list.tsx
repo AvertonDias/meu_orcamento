@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -253,6 +252,8 @@ export function BudgetList({
           const valorPago = o.valorPago || 0;
           const quitado = valorPago >= o.totalVenda;
           const parcial = valorPago > 0 && !quitado;
+          const dataCriacao = parseISO(o.dataCriacao);
+          const dataVencimento = addDays(dataCriacao, Number(o.validadeDias) || 0);
 
           return (
             <Card
@@ -392,7 +393,8 @@ export function BudgetList({
                 
                 <div className="flex items-end justify-between mt-2">
                   <div className="flex flex-col text-sm text-muted-foreground">
-                      <span>Criação: {format(parseISO(o.dataCriacao), 'dd/MM/yy')}</span>
+                      <span>Criação: {format(dataCriacao, 'dd/MM/yy')}</span>
+                      <span>Vencimento: {format(dataVencimento, 'dd/MM/yy')}</span>
                       {valorPago > 0 && (
                         <span className="text-green-600 font-medium">
                           Recebido: {formatCurrency(valorPago)}
