@@ -61,6 +61,7 @@ export const addOrcamento = async (orcamento: Omit<Orcamento, 'id'>): Promise<st
     observacoesInternas: orcamento.observacoesInternas || '',
     dataConclusao: null,
     dataPagamento: null,
+    valorPago: orcamento.valorPago || 0,
   };
 
   await dexieDB.orcamentos.put({
@@ -92,6 +93,7 @@ export const updateOrcamento = async (orcamentoId: string, orcamento: Partial<Or
       cliente: getCleanedCliente(mergedData.cliente, existing.data.userId), 
       itens: mergedData.itens,
       totalVenda: mergedData.totalVenda,
+      valorPago: mergedData.valorPago || 0,
       dataCriacao: existing.data.dataCriacao, 
       status: mergedData.status,
       validadeDias: mergedData.validadeDias,
@@ -136,13 +138,14 @@ export const updateOrcamentoStatus = async (
         mergedData.dataRecusa = null;
         mergedData.dataConclusao = null;
         mergedData.dataPagamento = null;
+        mergedData.valorPago = 0;
     } else if (status === 'Aceito') {
         mergedData.dataRecusa = null;
-        // Não limpa conclusão ou pagamento caso já existam
     } else if (status === 'Recusado') {
         mergedData.dataAceite = null;
         mergedData.dataConclusao = null;
         mergedData.dataPagamento = null;
+        mergedData.valorPago = 0;
     }
     
     const clienteSource = (mergedData.cliente && typeof mergedData.cliente === 'object' && Object.keys(mergedData.cliente).length > 0)
@@ -157,6 +160,7 @@ export const updateOrcamentoStatus = async (
         cliente: finalCliente,
         itens: mergedData.itens,
         totalVenda: mergedData.totalVenda,
+        valorPago: mergedData.valorPago || 0,
         dataCriacao: mergedData.dataCriacao,
         status: mergedData.status,
         validadeDias: mergedData.validadeDias,

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, {
@@ -386,6 +387,7 @@ export default function OrcamentoPage() {
       if (!budget) return;
 
       const payload: any = {};
+      let finalStatus: Orcamento['status'] = status;
   
       if (status === 'Aceito') {
         payload.dataAceite = date.toISOString();
@@ -399,13 +401,13 @@ export default function OrcamentoPage() {
         payload.dataPagamento = date.toISOString();
 
         if (novoValorPago >= budget.totalVenda) {
-            status = 'Pago';
+            finalStatus = 'Pago';
         } else {
-            status = budget.status; 
+            finalStatus = budget.status; 
         }
       }
       
-      await updateOrcamentoStatus(budgetId, status, payload);
+      await updateOrcamentoStatus(budgetId, finalStatus, payload);
   
       if (status === 'Aceito' && budget) {
         const lowStockAlerts: string[] = [];
@@ -441,7 +443,7 @@ export default function OrcamentoPage() {
       }
     
       toast({
-        title: valorPagoAdicional !== undefined ? `Pagamento de ${formatCurrency(valorPagoAdicional)} registrado!` : `Status alterado para: ${status}`,
+        title: valorPagoAdicional !== undefined ? `Pagamento de ${formatCurrency(valorPagoAdicional)} registrado!` : `Status alterado para: ${finalStatus}`,
       });
     } catch(error: any) {
       toast({
