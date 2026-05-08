@@ -30,16 +30,25 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
   const [copied, setCopied] = React.useState(false);
 
   const pixData = useMemo(() => {
-    if (!orcamento || !empresa?.chavePix) return null;
+    if (!orcamento || !empresa) return null;
+
+    // Tenta encontrar a chave principal
+    const principalPix = empresa.chavesPix?.find(k => k.principal) || empresa.chavesPix?.[0];
+    
+    // Fallback para campos legados se a nova estrutura estiver vazia
+    const activeChave = principalPix?.chave || empresa.chavePix;
+    const activeCidade = principalPix?.cidade || empresa.pixCidade || 'CIDADE';
+
+    if (!activeChave) return null;
 
     try {
       // Cria um identificador amigável para o extrato (ex: ORC0012026)
       const orcId = `ORC${orcamento.numeroOrcamento.replace(/[^0-9]/g, '')}`;
 
       const payload = generatePixPayload({
-        chave: empresa.chavePix,
+        chave: activeChave,
         beneficiario: empresa.nome,
-        cidade: empresa.pixCidade || 'CIDADE',
+        cidade: activeCidade,
         valor: orcamento.totalVenda,
         identificador: orcId,
       });
@@ -90,6 +99,9 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
 
   if (!orcamento || !empresa) return null;
 
+  // Verifica se existe alguma chave configurada
+  const hasPixConfig = (empresa.chavesPix && empresa.chavesPix.some(k => k.chave.trim())) || empresa.chavePix;
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
@@ -103,7 +115,7 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
           </DialogDescription>
         </DialogHeader>
 
-        {!empresa.chavePix ? (
+        {!hasPixConfig ? (
           <div className="py-6 text-center space-y-4">
             <p className="text-sm text-destructive font-medium">
               Chave Pix não configurada!

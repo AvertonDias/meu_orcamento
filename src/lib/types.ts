@@ -1,6 +1,12 @@
 
 import { v4 as uuidv4 } from 'uuid';
 
+export interface PixKey {
+  chave: string;
+  cidade: string;
+  principal: boolean;
+}
+
 export interface EmpresaData {
   id: string; // Firestore document ID
   userId: string;
@@ -12,8 +18,9 @@ export interface EmpresaData {
   fcmToken?: string; 
   whatsappMessage?: string;
   whatsappPixMessage?: string; // Nova mensagem personalizada para Pix
-  chavePix?: string; // Chave Pix para recebimento
-  pixCidade?: string; // Cidade da conta Pix (obrigatório no padrão Pix)
+  chavePix?: string; // Chave Pix para recebimento (Legado)
+  pixCidade?: string; // Cidade da conta Pix (Legado)
+  chavesPix: PixKey[]; // Nova estrutura para múltiplas chaves
 }
 
 export interface Telefone {

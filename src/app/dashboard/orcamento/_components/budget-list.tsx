@@ -160,7 +160,12 @@ export function BudgetList({
         text = text.replace(/{Nome da Empresa}/g, empresa?.nome || 'Nossa Empresa');
     } else {
         // Mensagem de Pix
-        if (!empresa?.chavePix) {
+        // Tenta encontrar a chave principal
+        const principalPix = empresa?.chavesPix?.find(k => k.principal) || empresa?.chavesPix?.[0];
+        const activeChave = principalPix?.chave || empresa?.chavePix;
+        const activeCidade = principalPix?.cidade || empresa?.pixCidade || 'CIDADE';
+
+        if (!activeChave) {
             toast({ title: 'Chave Pix não configurada!', variant: 'destructive' });
             return;
         }
@@ -172,9 +177,9 @@ export function BudgetList({
         const orcId = `ORC${orcamento.numeroOrcamento.replace(/[^0-9]/g, '')}`;
 
         const payload = generatePixPayload({
-            chave: empresa.chavePix,
-            beneficiario: empresa.nome,
-            cidade: empresa.pixCidade || 'CIDADE',
+            chave: activeChave,
+            beneficiario: empresa?.nome || 'Empresa',
+            cidade: activeCidade,
             valor: orcamento.totalVenda,
             identificador: orcId,
         });

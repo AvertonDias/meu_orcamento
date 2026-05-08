@@ -2,7 +2,7 @@
 'use client';
 
 import React, { FormEvent, useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import type { EmpresaData } from '@/lib/types';
+import type { EmpresaData, PixKey } from '@/lib/types';
 import { useUnifiedTheme } from '@/contexts/unified-theme-provider';
 
 import {
@@ -82,8 +82,7 @@ const initialEmpresaState: Omit<EmpresaData, 'id' | 'userId'> = {
     'Olá {Nome do Cliente}!\n\nSegue seu orçamento {Nº do Orçamento}:\n\n{Detalhes do Orçamento}\n\nTOTAL: {Valor Total}\n\nQualquer dúvida, estou à disposição!\n\n{Nome da Empresa}',
   whatsappPixMessage: 
     'Olá {Nome do Cliente}!\n\nSegue o código Pix (Copia e Cola) para o pagamento do orçamento Nº {Nº do Orçamento}:\n\n{Código Pix}\n\nValor: {Valor Total}\n\n{Nome da Empresa}',
-  chavePix: '',
-  pixCidade: '',
+  chavesPix: [{ chave: '', cidade: '', principal: true }],
 };
 
 /* =======================
@@ -129,12 +128,21 @@ export default function ConfiguracoesPage() {
     let loadedData: EmpresaData;
     if (empresaDexie?.data) {
       const dataFromDb = empresaDexie.data;
+      
+      // Lógica de Migração do Pix
+      const migratedChavesPix: PixKey[] = Array.isArray(dataFromDb.chavesPix) && dataFromDb.chavesPix.length > 0
+        ? dataFromDb.chavesPix
+        : (dataFromDb.chavePix 
+            ? [{ chave: dataFromDb.chavePix, cidade: dataFromDb.pixCidade || '', principal: true }]
+            : initialEmpresaState.chavesPix);
+
       loadedData = {
         ...initialEmpresaState,
         ...dataFromDb,
         telefones: (Array.isArray(dataFromDb.telefones) && dataFromDb.telefones.length > 0)
           ? dataFromDb.telefones
           : initialEmpresaState.telefones,
+        chavesPix: migratedChavesPix,
       };
     } else if (user) {
       loadedData = {
@@ -249,6 +257,53 @@ export default function ConfiguracoesPage() {
     setEmpresa({ ...empresa, telefones });
   };
 
+  /* PIX HANDLERS */
+  const handlePixKeyChange = (index: number, field: 'chave' | 'cidade', value: string) => {
+    if (!empresa) return;
+    const chavesPix = [...empresa.chavesPix];
+    chavesPix[index] = { ...chavesPix[index], [field]: value };
+    setEmpresa({ ...empresa, chavesPix });
+  };
+
+  const handlePrincipalPixKeyChange = (index: number) => {
+    if (!empresa) return;
+    const chavesPix = empresa.chavesPix.map((k, i) => ({
+      ...k,
+      principal: i === index,
+    }));
+    setEmpresa({ ...empresa, chavesPix });
+  };
+
+  const addPixKey = () => {
+    if (!empresa) return;
+    setEmpresa({
+      ...empresa,
+      chavesPix: [
+        ...empresa.chavesPix,
+        { chave: '', cidade: '', principal: false },
+      ],
+    });
+  };
+
+  const removePixKey = (index: number) => {
+    if (!empresa || empresa.chavesPix.length <= 1) {
+      toast({
+        title: 'Ação não permitida',
+        description: 'É necessário ao menos uma chave Pix.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const chavesPix = empresa.chavesPix.filter((_, i) => i !== index);
+
+    if (!chavesPix.some(k => k.principal)) {
+      chavesPix[0].principal = true;
+    }
+
+    setEmpresa({ ...empresa, chavesPix });
+  };
+
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !empresa) return;
@@ -357,6 +412,7 @@ export default function ConfiguracoesPage() {
       const savedData = await saveEmpresaData(user.uid, {
         ...empresa,
         telefones: empresa.telefones.filter(t => t.numero.trim()),
+        chavesPix: empresa.chavesPix.filter(k => k.chave.trim()),
       });
       
       setInitialData(JSON.stringify(savedData));
@@ -394,9 +450,14 @@ export default function ConfiguracoesPage() {
     return <p className="p-6">Erro ao carregar dados da empresa.</p>;
   }
 
-  const principalIndex =
+  const principalTelIndex =
     empresa.telefones.findIndex(t => t.principal) >= 0
       ? empresa.telefones.findIndex(t => t.principal)
+      : 0;
+
+  const principalPixIndex =
+    empresa.chavesPix.findIndex(k => k.principal) >= 0
+      ? empresa.chavesPix.findIndex(k => k.principal)
       : 0;
 
   return (
@@ -518,7 +579,7 @@ export default function ConfiguracoesPage() {
             <div className="space-y-4">
               <Label>Telefones</Label>
               <RadioGroup
-                value={String(principalIndex)}
+                value={String(principalTelIndex)}
                 onValueChange={index => handlePrincipalTelefoneChange(Number(index))}
                 className="space-y-4"
               >
@@ -588,32 +649,73 @@ export default function ConfiguracoesPage() {
               Recebimento via Pix
             </CardTitle>
             <CardDescription>
-              Configure sua chave Pix para gerar QR Codes de pagamento nos orçamentos aceitos.
+              Configure suas chaves Pix para gerar QR Codes de pagamento nos orçamentos aceitos.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="chavePix">Chave Pix</Label>
-                <Input
-                  id="chavePix"
-                  name="chavePix"
-                  placeholder="E-mail, CPF, CNPJ, Celular ou Aleatória"
-                  value={empresa.chavePix || ''}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="pixCidade">Cidade (da conta bancária)</Label>
-                <Input
-                  id="pixCidade"
-                  name="pixCidade"
-                  placeholder="Ex: São Paulo"
-                  value={empresa.pixCidade || ''}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
+          <CardContent className="space-y-6">
+            <RadioGroup
+              value={String(principalPixIndex)}
+              onValueChange={index => handlePrincipalPixKeyChange(Number(index))}
+              className="space-y-4"
+            >
+              {empresa.chavesPix.map((key, index) => (
+                <div key={index} className="space-y-2 rounded-md border p-3 bg-muted/20 relative">
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value={String(index)} id={`pix-principal-${index}`} />
+                    <Label htmlFor={`pix-principal-${index}`} className="font-normal cursor-pointer">
+                      Chave Principal {index === 0 ? '(Padrão)' : ''}
+                    </Label>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div className="space-y-1">
+                      <Label htmlFor={`pix-chave-${index}`} className="text-xs text-muted-foreground">Chave Pix (E-mail, CPF, CNPJ, Celular ou Aleatória)*</Label>
+                      <Input
+                        id={`pix-chave-${index}`}
+                        placeholder="Sua chave Pix"
+                        value={key.chave}
+                        onChange={e =>
+                          handlePixKeyChange(index, 'chave', e.target.value)
+                        }
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor={`pix-cidade-${index}`} className="text-xs text-muted-foreground">Cidade (da conta bancária)*</Label>
+                      <Input
+                        id={`pix-cidade-${index}`}
+                        placeholder="Ex: São Paulo"
+                        value={key.cidade}
+                        onChange={e =>
+                          handlePixKeyChange(index, 'cidade', e.target.value)
+                        }
+                        required
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removePixKey(index)}
+                    disabled={empresa.chavesPix.length <= 1}
+                    className="absolute top-2 right-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                </div>
+              ))}
+            </RadioGroup>
+            
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addPixKey}
+            >
+              <PlusCircle size={16} className="mr-2" /> Adicionar Outra Chave Pix
+            </Button>
+
             <p className="text-xs text-muted-foreground">
               <Info size={12} className="inline mr-1" />
               O padrão Pix exige que o nome da cidade esteja correto para que o QR Code seja válido.
