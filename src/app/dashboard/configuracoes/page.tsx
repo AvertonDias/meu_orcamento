@@ -3,7 +3,7 @@
 
 import React, { FormEvent, useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import type { EmpresaData } from '@/lib/types';
-import { useUnifiedTheme } from '@/contexts/unified-theme-provider'; // Importando o contexto
+import { useUnifiedTheme } from '@/contexts/unified-theme-provider';
 
 import {
   Card,
@@ -132,7 +132,6 @@ export default function ConfiguracoesPage() {
       loadedData = {
         ...initialEmpresaState,
         ...dataFromDb,
-        // Garante que `telefones` seja um array não vazio, caso contrário, usa o padrão.
         telefones: (Array.isArray(dataFromDb.telefones) && dataFromDb.telefones.length > 0)
           ? dataFromDb.telefones
           : initialEmpresaState.telefones,
@@ -144,14 +143,13 @@ export default function ConfiguracoesPage() {
         userId: user.uid,
       };
     } else {
-      return; // Sem usuário, não carrega nada.
+      return;
     }
     
     setEmpresa(loadedData);
     setInitialData(JSON.stringify(loadedData));
     setIsDirty(false);
   }, [empresaDexie, user, isLoadingData, setIsDirty]);
-  
   
   /* =======================
      AVISO DE SAIR SEM SALVAR
@@ -169,11 +167,6 @@ export default function ConfiguracoesPage() {
       event.preventDefault();
     }
   });
-
-
-  /* =======================
-     CPF / CNPJ
-  ======================= */
 
   const cpfCnpjStatus = useMemo(() => {
     if (!empresa?.cnpj) return 'incomplete';
@@ -256,10 +249,6 @@ export default function ConfiguracoesPage() {
     setEmpresa({ ...empresa, telefones });
   };
 
-  /* =======================
-     LOGO
-  ======================= */
-
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !empresa) return;
@@ -332,11 +321,6 @@ export default function ConfiguracoesPage() {
     toast({ title: 'Mensagem restaurada para o padrão.' });
   };
 
-
-  /* =======================
-     SALVAR
-  ======================= */
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!empresa || !user) return;
@@ -387,10 +371,6 @@ export default function ConfiguracoesPage() {
     }
   };
 
-  /* =======================
-     RESET SENHA
-  ======================= */
-
   const handlePasswordReset = async () => {
     if (!user?.email) return;
 
@@ -400,10 +380,6 @@ export default function ConfiguracoesPage() {
       description: 'Confira sua caixa de entrada.',
     });
   };
-
-  /* =======================
-     RENDER
-  ======================= */
 
   if (isLoadingData) {
     return (
@@ -441,7 +417,6 @@ export default function ConfiguracoesPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Dados da Empresa */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -454,7 +429,6 @@ export default function ConfiguracoesPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
-              {/* Formulário */}
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="nome">Nome da Empresa</Label>
@@ -498,7 +472,6 @@ export default function ConfiguracoesPage() {
                   </div>
                 </div>
               </div>
-              {/* Logo */}
               <div className="space-y-2 flex flex-col items-center justify-center bg-muted/50 rounded-lg p-4">
                 <Label>Logo da Empresa</Label>
                 <div className="w-32 h-32 rounded-full border-2 border-dashed flex items-center justify-center bg-white overflow-hidden">
@@ -542,7 +515,6 @@ export default function ConfiguracoesPage() {
                 </p>
               </div>
             </div>
-            {/* Telefones */}
             <div className="space-y-4">
               <Label>Telefones</Label>
               <RadioGroup
@@ -609,7 +581,6 @@ export default function ConfiguracoesPage() {
           </CardContent>
         </Card>
 
-        {/* Configurações Pix */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -650,7 +621,6 @@ export default function ConfiguracoesPage() {
           </CardContent>
         </Card>
 
-        {/* Mensagens WhatsApp */}
         <div className="grid md:grid-cols-2 gap-6">
             <Card>
                 <CardHeader>
@@ -737,9 +707,7 @@ export default function ConfiguracoesPage() {
             </Card>
         </div>
 
-        {/* Conta e Aparência */}
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Conta */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -764,7 +732,6 @@ export default function ConfiguracoesPage() {
             </CardContent>
           </Card>
 
-          {/* Aparência */}
           <Card>
             <CardHeader>
               <CardTitle>Aparência</CardTitle>
@@ -782,7 +749,6 @@ export default function ConfiguracoesPage() {
           </Card>
         </div>
 
-        {/* Salvar */}
         <div className="flex justify-end">
           <Button type="submit" size="lg" disabled={!isDirty || isSaving}>
             {isSaving ? (
