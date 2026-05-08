@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -302,9 +301,6 @@ export function BudgetList({
                   <DropdownMenuSubTrigger><FileSignature className="mr-2 h-4 w-4" /> Alterar Status</DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent>
-                      <DropdownMenuItem onClick={() => onUpdateStatus(o.id, 'Pago')}>
-                        <Banknote className="mr-2 h-4 w-4 text-green-600" /> Confirmar Pagamento
-                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onUpdateStatus(o.id, 'Concluído')}>
                         <CheckCheck className="mr-2 h-4 w-4 text-primary" /> Marcar como Concluído
                       </DropdownMenuItem>
