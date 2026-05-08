@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -6,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { Home, Users, Wrench, Ruler, Settings } from 'lucide-react';
+import { Home, Users, Wrench, Ruler, Settings, Banknote } from 'lucide-react';
 import { useDirtyState } from '@/contexts/dirty-state-context';
 import { usePermissionDialog } from '@/hooks/use-permission-dialog';
 
@@ -15,6 +14,7 @@ export const navItems = [
   { href: '/dashboard/clientes', label: 'Clientes', icon: Users },
   { href: '/dashboard/materiais', label: 'Itens e Serviços', icon: Wrench },
   { href: '/dashboard/conversoes', label: 'Conversões', icon: Ruler },
+  { href: '/dashboard/financeiro', label: 'Financeiro', icon: Banknote },
   { href: '/dashboard/configuracoes', label: 'Configurações', icon: Settings },
 ];
 
