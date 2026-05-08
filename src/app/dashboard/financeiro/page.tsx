@@ -26,9 +26,17 @@ import {
   Lightbulb,
   ShieldCheck,
   PiggyBank,
-  Zap
+  Zap,
+  CalendarDays
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   Bar, 
   BarChart, 
@@ -51,7 +59,9 @@ import {
   startOfMonth, 
   endOfMonth, 
   isWithinInterval, 
-  parseISO 
+  parseISO,
+  eachDayOfInterval,
+  startOfDay,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -70,6 +80,7 @@ export default function FinanceiroPage() {
   const [user, loadingAuth] = useAuthState(auth);
   const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedPeriod, setSelectedPeriod] = useState('all');
 
   useEffect(() => {
     setMounted(true);
@@ -80,14 +91,34 @@ export default function FinanceiroPage() {
     [user]
   );
 
-  const orcamentos = useMemo(() => {
+  const orcamentosBase = useMemo(() => {
     if (!orcamentosRaw) return [];
     return orcamentosRaw.map(o => o.data).filter(o => o.status !== 'Recusado');
   }, [orcamentosRaw]);
 
-  // Cálculos financeiros totais
+  // Opções do seletor (Últimos 12 meses)
+  const periodOptions = useMemo(() => {
+    const options = [{ label: 'Todo o Período', value: 'all' }];
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const d = subMonths(now, i);
+      options.push({
+        label: formatDate(d, 'MMMM yyyy', { locale: ptBR }),
+        value: formatDate(d, 'yyyy-MM')
+      });
+    }
+    return options;
+  }, []);
+
+  // Filtragem de orçamentos por período para os CARDS
+  const orcamentosFiltradosPeriodo = useMemo(() => {
+    if (selectedPeriod === 'all') return orcamentosBase;
+    return orcamentosBase.filter(o => o.dataCriacao.startsWith(selectedPeriod));
+  }, [orcamentosBase, selectedPeriod]);
+
+  // Cálculos financeiros totais (Respeita o período selecionado)
   const totais = useMemo(() => {
-    return orcamentos.reduce(
+    return orcamentosFiltradosPeriodo.reduce(
       (acc, orc) => {
         const total = orc.totalVenda || 0;
         const pago = orc.valorPago || 0;
@@ -101,59 +132,83 @@ export default function FinanceiroPage() {
       },
       { recebido: 0, aReceber: 0, totalGeral: 0 }
     );
-  }, [orcamentos]);
+  }, [orcamentosFiltradosPeriodo]);
 
-  // Filtragem para o gráfico
-  const orcamentosFiltrados = useMemo(() => {
-    if (!searchTerm) return orcamentos;
+  // Filtragem por busca (para o gráfico)
+  const orcamentosFiltradosBusca = useMemo(() => {
+    if (!searchTerm) return orcamentosBase;
     const s = searchTerm.toLowerCase();
-    return orcamentos.filter(
+    return orcamentosBase.filter(
       o =>
         o.cliente.nome.toLowerCase().includes(s) ||
         o.numeroOrcamento.toLowerCase().includes(s)
     );
-  }, [orcamentos, searchTerm]);
+  }, [orcamentosBase, searchTerm]);
 
-  // Dados para o gráfico de 12 meses
+  // Dados para o gráfico (Evolução 12 meses OU Dias do mês)
   const chartData = useMemo(() => {
     if (!mounted) return [];
     
-    const months = [];
-    const now = new Date();
-    
-    // Gera os últimos 12 meses
-    for (let i = 11; i >= 0; i--) {
-      const d = subMonths(now, i);
-      months.push({
-        month: formatDate(d, 'MMM/yy', { locale: ptBR }),
+    if (selectedPeriod === 'all') {
+      const months = [];
+      const now = new Date();
+      
+      for (let i = 11; i >= 0; i--) {
+        const d = subMonths(now, i);
+        months.push({
+          label: formatDate(d, 'MMM/yy', { locale: ptBR }),
+          recebido: 0,
+          aReceber: 0,
+          timestamp: startOfMonth(d)
+        });
+      }
+
+      orcamentosFiltradosBusca.forEach(orc => {
+        const dataOrc = parseISO(orc.dataCriacao);
+        const total = orc.totalVenda || 0;
+        const pago = orc.valorPago || 0;
+        const saldo = Math.max(0, total - pago);
+
+        const monthIndex = months.findIndex(m => 
+          isWithinInterval(dataOrc, { 
+            start: m.timestamp, 
+            end: endOfMonth(m.timestamp) 
+          })
+        );
+
+        if (monthIndex !== -1) {
+          months[monthIndex].recebido += pago;
+          months[monthIndex].aReceber += saldo;
+        }
+      });
+      return months;
+    } else {
+      // Evolução DIÁRIA do mês selecionado
+      const [year, month] = selectedPeriod.split('-').map(Number);
+      const start = startOfMonth(new Date(year, month - 1));
+      const end = endOfMonth(start);
+      const days = eachDayOfInterval({ start, end });
+      
+      const data = days.map(d => ({
+        label: formatDate(d, 'dd'),
         recebido: 0,
         aReceber: 0,
-        timestamp: startOfMonth(d)
+        timestamp: startOfDay(d)
+      }));
+
+      orcamentosFiltradosBusca.forEach(orc => {
+        const dataOrc = parseISO(orc.dataCriacao);
+        if (formatDate(dataOrc, 'yyyy-MM') === selectedPeriod) {
+           const dayIndex = dataOrc.getDate() - 1;
+           if (data[dayIndex]) {
+              data[dayIndex].recebido += orc.valorPago || 0;
+              data[dayIndex].aReceber += Math.max(0, (orc.totalVenda || 0) - (orc.valorPago || 0));
+           }
+        }
       });
+      return data;
     }
-
-    // Distribui os orçamentos nos meses
-    orcamentosFiltrados.forEach(orc => {
-      const dataOrc = parseISO(orc.dataCriacao);
-      const total = orc.totalVenda || 0;
-      const pago = orc.valorPago || 0;
-      const saldo = Math.max(0, total - pago);
-
-      const monthIndex = months.findIndex(m => 
-        isWithinInterval(dataOrc, { 
-          start: m.timestamp, 
-          end: endOfMonth(m.timestamp) 
-        })
-      );
-
-      if (monthIndex !== -1) {
-        months[monthIndex].recebido += pago;
-        months[monthIndex].aReceber += saldo;
-      }
-    });
-
-    return months;
-  }, [orcamentosFiltrados, mounted]);
+  }, [orcamentosFiltradosBusca, mounted, selectedPeriod]);
 
   if (!mounted || loadingAuth) {
     return (
@@ -165,14 +220,32 @@ export default function FinanceiroPage() {
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Banknote className="text-primary" />
-          Financeiro
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          Controle de entradas, saldos a receber e projeções de faturamento.
-        </p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Banknote className="text-primary" />
+            Financeiro
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Controle de entradas, saldos a receber e projeções de faturamento.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+           <CalendarDays className="text-muted-foreground h-4 w-4 hidden sm:block" />
+           <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Selecione o período" />
+            </SelectTrigger>
+            <SelectContent>
+              {periodOptions.map(opt => (
+                <SelectItem key={opt.value} value={opt.value} className="capitalize">
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+           </Select>
+        </div>
       </div>
 
       {/* CARDS DE RESUMO */}
@@ -187,7 +260,9 @@ export default function FinanceiroPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-[10px] text-muted-foreground">Dinheiro já em conta</p>
+            <p className="text-[10px] text-muted-foreground">
+              {selectedPeriod === 'all' ? 'Dinheiro já em conta' : `Referente a ${periodOptions.find(o => o.value === selectedPeriod)?.label}`}
+            </p>
           </CardContent>
         </Card>
 
@@ -220,15 +295,21 @@ export default function FinanceiroPage() {
         </Card>
       </div>
 
-      {/* GRÁFICO DE 12 MESES */}
+      {/* GRÁFICO DE EVOLUÇÃO */}
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <BarChart3 className="text-primary h-5 w-5" />
               <div>
-                <CardTitle>Histórico de 12 Meses</CardTitle>
-                <CardDescription>Recebimentos e saldos pendentes por mês.</CardDescription>
+                <CardTitle>
+                  {selectedPeriod === 'all' ? 'Evolução dos Últimos 12 Meses' : `Evolução em ${periodOptions.find(o => o.value === selectedPeriod)?.label}`}
+                </CardTitle>
+                <CardDescription>
+                  {selectedPeriod === 'all' 
+                    ? 'Recebimentos e saldos pendentes por mês.' 
+                    : 'Acompanhamento diário das vendas e recebimentos do mês.'}
+                </CardDescription>
               </div>
             </div>
             <div className="relative w-full sm:w-64">
@@ -249,7 +330,7 @@ export default function FinanceiroPage() {
                 <BarChart data={chartData} margin={{ top: 20, right: 10, left: 10, bottom: 0 }}>
                   <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.3} />
                   <XAxis 
-                    dataKey="month" 
+                    dataKey="label" 
                     tickLine={false} 
                     tickMargin={10} 
                     axisLine={false}
@@ -271,14 +352,14 @@ export default function FinanceiroPage() {
                     fill="var(--color-recebido)" 
                     stackId="a" 
                     radius={[0, 0, 0, 0]}
-                    barSize={30}
+                    barSize={selectedPeriod === 'all' ? 30 : 15}
                   />
                   <Bar 
                     dataKey="aReceber" 
                     fill="var(--color-aReceber)" 
                     stackId="a" 
                     radius={[4, 4, 0, 0]}
-                    barSize={30}
+                    barSize={selectedPeriod === 'all' ? 30 : 15}
                   />
                   <ChartLegend content={<ChartLegendContent />} />
                 </BarChart>
@@ -299,7 +380,7 @@ export default function FinanceiroPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex gap-3">
-              <div className="mt-1 bg-amber-100 dark:bg-amber-900/30 p-2 rounded-full h-fit">
+              <div className="mt-1 bg-amber-100 dark:bg-amber-900/30 p-2 rounded-full h-fit shrink-0">
                 <ShieldCheck className="h-4 w-4 text-amber-600" />
               </div>
               <div>
@@ -310,7 +391,7 @@ export default function FinanceiroPage() {
               </div>
             </div>
             <div className="flex gap-3">
-              <div className="mt-1 bg-blue-100 dark:bg-blue-900/30 p-2 rounded-full h-fit">
+              <div className="mt-1 bg-blue-100 dark:bg-blue-900/30 p-2 rounded-full h-fit shrink-0">
                 <Zap className="h-4 w-4 text-blue-600" />
               </div>
               <div>
@@ -332,7 +413,7 @@ export default function FinanceiroPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex gap-3">
-              <div className="mt-1 bg-green-100 dark:bg-green-900/30 p-2 rounded-full h-fit">
+              <div className="mt-1 bg-green-100 dark:bg-green-900/30 p-2 rounded-full h-fit shrink-0">
                 <TrendingUp className="h-4 w-4 text-green-600" />
               </div>
               <div>
@@ -343,7 +424,7 @@ export default function FinanceiroPage() {
               </div>
             </div>
             <div className="flex gap-3">
-              <div className="mt-1 bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full h-fit">
+              <div className="mt-1 bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full h-fit shrink-0">
                 <PiggyBank className="h-4 w-4 text-purple-600" />
               </div>
               <div>
