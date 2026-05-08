@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
@@ -59,7 +58,9 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
     if (!activeChave) return null;
 
     try {
-      const orcId = `ORC${orcamento.numeroOrcamento.replace(/[^0-9]/g, '')}`;
+      // O TxID agora é o número real do orçamento. 
+      // O utilitário generatePixPayload se encarrega de limpar traços ou espaços.
+      const orcId = orcamento.numeroOrcamento;
 
       const payload = generatePixPayload({
         chave: activeChave,
