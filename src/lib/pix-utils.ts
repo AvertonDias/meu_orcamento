@@ -47,7 +47,7 @@ export function generatePixPayload({
   const cleanBeneficiario = beneficiario
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-    .replace(/[^a-zA-Z0-9\s]/g, '') // Remove caracteres especiais
+    .replace(/[^a-zA-Z0-9\s]/g, '') // Remove caracteres especiais, mantém espaços
     .substring(0, 25);
     
   const cleanCidade = cidade
@@ -58,9 +58,11 @@ export function generatePixPayload({
 
   const cleanValor = valor.toFixed(2);
   
-  // TxID (Identificador) - Retornado para estritamente ALFANUMÉRICO conforme solicitado.
+  // TxID (Identificador) - Alfanumérico com suporte a espaços conforme solicitado.
+  // O limite máximo é de 25 caracteres.
   const cleanId = identificador
-    .replace(/[^a-zA-Z0-9]/g, '') 
+    .replace(/[^a-zA-Z0-9\s]/g, '') // Remove tudo exceto letras, números e espaços
+    .replace(/\s+/g, ' ') // Evita múltiplos espaços seguidos
     .substring(0, 25) || '***';
 
   const payload = [

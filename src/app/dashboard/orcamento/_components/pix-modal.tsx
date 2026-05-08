@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
@@ -58,9 +59,10 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
     if (!activeChave) return null;
 
     try {
-      // TxID estritamente alfanumérico: orcamento + numero (removendo qualquer caractere especial)
-      const orcNumClean = orcamento.numeroOrcamento.replace(/[^a-zA-Z0-9]/g, '');
-      const orcId = `orcamento${orcNumClean}`;
+      // Gera um identificador legível com espaços entre o texto e os números
+      // Substituímos hifens e outros caracteres por espaços
+      const orcNumClean = orcamento.numeroOrcamento.replace(/[^a-zA-Z0-9]/g, ' ').trim();
+      const orcId = `orcamento ${orcNumClean}`;
 
       const payload = generatePixPayload({
         chave: activeChave,
