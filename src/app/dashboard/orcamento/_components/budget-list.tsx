@@ -173,7 +173,7 @@ export function BudgetList({
         orcamento: orcamento,
       });
     } else {
-      openWhatsApp(phones[0].numero);
+      openWhatsApp(orcamento, phones[0].numero);
     }
   };
 
@@ -254,8 +254,8 @@ export function BudgetList({
             key={o.id}
             className="hover:border-primary/50 transition-colors relative overflow-hidden"
           >
-            {o.status === 'Pago' && (
-               <div className="absolute top-0 right-0 p-1 pr-10 z-0">
+            {o.dataPagamento && (
+               <div className="absolute top-0 right-0 p-1 pr-10 z-0 pointer-events-none">
                   <Badge variant="success" className="opacity-20 transform rotate-12 text-xl py-0 px-2 font-black border-2 border-green-600">PAGO</Badge>
                </div>
             )}
@@ -273,7 +273,7 @@ export function BudgetList({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" side="bottom" onClick={(e) => e.stopPropagation()}>
-                <DropdownMenuItem onClick={() => onEdit(o)} disabled={['Aceito', 'Concluído', 'Pago'].includes(o.status)}>
+                <DropdownMenuItem onClick={() => onEdit(o)} disabled={['Concluído', 'Pago'].includes(o.status)}>
                   <Pencil className="mr-2 h-4 w-4" />
                   <span>Editar</span>
                 </DropdownMenuItem>
@@ -340,7 +340,7 @@ export function BudgetList({
                    <p className="text-sm text-muted-foreground">Nº {o.numeroOrcamento}</p>
                    {['Aceito', 'Concluído', 'Pago'].includes(o.status) && (
                       <div className="flex gap-2">
-                        {o.status !== 'Pago' && (
+                        {!o.dataPagamento && (
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
@@ -386,7 +386,7 @@ export function BudgetList({
               <div className="flex items-end justify-between mt-2">
                 <div className="flex flex-col text-sm text-muted-foreground">
                     <span>Criação: {format(parseISO(o.dataCriacao), 'dd/MM/yy')}</span>
-                    {o.status === 'Pago' && o.dataPagamento ? (
+                    {o.dataPagamento ? (
                        <span className="text-green-600 font-medium">Pago em: {format(parseISO(o.dataPagamento), 'dd/MM/yy')}</span>
                     ) : (
                        <span>Venc.: {format(addDays(parseISO(o.dataCriacao), Number(o.validadeDias)), 'dd/MM/yy')}</span>

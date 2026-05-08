@@ -18,7 +18,6 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  TableFooter,
 } from '@/components/ui/table';
 import { format, parseISO, addDays } from 'date-fns';
 import { formatCurrency, formatNumber } from '@/lib/utils';
@@ -86,14 +85,14 @@ export function BudgetDetailsModal({
                 <Badge variant={getStatusVariant(budget.status)} className="text-sm">
                   {budget.status}
                 </Badge>
-                {budget.status === 'Pago' && (
+                {dataPagamento && (
                   <Badge variant="outline" className="border-green-600 text-green-600 gap-1">
                     <Banknote className="h-3 w-3" /> RECEBIDO
                   </Badge>
                 )}
               </div>
             </div>
-            {!['Aceito', 'Concluído', 'Pago'].includes(budget.status) && (
+            {!['Concluído', 'Pago'].includes(budget.status) && (
               <Button
                 variant="outline"
                 size="icon"
