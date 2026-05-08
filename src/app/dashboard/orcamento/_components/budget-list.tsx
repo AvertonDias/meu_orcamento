@@ -302,7 +302,7 @@ export function BudgetList({
                 <div className="absolute top-0 right-0 p-1 pr-10 z-0 pointer-events-none">
                     <Badge 
                       variant="success" 
-                      className="opacity-20 transform rotate-12 text-xl py-0 px-2 font-black border-2 border-green-600 dark:text-white dark:border-white dark:bg-transparent"
+                      className="opacity-20 dark:opacity-50 transform rotate-12 text-xl py-0 px-2 font-black border-2 border-green-600 dark:text-white dark:border-white dark:bg-transparent"
                     >
                       PAGO
                     </Badge>
@@ -386,7 +386,7 @@ export function BudgetList({
                 <div className="flex-1 space-y-1 pr-10">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-lg font-semibold text-primary truncate" title={o.cliente.nome}>{o.cliente.nome}</h3>
-                    <Badge variant={getStatusVariant(o.status)}>{o.status}</Badge>
+                    <Badge variant={getStatusVariant(o.status)}>{o.status === 'Pago' ? 'Concluído' : o.status}</Badge>
                     {parcial && (
                       <Badge variant="outline" className="border-blue-500 text-blue-500 animate-pulse">
                         PAGO {Math.round((valorPago / o.totalVenda) * 100)}%

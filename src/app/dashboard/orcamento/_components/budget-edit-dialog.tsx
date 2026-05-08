@@ -368,7 +368,7 @@ export function BudgetEditDialog({
                 : editingBudget.status === 'Vencido' ? 'warning'
                 : 'secondary'
               }>
-                {editingBudget.status}
+                {editingBudget.status === 'Pago' ? 'Concluído' : editingBudget.status}
               </Badge>
             </DialogTitle>
             <DialogDescription>

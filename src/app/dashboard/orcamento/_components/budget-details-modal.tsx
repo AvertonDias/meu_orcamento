@@ -87,7 +87,7 @@ export function BudgetDetailsModal({
               </DialogTitle>
               <div className="flex gap-2 flex-wrap">
                 <Badge variant={getStatusVariant(budget.status)} className="text-sm">
-                  {budget.status}
+                  {budget.status === 'Pago' ? 'Concluído' : budget.status}
                 </Badge>
                 {quitado ? (
                   <Badge variant="success" className="gap-1">
