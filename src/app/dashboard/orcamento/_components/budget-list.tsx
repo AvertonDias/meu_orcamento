@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -314,7 +313,7 @@ export function BudgetList({
                       <DropdownMenuItem onClick={() => sendWhatsApp(o, 'budget')}>
                         <FileText className="mr-2 h-4 w-4" /> Enviar Orçamento
                       </DropdownMenuItem>
-                      {o.status === 'Aceito' && (
+                      {['Aceito', 'Concluído'].includes(o.status) && (
                         <DropdownMenuItem onClick={() => sendWhatsApp(o, 'pix')}>
                           <Share2 className="mr-2 h-4 w-4" /> Enviar Pix (Copia e Cola)
                         </DropdownMenuItem>
@@ -323,7 +322,7 @@ export function BudgetList({
                   </DropdownMenuPortal>
                 </DropdownMenuSub>
 
-                {o.status === 'Aceito' && (
+                {['Aceito', 'Concluído'].includes(o.status) && (
                   <DropdownMenuItem onClick={() => onShowPix(o)}>
                     <QrCode className="mr-2 h-4 w-4" /> Ver Pix
                   </DropdownMenuItem>
@@ -376,7 +375,7 @@ export function BudgetList({
                 </div>
                 <div className="flex items-center justify-between">
                    <p className="text-sm text-muted-foreground">Nº {o.numeroOrcamento}</p>
-                   {o.status === 'Aceito' && (
+                   {['Aceito', 'Concluído'].includes(o.status) && (
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
