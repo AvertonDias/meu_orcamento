@@ -58,9 +58,10 @@ export function generatePixPayload({
 
   const cleanValor = valor.toFixed(2);
   
-  // TxID (Identificador) deve ser alfanumérico e sem espaços para ser compatível com a maioria dos bancos
+  // TxID (Identificador) - Adicionado suporte a '.' e '-' conforme solicitado pelo usuário.
+  // Nota: Alguns bancos podem ter restrições, mas esses caracteres são comumente aceitos.
   const cleanId = identificador
-    .replace(/[^a-zA-Z0-9]/g, '') 
+    .replace(/[^a-zA-Z0-9.-]/g, '') 
     .substring(0, 25) || '***';
 
   const payload = [

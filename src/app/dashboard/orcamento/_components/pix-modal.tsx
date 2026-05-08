@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
@@ -58,9 +59,9 @@ export function PixModal({ isOpen, onOpenChange, orcamento, empresa }: PixModalP
     if (!activeChave) return null;
 
     try {
-      // O TxID agora inclui o prefixo 'orcamento' seguido do número real do orçamento.
-      // O utilitário generatePixPayload se encarrega de limpar caracteres não permitidos (acentos, espaços, traços).
-      const orcId = `orcamento${orcamento.numeroOrcamento}`;
+      // O TxID agora inclui o prefixo 'orcamento.' seguido do número real do orçamento.
+      // O número real do orçamento já possui o formato '001-2024'.
+      const orcId = `orcamento.${orcamento.numeroOrcamento}`;
 
       const payload = generatePixPayload({
         chave: activeChave,
