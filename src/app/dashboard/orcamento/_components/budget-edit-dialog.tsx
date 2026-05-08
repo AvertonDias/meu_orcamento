@@ -45,6 +45,7 @@ import {
   ChevronsUpDown,
   Check,
   CalendarIcon,
+  Banknote,
 } from 'lucide-react';
 import {
   formatCurrency,
@@ -147,6 +148,8 @@ export function BudgetEditDialog({
   
   const [isEditingClient, setIsEditingClient] = useState(false);
 
+  const [valorPagoStr, setValorPagoStr] = useState('');
+
 
   /* ===========================
      Effects
@@ -156,6 +159,7 @@ export function BudgetEditDialog({
 
     setEditingBudget({ ...budget });
     setEditingBudgetItens([...budget.itens]);
+    setValorPagoStr(maskCurrency((budget.valorPago || 0).toFixed(2)));
 
     const calculated = budget.itens.reduce((s, i) => s + i.precoVenda, 0);
 
@@ -247,6 +251,8 @@ export function BudgetEditDialog({
   const handleUpdateBudget = async () => {
     if (!editingBudget) return;
 
+    const valorPagoNumerico = parseFloat(valorPagoStr.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+
     try {
       setIsSubmitting(true);
 
@@ -254,6 +260,7 @@ export function BudgetEditDialog({
         ...editingBudget,
         itens: editingBudgetItens,
         totalVenda: finalTotal,
+        valorPago: valorPagoNumerico,
       });
 
       onOpenChange(false);
@@ -537,9 +544,26 @@ export function BudgetEditDialog({
             </div>
             
             <div className="border-t pt-4">
-              <div className="flex justify-end items-center">
-                <div className="flex-1 max-w-[250px] space-y-1">
-                  <Label htmlFor="manualTotal" className="text-right block pr-2">Total do Orçamento</Label>
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                {/* FINANCEIRO */}
+                <div className="w-full sm:max-w-[250px] space-y-2">
+                  <Label htmlFor="valorPago" className="flex items-center gap-1 font-bold text-green-600">
+                    <Banknote className="h-4 w-4" /> Valor Já Recebido
+                  </Label>
+                  <Input 
+                    id="valorPago"
+                    value={valorPagoStr}
+                    onChange={(e) => setValorPagoStr(maskCurrency(e.target.value))}
+                    className="font-bold border-green-200"
+                  />
+                  <p className="text-[10px] text-muted-foreground italic">
+                    Use este campo para corrigir pagamentos lançados por engano.
+                  </p>
+                </div>
+
+                {/* TOTAL */}
+                <div className="w-full sm:max-w-[250px] space-y-1">
+                  <Label htmlFor="manualTotal" className="sm:text-right block pr-2 font-bold">Total do Orçamento</Label>
                   <div className="relative">
                     <Input
                       id="manualTotal"
@@ -699,3 +723,4 @@ export function BudgetEditDialog({
     </>
   );
 }
+
