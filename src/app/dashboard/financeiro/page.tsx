@@ -31,14 +31,48 @@ import {
   Clock, 
   CheckCircle2, 
   Search, 
-  FilterX,
-  ArrowUpRight,
-  ArrowDownRight,
   Wallet,
-  Loader2
+  Loader2,
+  BarChart3
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { 
+  Bar, 
+  BarChart, 
+  CartesianGrid, 
+  XAxis, 
+  YAxis,
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip
+} from 'recharts';
+import { 
+  ChartConfig, 
+  ChartContainer, 
+  ChartTooltip, 
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent
+} from "@/components/ui/chart";
+import { 
+  subMonths, 
+  format as formatDate, 
+  startOfMonth, 
+  endOfMonth, 
+  isWithinInterval, 
+  parseISO 
+} from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
+const chartConfig = {
+  recebido: {
+    label: "Recebido",
+    color: "#22c55e",
+  },
+  aReceber: {
+    label: "A Receber",
+    color: "#f59e0b",
+  },
+} satisfies ChartConfig;
 
 export default function FinanceiroPage() {
   const [user, loadingAuth] = useAuthState(auth);
@@ -59,7 +93,7 @@ export default function FinanceiroPage() {
     return orcamentosRaw.map(o => o.data).filter(o => o.status !== 'Recusado');
   }, [orcamentosRaw]);
 
-  // Cálculos financeiros
+  // Cálculos financeiros totais
   const totais = useMemo(() => {
     return orcamentos.reduce(
       (acc, orc) => {
@@ -77,6 +111,7 @@ export default function FinanceiroPage() {
     );
   }, [orcamentos]);
 
+  // Filtragem para o gráfico e para a tabela
   const orcamentosFiltrados = useMemo(() => {
     if (!searchTerm) return orcamentos;
     const s = searchTerm.toLowerCase();
@@ -86,6 +121,47 @@ export default function FinanceiroPage() {
         o.numeroOrcamento.toLowerCase().includes(s)
     );
   }, [orcamentos, searchTerm]);
+
+  // Dados para o gráfico de 12 meses
+  const chartData = useMemo(() => {
+    if (!mounted) return [];
+    
+    const months = [];
+    const now = new Date();
+    
+    // Gera os últimos 12 meses
+    for (let i = 11; i >= 0; i--) {
+      const d = subMonths(now, i);
+      months.push({
+        month: formatDate(d, 'MMM/yy', { locale: ptBR }),
+        recebido: 0,
+        aReceber: 0,
+        timestamp: startOfMonth(d)
+      });
+    }
+
+    // Distribui os orçamentos nos meses
+    orcamentosFiltrados.forEach(orc => {
+      const dataOrc = parseISO(orc.dataCriacao);
+      const total = orc.totalVenda || 0;
+      const pago = orc.valorPago || 0;
+      const saldo = Math.max(0, total - pago);
+
+      const monthIndex = months.findIndex(m => 
+        isWithinInterval(dataOrc, { 
+          start: m.timestamp, 
+          end: endOfMonth(m.timestamp) 
+        })
+      );
+
+      if (monthIndex !== -1) {
+        months[monthIndex].recebido += pago;
+        months[monthIndex].aReceber += saldo;
+      }
+    });
+
+    return months;
+  }, [orcamentosFiltrados, mounted]);
 
   if (!mounted || loadingAuth) {
     return (
@@ -152,18 +228,21 @@ export default function FinanceiroPage() {
         </Card>
       </div>
 
-      {/* LISTA DETALHADA */}
+      {/* GRÁFICO DE 12 MESES */}
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle>Detalhamento por Orçamento</CardTitle>
-              <CardDescription>Acompanhe o status de pagamento de cada cliente.</CardDescription>
+            <div className="flex items-center gap-2">
+              <BarChart3 className="text-primary h-5 w-5" />
+              <div>
+                <CardTitle>Histórico de 12 Meses</CardTitle>
+                <CardDescription>Recebimentos e saldos pendentes por mês.</CardDescription>
+              </div>
             </div>
             <div className="relative w-full sm:w-64">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar cliente..."
+                placeholder="Filtrar por cliente..."
                 className="pl-8"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -172,10 +251,62 @@ export default function FinanceiroPage() {
           </div>
         </CardHeader>
         <CardContent>
+          <div className="h-[350px] w-full pt-4">
+            <ChartContainer config={chartConfig} className="h-full w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 20, right: 10, left: 10, bottom: 0 }}>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.3} />
+                  <XAxis 
+                    dataKey="month" 
+                    tickLine={false} 
+                    tickMargin={10} 
+                    axisLine={false}
+                    className="text-[10px] font-medium"
+                  />
+                  <YAxis 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tickFormatter={(value) => `R$ ${value >= 1000 ? (value/1000).toFixed(0) + 'k' : value}`}
+                    className="text-[10px] font-medium"
+                  />
+                  <ChartTooltip 
+                    content={<ChartTooltipContent 
+                      formatter={(value) => formatCurrency(Number(value))}
+                    />} 
+                  />
+                  <Bar 
+                    dataKey="recebido" 
+                    fill="var(--color-recebido)" 
+                    stackId="a" 
+                    radius={[0, 0, 0, 0]}
+                    barSize={30}
+                  />
+                  <Bar 
+                    dataKey="aReceber" 
+                    fill="var(--color-aReceber)" 
+                    stackId="a" 
+                    radius={[4, 4, 0, 0]}
+                    barSize={30}
+                  />
+                  <ChartLegend content={<ChartLegendContent />} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* TABELA DETALHADA (OPCIONAL/CONSULTA) */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Listagem de Saldos</CardTitle>
+          <CardDescription>Acompanhe o progresso de pagamento de cada cliente.</CardDescription>
+        </CardHeader>
+        <CardContent>
           {orcamentosFiltrados.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground">
-              <Wallet className="mx-auto h-12 w-12 opacity-20 mb-4" />
-              <p>Nenhum registro financeiro encontrado.</p>
+            <div className="py-8 text-center text-muted-foreground">
+              <Wallet className="mx-auto h-10 w-10 opacity-20 mb-2" />
+              <p>Nenhum registro encontrado.</p>
             </div>
           ) : (
             <div className="border rounded-md overflow-hidden">
@@ -232,30 +363,6 @@ export default function FinanceiroPage() {
           )}
         </CardContent>
       </Card>
-
-      {/* DICAS FINANCEIRAS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="bg-muted/30">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold flex items-center gap-2">
-              <ArrowUpRight className="text-green-500" /> Dica de Fluxo de Caixa
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
-            Sempre que possível, solicite um sinal de 30% a 50% no momento do aceite para cobrir os custos de materiais e garantir o compromisso do cliente.
-          </CardContent>
-        </Card>
-        <Card className="bg-muted/30">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold flex items-center gap-2">
-              <ArrowDownRight className="text-amber-500" /> Cobrança Ativa
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
-            Orçamentos concluídos mas não quitados (saldo &gt; 0) devem ser sua prioridade de contato. Envie o QR Code Pix pelo WhatsApp para facilitar o pagamento.
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }
