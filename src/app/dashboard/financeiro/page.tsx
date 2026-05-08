@@ -204,15 +204,17 @@ export default function FinanceiroPage() {
     );
   }
 
+  const selectedPeriodLabel = periodOptions.find(o => o.value === selectedPeriod)?.label;
+
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Banknote className="text-primary" />
+            <Banknote className="text-primary h-6 w-6" />
             Financeiro
           </h1>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-xs sm:text-sm">
             Controle de entradas, saldos a receber e projeções de faturamento.
           </p>
         </div>
@@ -220,7 +222,7 @@ export default function FinanceiroPage() {
         <div className="flex items-center gap-2 w-full sm:w-auto">
            <CalendarDays className="text-muted-foreground h-4 w-4 hidden sm:block" />
            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-            <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px] h-9 text-sm">
               <SelectValue placeholder="Selecione o período" />
             </SelectTrigger>
             <SelectContent>
@@ -235,63 +237,65 @@ export default function FinanceiroPage() {
       </div>
 
       {/* CARDS DE RESUMO */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="border-l-4 border-l-green-500">
-          <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-1 uppercase font-bold text-[10px]">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <Card className="border-l-4 border-l-green-500 shadow-sm">
+          <CardHeader className="p-3 sm:p-4 pb-1 sm:pb-2">
+            <CardDescription className="flex items-center gap-1 uppercase font-bold text-[10px] tracking-wider">
               <CheckCircle2 className="h-3 w-3 text-green-500" /> Total Recebido
             </CardDescription>
-            <CardTitle className="text-2xl text-green-600">
+            <CardTitle className="text-xl sm:text-2xl text-green-600 truncate">
               {formatCurrency(totais.recebido)}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 sm:p-4 pt-0">
             <p className="text-[10px] text-muted-foreground">
-              {selectedPeriod === 'all' ? 'Dinheiro já em conta' : `Referente a ${periodOptions.find(o => o.value === selectedPeriod)?.label}`}
+              {selectedPeriod === 'all' ? 'Dinheiro já em conta' : `Recebido em ${selectedPeriodLabel}`}
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-amber-500">
-          <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-1 uppercase font-bold text-[10px]">
+        <Card className="border-l-4 border-l-amber-500 shadow-sm">
+          <CardHeader className="p-3 sm:p-4 pb-1 sm:pb-2">
+            <CardDescription className="flex items-center gap-1 uppercase font-bold text-[10px] tracking-wider">
               <Clock className="h-3 w-3 text-amber-500" /> A Receber
             </CardDescription>
-            <CardTitle className="text-2xl text-amber-600">
+            <CardTitle className="text-xl sm:text-2xl text-amber-600 truncate">
               {formatCurrency(totais.aReceber)}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-[10px] text-muted-foreground">Saldos pendentes de orçamentos</p>
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <p className="text-[10px] text-muted-foreground">Saldos pendentes no período</p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-primary">
-          <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-1 uppercase font-bold text-[10px]">
+        <Card className="border-l-4 border-l-primary shadow-sm">
+          <CardHeader className="p-3 sm:p-4 pb-1 sm:pb-2">
+            <CardDescription className="flex items-center gap-1 uppercase font-bold text-[10px] tracking-wider">
               <TrendingUp className="h-3 w-3 text-primary" /> Projeção Total
             </CardDescription>
-            <CardTitle className="text-2xl text-primary">
+            <CardTitle className="text-xl sm:text-2xl text-primary truncate">
               {formatCurrency(totais.totalGeral)}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 sm:p-4 pt-0">
             <p className="text-[10px] text-muted-foreground">Soma de todos os contratos ativos</p>
           </CardContent>
         </Card>
       </div>
 
       {/* GRÁFICO DE EVOLUÇÃO */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <Card className="shadow-sm overflow-hidden">
+        <CardHeader className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
             <div className="flex items-center gap-2">
-              <BarChart3 className="text-primary h-5 w-5" />
+              <div className="bg-primary/10 p-1.5 rounded-md">
+                <BarChart3 className="text-primary h-4 w-4 sm:h-5 sm:w-5" />
+              </div>
               <div>
-                <CardTitle>
-                  {selectedPeriod === 'all' ? 'Evolução dos Últimos 12 Meses' : `Evolução em ${periodOptions.find(o => o.value === selectedPeriod)?.label}`}
+                <CardTitle className="text-base sm:text-lg">
+                  {selectedPeriod === 'all' ? 'Evolução dos Últimos 12 Meses' : `Evolução Diária - ${selectedPeriodLabel}`}
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs">
                   {selectedPeriod === 'all' 
                     ? 'Recebimentos e saldos pendentes por mês.' 
                     : 'Acompanhamento diário das vendas e recebimentos do mês.'}
@@ -300,26 +304,28 @@ export default function FinanceiroPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="h-[350px] w-full pt-4">
+        <CardContent className="p-1 sm:p-6 pt-0">
+          <div className="h-[280px] sm:h-[350px] w-full pt-4">
             <ChartContainer config={chartConfig} className="h-full w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 20, right: 10, left: 10, bottom: 0 }}>
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.3} />
+                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.2} />
                   <XAxis 
                     dataKey="label" 
                     tickLine={false} 
                     tickMargin={10} 
                     axisLine={false}
-                    className="text-[10px] font-medium"
+                    className="text-[9px] sm:text-[10px] font-medium"
+                    interval={selectedPeriod === 'all' ? 0 : 2}
                   />
                   <YAxis 
                     tickLine={false} 
                     axisLine={false} 
-                    tickFormatter={(value) => `R$ ${value >= 1000 ? (value/1000).toFixed(0) + 'k' : value}`}
-                    className="text-[10px] font-medium"
+                    tickFormatter={(value) => `R$${value >= 1000 ? (value/1000).toFixed(0) + 'k' : value}`}
+                    className="text-[9px] sm:text-[10px] font-medium"
                   />
                   <ChartTooltip 
+                    cursor={{fill: 'var(--muted)', opacity: 0.2}}
                     content={<ChartTooltipContent 
                       formatter={(value) => formatCurrency(Number(value))}
                     />} 
@@ -329,16 +335,16 @@ export default function FinanceiroPage() {
                     fill="var(--color-recebido)" 
                     stackId="a" 
                     radius={[0, 0, 0, 0]}
-                    barSize={selectedPeriod === 'all' ? 30 : 15}
+                    barSize={selectedPeriod === 'all' ? 25 : 8}
                   />
                   <Bar 
                     dataKey="aReceber" 
                     fill="var(--color-aReceber)" 
                     stackId="a" 
                     radius={[4, 4, 0, 0]}
-                    barSize={selectedPeriod === 'all' ? 30 : 15}
+                    barSize={selectedPeriod === 'all' ? 25 : 8}
                   />
-                  <ChartLegend content={<ChartLegendContent />} />
+                  <ChartLegend content={<ChartLegendContent className="text-[10px] sm:text-xs" />} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
@@ -347,17 +353,17 @@ export default function FinanceiroPage() {
       </Card>
 
       {/* DICAS FINANCEIRAS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Lightbulb className="text-amber-500 h-5 w-5" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <Card className="shadow-sm">
+          <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Lightbulb className="text-amber-500 h-4 w-4 sm:h-5 sm:w-5" />
               Dicas de Gestão
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="p-4 sm:p-6 pt-0 space-y-4">
             <div className="flex gap-3">
-              <div className="mt-1 bg-amber-100 dark:bg-amber-900/30 p-2 rounded-full h-fit shrink-0">
+              <div className="mt-0.5 bg-amber-100 dark:bg-amber-900/30 p-2 rounded-full h-fit shrink-0">
                 <ShieldCheck className="h-4 w-4 text-amber-600" />
               </div>
               <div>
@@ -368,29 +374,29 @@ export default function FinanceiroPage() {
               </div>
             </div>
             <div className="flex gap-3">
-              <div className="mt-1 bg-blue-100 dark:bg-blue-900/30 p-2 rounded-full h-fit shrink-0">
+              <div className="mt-0.5 bg-blue-100 dark:bg-blue-900/30 p-2 rounded-full h-fit shrink-0">
                 <Zap className="h-4 w-4 text-blue-600" />
               </div>
               <div>
                 <p className="font-bold text-sm">Mantenha os Status em Dia</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Atualize orçamentos para 'Aceito' ou 'Concluído' assim que ocorrer a mudança. Isso mantém sua projeção financeira (A Receber) sempre real.
+                  Atualize orçamentos para 'Aceito' ou 'Concluído' assim que ocorrer a mudança. Isso mantém sua projeção financeira sempre real.
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <PiggyBank className="text-green-500 h-5 w-5" />
+        <Card className="shadow-sm">
+          <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <PiggyBank className="text-green-500 h-4 w-4 sm:h-5 sm:w-5" />
               Saúde do seu Negócio
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="p-4 sm:p-6 pt-0 space-y-4">
             <div className="flex gap-3">
-              <div className="mt-1 bg-green-100 dark:bg-green-900/30 p-2 rounded-full h-fit shrink-0">
+              <div className="mt-0.5 bg-green-100 dark:bg-green-900/30 p-2 rounded-full h-fit shrink-0">
                 <TrendingUp className="h-4 w-4 text-green-600" />
               </div>
               <div>
@@ -401,13 +407,13 @@ export default function FinanceiroPage() {
               </div>
             </div>
             <div className="flex gap-3">
-              <div className="mt-1 bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full h-fit shrink-0">
+              <div className="mt-0.5 bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full h-fit shrink-0">
                 <PiggyBank className="h-4 w-4 text-purple-600" />
               </div>
               <div>
                 <p className="font-bold text-sm">Reserva de Emergência</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Tente separar 10% de cada serviço recebido em uma conta separada para cobrir manutenções de ferramentas ou períodos com menos serviços.
+                  Tente separar 10% de cada serviço recebido para cobrir manutenções de ferramentas ou períodos com menos serviços.
                 </p>
               </div>
             </div>
